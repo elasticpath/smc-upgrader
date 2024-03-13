@@ -1,0 +1,103 @@
+/*	Copyright 2024 Elastic Path Software Inc.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
+
+package com.elasticpath.tools.smcupgrader;
+
+import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
+
+import java.io.File;
+import java.util.concurrent.Callable;
+
+import ch.qos.logback.classic.Level;
+import picocli.CommandLine;
+
+/**
+ * The main SMC Upgrader class.
+ */
+@CommandLine.Command(name = "smc-upgrader", mixinStandardHelpOptions = true, version = "smc-upgrader 1.0",
+		description = "Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.")
+public class SMCUpgraderCLI implements Callable<Integer> {
+	private static final String DEFAULT_UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
+
+	@CommandLine.Parameters(index = "0",
+			description = "The version of Elastic Path Self-Managed Commerce to upgrade to.")
+	private String version;
+
+	@CommandLine.Option(names = { "-C" },
+			description = "The working directory containing the git repo to be upgraded. Defaults to the current working directory.",
+			defaultValue = "${sys:user.dir}"
+	)
+	private File workingDir;
+
+	@CommandLine.Option(names = { "-u", "--upstream-repository-url" },
+			description = "The URL of the upstream repository containing upgrade commits.",
+			defaultValue = DEFAULT_UPSTREAM_REPO_URL)
+	private String upstreamRemoteRepositoryUrl;
+
+	@CommandLine.Option(names = { "-v", "--verbose" },
+			description = "Enables debug logging.",
+			defaultValue = "false")
+	private boolean debugLogging;
+
+	@CommandLine.Option(names = { "-m", "--do-merge" },
+			description = "Toggles whether to perform a merge. Enabled by default.",
+			negatable = true,
+			defaultValue = "true")
+	private boolean doMerge;
+
+	@CommandLine.Option(names = { "-r", "--do-resolve-conflicts" },
+			description = "Toggles whether to resolve merge conflicts. Enabled by default.",
+			negatable = true,
+			defaultValue = "true")
+	private boolean doConflictResolution;
+
+	@CommandLine.Option(names = { "-d", "--do-resolve-diffs" },
+			description = "Toggles whether to reconcile diffs between the merged branch and the upstream contents. Enabled by default.",
+			negatable = true, defaultValue = "true")
+	private boolean doDiffResolution;
+
+	@Override
+	public Integer call() {
+		try {
+			if (debugLogging) {
+				((ch.qos.logback.classic.Logger) LOGGER).setLevel(Level.DEBUG);
+			}
+
+			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
+
+			upgradeController.performUpgrade(version, doMerge, doConflictResolution, doDiffResolution);
+
+			return 0;
+		} catch (LoggableException e) {
+			LOGGER.error(e.getMessage());
+		} catch (RuntimeException e) {
+			LOGGER.error("Unexpected error encountered while upgrading: " + e.getMessage());
+			LOGGER.debug("Error details:", e);
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Main entrypoint.
+	 *
+	 * @param args command-line arguments
+	 */
+	public static void main(final String... args) {
+		System.exit(new CommandLine(new SMCUpgraderCLI())
+				.setToggleBooleanFlags(true)
+				.execute(args));
+	}
+}
