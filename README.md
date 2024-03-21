@@ -64,7 +64,22 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
 
 ```
 
-## Basic Examples
+## Usage Examples
+
+### Setup
+
+- Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository
+  as a remote:
+  ```
+  git remote add smc-upgrade git@code.elasticpath.com:ep-commerce
+  ``` 
+
+- For best results, update the local git repository with the latest changes from the upstream repository each time the application is run:
+  ```
+  git fetch --all
+  ```
+
+### Upgrading
 
 - The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified version, performing a merge, resolving conflicts, and
   verifying the accuracy of git's merge strategy:
@@ -81,8 +96,6 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
   ```
 
 ## Tips & Tricks
-
-
 
 # License
 

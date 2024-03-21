@@ -42,13 +42,12 @@ public class UpstreamRemoteManager {
 
 		if (existingRemoteRepositoryName.isPresent()) {
 			remoteRepositoryName = existingRemoteRepositoryName.get();
-		} else {
-			remoteRepositoryName = createRemoteRepositoryName();
-
-			gitClient.addUpstreamRemote(remoteRepositoryName, upstreamRemoteRepositoryUrl);
+			return remoteRepositoryName;
 		}
 
-		return remoteRepositoryName;
+		throw new LoggableException("No upstream repository found in git configuration. Please add the remote via the following commands:\n\n"
+				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + upstreamRemoteRepositoryUrl + "\n"
+				+ "git fetch --all");
 	}
 
 	/**

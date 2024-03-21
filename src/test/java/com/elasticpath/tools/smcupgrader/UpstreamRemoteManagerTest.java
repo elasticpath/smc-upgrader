@@ -1,19 +1,17 @@
 package com.elasticpath.tools.smcupgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.UUID;
+import java.util.Collections;
 
 import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -49,35 +47,25 @@ public class UpstreamRemoteManagerTest {
 	}
 
 	@Test
-	public void verifyRemoteCreatedWhenNotFound() {
+	public void verifyExceptionThrownWhenNotFound() {
 		final RemoteRepository repoOther = new RemoteRepository("otherName", "git@example.com/otherproject.git");
-		final String newRemoteRepoName = UUID.randomUUID().toString();
 
 		when(gitClient.getRemoteRepositories())
 				.thenReturn(Sets.newLinkedHashSet(repoOther));
-		when(upstreamRemoteManager.createRemoteRepositoryName())
-				.thenReturn(newRemoteRepoName);
 
-		assertThat(upstreamRemoteManager.getUpstreamRemoteName())
-				.isEqualTo(newRemoteRepoName);
+		assertThatThrownBy(() -> upstreamRemoteManager.getUpstreamRemoteName())
+				.isInstanceOf(LoggableException.class);
 
-		verify(gitClient).addUpstreamRemote(newRemoteRepoName, REMOTE_REPO_URL);
+
 	}
 
 	@Test
-	public void verifyRemoteCreatedWhenRemotesListEmpty() {
-		final RemoteRepository repoOther = new RemoteRepository("otherName", "git@example.com/otherproject.git");
-		final String newRemoteRepoName = UUID.randomUUID().toString();
-
+	public void verifyExceptionThrownWhenRemotesListEmpty() {
 		when(gitClient.getRemoteRepositories())
-				.thenReturn(Sets.newLinkedHashSet(repoOther));
-		when(upstreamRemoteManager.createRemoteRepositoryName())
-				.thenReturn(newRemoteRepoName);
+				.thenReturn(Collections.emptySet());
 
-		assertThat(upstreamRemoteManager.getUpstreamRemoteName())
-				.isEqualTo(newRemoteRepoName);
-
-		verify(gitClient).addUpstreamRemote(newRemoteRepoName, REMOTE_REPO_URL);
+		assertThatThrownBy(() -> upstreamRemoteManager.getUpstreamRemoteName())
+				.isInstanceOf(LoggableException.class);
 	}
 
 }
