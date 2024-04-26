@@ -128,26 +128,6 @@ public class GitClient {
 	}
 
 	/**
-	 * Switches to a working branch for the purposes of upgrading to a given version.
-	 *
-	 * @param version the version to upgrade to
-	 * @return the name of the branch
-	 */
-	public String checkOutWorkingBranch(final String version) {
-		final String branchName = "upgrade/" + version;
-
-		try (Git git = new Git(repository)) {
-			final ObjectId existingBranch = repository.resolve(branchName);
-
-			git.checkout().setCreateBranch(existingBranch == null).setName(branchName).call();
-
-			return branchName;
-		} catch (final GitAPIException | IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
 	 * Performs a merge operation for the given ref.
 	 *
 	 * @param toMerge the {@link Ref} to merge into the current working branch.
