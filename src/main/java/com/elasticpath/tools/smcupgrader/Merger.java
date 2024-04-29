@@ -1,5 +1,6 @@
 package com.elasticpath.tools.smcupgrader;
 
+import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
 import java.util.List;
 
@@ -46,6 +47,8 @@ public class Merger {
 		}
 
 		final Ref releaseBranch = gitClient.getReleaseBranch(upstreamRemoteName, upgradeTargetVersion);
+
+		LOGGER.info("Upgrading current working branch to version {}...", upgradeTargetVersion);
 
 		gitClient.merge(releaseBranch);
 
