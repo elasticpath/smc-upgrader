@@ -48,10 +48,7 @@ public class Merger {
 
 		final Ref releaseBranch = gitClient.getReleaseBranch(upstreamRemoteName, upgradeTargetVersion);
 
-		final String workingBranch = gitClient.checkOutWorkingBranch(upgradeTargetVersion);
-		LOGGER.info("Switched working directory to branch " + workingBranch + ".");
-
-		LOGGER.info("Upgrading current working branch " + workingBranch + " to version " + upgradeTargetVersion + "...");
+		LOGGER.info("Upgrading current working branch to version {}...", upgradeTargetVersion);
 
 		gitClient.merge(releaseBranch);
 
