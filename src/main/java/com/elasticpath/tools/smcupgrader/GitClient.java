@@ -44,8 +44,8 @@ public class GitClient {
 
 	private final Repository repository;
 
-	private static final String NO_COMMON_ANCESTOR = "git merge was unsuccessful. "
-			+ "Usually this means that git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.";
+	private static final String NO_COMMON_ANCESTOR = "Git merge failed. "
+			+ "Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.";
 
 	/**
 	 * Constructor.
@@ -137,7 +137,7 @@ public class GitClient {
 	 *
 	 * @param toMerge the {@link Ref} to merge into the current working branch.
 	 */
-	public void merge(final Ref toMerge) throws MergeException{
+	public void merge(final Ref toMerge) {
 		try (Git git = new Git(repository)) {
 			MergeResult result = git.merge()
 					.include(toMerge)
@@ -145,8 +145,8 @@ public class GitClient {
 					.call();
 
 			if (result.getBase() == null) {
-				// Cleanup: git merge --abort
-				mergeAbortCleanup();
+				// Cleanup: git reset --hard
+				cleanupUnmergedFiles();
 				throw new MergeException(NO_COMMON_ANCESTOR);
 			}
 
@@ -216,7 +216,7 @@ public class GitClient {
 		}
 	}
 
-	private void mergeAbortCleanup() throws IOException, GitAPIException {
+	private void cleanupUnmergedFiles() throws IOException, GitAPIException {
 			repository.writeMergeCommitMsg(null);
 			repository.writeMergeHeads(null);
 			Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
