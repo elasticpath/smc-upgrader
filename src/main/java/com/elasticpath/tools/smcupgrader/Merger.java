@@ -50,7 +50,11 @@ public class Merger {
 
 		LOGGER.info("Upgrading current working branch to version {}...", upgradeTargetVersion);
 
-		gitClient.merge(releaseBranch);
+		try {
+			gitClient.merge(releaseBranch);
+		} catch (MergeException e) {
+			throw new RuntimeException(e);
+		}
 
 		// JGit will not stage files changed during a merge when the only modification was to the file mode.
 		final List<DiffEntry> diff = gitClient.getDiff();
