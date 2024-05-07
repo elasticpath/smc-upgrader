@@ -145,7 +145,6 @@ public class GitClient {
 					.call();
 
 			if (result.getBase() == null) {
-				// Cleanup: git reset --hard
 				cleanupUnmergedFiles();
 				throw new MergeException(NO_COMMON_ANCESTOR);
 			}
@@ -216,6 +215,9 @@ public class GitClient {
 		}
 	}
 
+	/**
+	 * Cleanup: git reset --hard
+	 */
 	private void cleanupUnmergedFiles() throws IOException, GitAPIException {
 			repository.writeMergeCommitMsg(null);
 			repository.writeMergeHeads(null);
