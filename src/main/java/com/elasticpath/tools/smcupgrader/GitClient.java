@@ -15,7 +15,9 @@ import java.util.stream.StreamSupport;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -41,6 +43,9 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 public class GitClient {
 
 	private final Repository repository;
+
+	private static final String NO_COMMON_ANCESTOR = "Git merge failed. "
+			+ "Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.";
 
 	/**
 	 * Constructor.
@@ -134,11 +139,17 @@ public class GitClient {
 	 */
 	public void merge(final Ref toMerge) {
 		try (Git git = new Git(repository)) {
-			git.merge()
+			MergeResult result = git.merge()
 					.include(toMerge)
 					.setFastForward(MergeCommand.FastForwardMode.NO_FF)
 					.call();
-		} catch (final GitAPIException e) {
+
+			if (result.getBase() == null) {
+				cleanupUnmergedFiles();
+				throw new MergeException(NO_COMMON_ANCESTOR);
+			}
+
+		} catch (final GitAPIException | RuntimeException | IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -202,6 +213,15 @@ public class GitClient {
 		} catch (final GitAPIException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Cleanup: git reset --hard
+	 */
+	private void cleanupUnmergedFiles() throws IOException, GitAPIException {
+			repository.writeMergeCommitMsg(null);
+			repository.writeMergeHeads(null);
+			Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
 	}
 
 	private static boolean commitExistsInRemote(final Git git, final String upstreamRemoteName, final RevCommit commit) {
