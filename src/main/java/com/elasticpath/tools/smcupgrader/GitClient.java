@@ -44,8 +44,8 @@ public class GitClient {
 
 	private final Repository repository;
 
-	private static final String NO_COMMON_ANCESTOR = "Git merge failed. "
-			+ "Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.";
+	private static final String NO_COMMON_ANCESTOR = "Git merge failed. Usually this means that Git could not find a "
+			+ "common ancestor commit between your branch and the Self Managed Commerce release branch.";
 
 	/**
 	 * Constructor.
@@ -216,7 +216,7 @@ public class GitClient {
 	}
 
 	/**
-	 * Cleanup: git reset --hard
+	 * Cleanup: git reset --hard.
 	 */
 	private void cleanupUnmergedFiles() throws IOException, GitAPIException {
 			repository.writeMergeCommitMsg(null);
