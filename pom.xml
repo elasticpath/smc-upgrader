@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.elasticpath.tools</groupId>
 	<artifactId>smc-upgrader</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.31-SNAPSHOT</version>
 	<name>smc-upgrader</name>
 	<description>CLI utility to apply Elastic Path Self-Managed Commerce updates to a codebase.</description>
 
@@ -15,10 +14,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<developer.connection>scm:git:git@github.com:ep-nelsonqiao/smc-upgrader.git</developer.connection>
 	</properties>
 
 	<scm>
-		<developerConnection>scm:git:git@github.com:ep-nelsonqiao/smc-upgrader.git</developerConnection>
+		<developerConnection>${developer.connection}</developerConnection>
 		<tag>smc-upgrader-0.1.0</tag>
 	</scm>
 
