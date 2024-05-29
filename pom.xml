@@ -18,7 +18,7 @@
 	</properties>
 
 	<scm>
-		<developerConnection>scm:git:git@gitlab.elasticpath.com:commerce-cloud/playground/smc-upgrader.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:ep-nelsonqiao/smc-upgrader.git</developerConnection>
 		<tag>smc-upgrader-0.1.0</tag>
 	</scm>
 
