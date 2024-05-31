@@ -15,10 +15,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<developer.connection>scm:git:git@github.com:elasticpath/smc-upgrader.git</developer.connection>
 	</properties>
 
 	<scm>
-		<developerConnection>scm:git:git@github.com:elasticpath/smc-upgrader.git</developerConnection>
+		<developerConnection>${developer.connection}</developerConnection>
 		<tag>smc-upgrader-0.1.0</tag>
 	</scm>
 
