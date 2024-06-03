@@ -129,7 +129,7 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
 Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository as a remote:
 
 ```
-git remote add smc-upgrades git@code.elasticpath.com:ep-commerce
+git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 ``` 
 
 For best results, update the local git repository with the latest changes from the upstream repository before each time the application is run:
@@ -163,3 +163,7 @@ It may be necessary to skip the git merge phase of the operation. This can be us
 ```
 smc-upgrader --no-do-merge 8.5.x
 ```
+
+### Demonstration
+
+![SMC Upgrader usage demonstration](smc-upgrader.gif)
