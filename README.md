@@ -27,13 +27,13 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
     brew tap elasticpath/smc-upgrader
     ```
 
-2. Install `smc-upgrader`:
+1. Install `smc-upgrader`:
 
     ```
     brew install smc-upgrader
     ```
- 
-2. Validate the installation by checking the version:
+
+1. Validate the installation by checking the version:
     ```
     smc-upgrader --help
     ```
@@ -130,7 +130,7 @@ Before running the application for the first time, ensure the Elastic Path Self-
 
 ```
 git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
-``` 
+```
 
 For best results, update the local git repository with the latest changes from the upstream repository before each time the application is run:
 
