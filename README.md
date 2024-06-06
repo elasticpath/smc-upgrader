@@ -14,10 +14,7 @@ The following section describes how to install and build `smc-upgrader`.
 
 ## Prerequisites
 
-To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 8 JDK):
-
-* Currently, `smc-upgrader` has only been tested with Java 8.
-* `smc-upgrader` has primarily been tested on macOS and Linux, but should work on most platforms with a supported JDK.
+To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 8 JRE or later).
 
 ## Homebrew installation
 
