@@ -27,7 +27,7 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>LICENSE.txt</source>
+			<source>LICENSE</source>
 			<fileMode>0644</fileMode>
 		</file>
 		<file>
