@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.elasticpath.tools</groupId>
 	<artifactId>smc-upgrader</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.3</version>
 	<name>smc-upgrader</name>
 	<description>CLI utility to apply Elastic Path Self-Managed Commerce updates to a codebase.</description>
 
@@ -19,7 +19,7 @@
 
 	<scm>
 		<developerConnection>${developer.connection}</developerConnection>
-		<tag>smc-upgrader-0.1.0</tag>
+		<tag>smc-upgrader-1.0.3</tag>
 	</scm>
 
 	<distributionManagement>
