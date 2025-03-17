@@ -137,7 +137,13 @@ git fetch --all
 
 ### Upgrading
 
-The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified version, performing a merge, resolving conflicts, and verifying the accuracy of git's merge strategy:
+The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified release version by executing these steps:
+
+1. Merge step: Merges the `release/<version>` branch from `code.elasticpath.com` into the current branch.
+2. Resolve conflicts step: Iterates across each file with conflicts, checking to see if any commits to the file were made by the project development team. If not, it resolves the conflict using the `code.elasticpath.com` version of the file.
+3. Resolve diffs step: Iterates across each file in the repo, checking to see if any commits to the file were made by the project development team. If not, it overwrites the file contents with the `code.elasticpath.com` file contents.
+
+This can be started by running:
 
 ```
 smc-upgrader 8.5.x
@@ -155,11 +161,55 @@ Alternately, you can cancel the merge with:
 git merge --abort
 ```
 
-It may be necessary to skip the git merge phase of the operation. This can be useful in cases where the git history of the repository does not include a common ancestor for the upstream changes, e.g. if the repository was initialized via a .zip release package:
+If you prefer to start the merge manually, and then only have `smc-upgrader` attempt to resolve conflicts automatically, use this command:
 
 ```
 smc-upgrader --no-do-merge 8.5.x
 ```
+
+### Troubleshooting
+
+#### Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.
+
+If `smc-upgrader` shows this error, it usually means that your Git repository was initialized using a snapshot of the source code, rather than by cloning from `code.elasticpath.com`. This will be the case if your project team started with SMC 7.0.1 or earlier, before the `code.elasticpath.com` public repository was available.
+
+Follow these steps to create a common ancestor in your Git repository:
+
+1. Browse to the [`code.elasticpath.com` repository](https://code.elasticpath.com/ep-commerce/ep-commerce/-/commits/main/?ref_type=HEADS) and make note of the SHA of the commit representing your current version of Self-Managed Commerce. For example, the SHA for SMC 8.5 is `08d434d4b7bc577c0b15f3b600dba4e6dc4a63fd`.
+2. Ensure that you have followed the [Setup](#setup) steps and have a terminal window open in your source code folder.
+3. Create a temporary branch containing the `code.elasticpath.com` release source code. Replace `${SHA}` with the SHA that you identified in step 1.
+
+```shell
+git checkout -b temp-branch ${SHA}
+```
+
+4. Switch back to your `main` or `develop` branch:
+
+```shell
+git checkout main
+```
+
+5. Create a feature branch for the upgrade:
+
+```shell
+git checkout -b smc-upgrade
+```
+
+6. Merge from the `temp-branch`, but throw away all the changes:
+
+```shell
+git merge --allow-unrelated-histories -s ours temp-branch
+```
+
+7. Follow the [upgrading](#upgrading) steps normally.
+
+8. Delete the `temp-branch`:
+
+```shell
+git branch -D temp-branch
+```
+
+You should only have to do this once; future uses of the tool should work without issue.
 
 ### Demonstration
 
