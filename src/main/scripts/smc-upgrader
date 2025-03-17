@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#	Copyright 2021 Elastic Path Software Inc.
+#	Copyright 2025 Elastic Path Software Inc.
 #
 #	Licensed under the Apache License, Version 2.0 (the "License");
 #	you may not use this file except in compliance with the License.
@@ -16,4 +16,4 @@
 #
 
 # Runs smc-upgrader
-java -jar -Xmx100m ##PREFIX##/smc-upgrader-##VERSISON##-jar-with-dependencies.jar "$@"
+java -jar -Xmx1024m ##PREFIX##/smc-upgrader-##VERSISON##-jar-with-dependencies.jar "$@"
