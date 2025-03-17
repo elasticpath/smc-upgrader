@@ -201,13 +201,13 @@ git checkout -b smc-upgrade
 git merge --allow-unrelated-histories -s ours temp-branch
 ```
 
-7. Follow the [upgrading](#upgrading) steps normally.
-
-8. Delete the `temp-branch`:
+7. Delete the `temp-branch`:
 
 ```shell
 git branch -D temp-branch
 ```
+
+8. Follow the [upgrading](#upgrading) steps normally.
 
 You should only have to do this once; future uses of the tool should work without issue.
 
