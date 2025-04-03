@@ -74,7 +74,7 @@ public class UpgradeController {
 		}
 
 		if (doConflictResolution) {
-			final List<Change> manualResolutionRequired = mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName, version);
+			final List<Change> manualResolutionRequired = mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName);
 
 			if (!manualResolutionRequired.isEmpty()) {
 

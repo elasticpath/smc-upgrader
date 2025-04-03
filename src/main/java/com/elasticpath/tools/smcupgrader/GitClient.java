@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +23,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.dircache.DirCacheEntry;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.IndexDiff;
 import org.eclipse.jgit.lib.ObjectId;
@@ -46,8 +43,6 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 public class GitClient {
 
 	private final Repository repository;
-
-	private final ComputePatchIdUtil computePatchIdUtil = new ComputePatchIdUtil();
 
 	private static final String NO_COMMON_ANCESTOR = "Git merge failed. Usually this means that Git could not find a "
 			+ "common ancestor commit between your branch and the Self Managed Commerce release branch.";
@@ -204,27 +199,18 @@ public class GitClient {
 	 * given remote repository.
 	 *
 	 * @param change             the change
-	 * @param authoritativePatchIds the set of authoritative patch IDs
+	 * @param upstreamRemoteName the name of the upstream remote to check for commits
 	 * @return {@code true} if every commit for the file represented by the given change exists on the remote repository
 	 */
-	public boolean allChangeCommitsAuthoritative(final Change change, final Set<String> authoritativePatchIds) {
+	public boolean allLocalCommitsExistInRemote(final Change change, final String upstreamRemoteName) {
 		try (Git git = new Git(repository)) {
 			final Iterable<RevCommit> commits = git.log()
 					.addPath(change.getPath())
 					.call();
 
 			return StreamSupport.stream(commits.spliterator(), true)
-					.allMatch(revCommit -> isCommitAuthoritative(repository, revCommit, change.getPath(), authoritativePatchIds));
+					.allMatch(revCommit -> commitExistsInRemote(git, upstreamRemoteName, revCommit));
 		} catch (final GitAPIException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private boolean isCommitAuthoritative(final Repository repository, final RevCommit commit, final String path, final Set<String> authoritativePatchIds) {
-		try {
-			String patchId = computePatchIdUtil.computePatchId(repository, commit, path);
-			return authoritativePatchIds.contains(patchId);
-		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -238,6 +224,21 @@ public class GitClient {
 			Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
 	}
 
+	private static boolean commitExistsInRemote(final Git git, final String upstreamRemoteName, final RevCommit commit) {
+		try {
+			final List<Ref> matchingBranches = git.branchList()
+					.setListMode(ListBranchCommand.ListMode.REMOTE)
+					.setContains(commit.getId().getName())
+					.call();
+
+			return matchingBranches.stream()
+					.map(Ref::getName)
+					.anyMatch(branchName -> branchName.startsWith("refs/remotes/" + upstreamRemoteName + "/"));
+		} catch (final GitAPIException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	/**
 	 * Returns the results of a diff of all unstaged changes in the working directory.
 	 *
@@ -249,44 +250,6 @@ public class GitClient {
 		} catch (final GitAPIException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	/**
-	 * Returns all commits in the given {@link Ref}.
-	 *
-	 * @param branch the branch to get commits for
-	 * @return a list of {@link RevCommit} instances
-	 */
-	public List<RevCommit> getCommits(final Ref branch) {
-		try (Git git = new Git(repository); RevWalk revWalk = new RevWalk(repository)) {
-			// Store commits in a list
-			List<RevCommit> commitList = new ArrayList<>();
-
-			// Iterate through commits in the branch and add to the list
-			RevCommit commit = revWalk.parseCommit(branch.getObjectId());
-			revWalk.markStart(commit);
-			for (RevCommit rev : revWalk) {
-				commitList.add(rev);
-			}
-			return commitList;
-		} catch (IncorrectObjectTypeException e) {
-			throw new RuntimeException(e);
-		} catch (MissingObjectException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public Set<String> getPatchIds(final List<RevCommit> commits) {
-		return commits.stream()
-					.map(commit -> {
-						try {
-							return computePatchIdUtil.computePatchId(repository, commit);
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-					}).collect(Collectors.toSet());
 	}
 
 	/**
