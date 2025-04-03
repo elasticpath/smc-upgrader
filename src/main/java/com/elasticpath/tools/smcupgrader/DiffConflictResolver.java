@@ -4,6 +4,7 @@ import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,10 +48,11 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 			LOGGER.info("Processing diffs to attempt automatic resolution...");
 		}
 
+		final Set<String> authoritativePatchIds = getGitClient().getPatchIds(getGitClient().getCommits(releaseBranch));
 		final Map<Change, ConflictResolutionStrategy> diffResolutionMap = diffConflictChanges.stream()
 				.collect(Collectors.toMap(Function.identity(),
 						change -> diffResolutionDeterminer.determineResolution(change,
-								() -> getGitClient().allLocalCommitsExistInRemote(change, upstreamRemoteName))));
+								() -> getGitClient().allChangeCommitsAuthoritative(change, authoritativePatchIds))));
 
 		diffResolutionMap.forEach(this::resolveConflict);
 

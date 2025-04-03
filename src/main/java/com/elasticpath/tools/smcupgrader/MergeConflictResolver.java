@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.jgit.lib.IndexDiff;
+import org.eclipse.jgit.lib.Ref;
 
 /**
  * Resolves merge conflicts.
@@ -37,9 +38,10 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 	 * Resolves merge conflicts.
 	 *
 	 * @param upstreamRemoteName the name of the upstream remote
+	 * @param version            the version being upgraded to
 	 * @return a list of {@link Change} instances representing the changes that could not be resolved automatically
 	 */
-	public List<Change> resolveMergeConflicts(final String upstreamRemoteName) {
+	public List<Change> resolveMergeConflicts(final String upstreamRemoteName, final String version) {
 		final Map<String, IndexDiff.StageState> conflicts = getGitClient().getConflicts();
 		final Set<IndexEntry> statusIndexEntries = getGitClient().getStatusIndexEntries();
 
@@ -51,10 +53,12 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 
 		final List<Change> mergeConflictChanges = changeFactory.createChanges(conflicts, statusIndexEntries);
 
+		final Ref releaseBranch = getGitClient().getReleaseBranch(upstreamRemoteName, version);
+		final Set<String> authoritativePatchIds = getGitClient().getPatchIds(getGitClient().getCommits(releaseBranch));
 		final Map<Change, ConflictResolutionStrategy> changeResolutionMap = mergeConflictChanges.stream()
 				.collect(Collectors.toMap(Function.identity(),
 						change -> conflictResolutionDeterminer.determineResolution(change,
-								() -> getGitClient().allLocalCommitsExistInRemote(change, upstreamRemoteName),
+								() -> getGitClient().allChangeCommitsAuthoritative(change, authoritativePatchIds),
 								() -> changeContentsEquivalence.oursTheirsChangeContentsAreEqual(change))));
 
 		changeResolutionMap.forEach(this::resolveConflict);
