@@ -3,8 +3,6 @@ package com.elasticpath.tools.smcupgrader;
 import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Ref;

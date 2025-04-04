@@ -2,7 +2,6 @@ package com.elasticpath.tools.smcupgrader;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;

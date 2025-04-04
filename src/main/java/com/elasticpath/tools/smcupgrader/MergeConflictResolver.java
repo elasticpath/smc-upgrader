@@ -2,12 +2,9 @@ package com.elasticpath.tools.smcupgrader;
 
 import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.eclipse.jgit.lib.IndexDiff;
 
