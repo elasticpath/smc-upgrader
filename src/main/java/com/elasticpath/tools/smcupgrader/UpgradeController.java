@@ -62,9 +62,8 @@ public class UpgradeController {
 	 */
 	public void performUpgrade(final String version, final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
-		final StringBuilder warningMessage = new StringBuilder();
 
-		LOGGER.debug("Upgrading from remote repository '" + upstreamRemoteName + "'");
+		LOGGER.debug("Upgrading from remote repository '{}'", upstreamRemoteName);
 
 		if (doMerge) {
 			merger.merge(upstreamRemoteName, version);
@@ -74,12 +73,7 @@ public class UpgradeController {
 		}
 
 		if (doConflictResolution) {
-			final List<Change> manualResolutionRequired = mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName);
-
-			if (!manualResolutionRequired.isEmpty()) {
-
-				warningMessage.append(createWarningMessage(manualResolutionRequired));
-			}
+			mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName);
 		} else {
 			LOGGER.info("Skipping merge conflict resolution.");
 		}
@@ -90,29 +84,10 @@ public class UpgradeController {
 			LOGGER.info("Skipping diff conflict resolution.");
 		}
 
-		if (warningMessage.toString().isEmpty()) {
-			LOGGER.info("\n\nCode upgrade process completed. Please commit any changes in the working directory.");
-		} else {
-			LOGGER.warn(warningMessage.toString());
-		}
-	}
-
-	private static StringBuilder createWarningMessage(final List<Change> manualResolutionRequired) {
-		final StringBuilder warningMessage = new StringBuilder(
-				"\n\nMerge conflicts that could not be resolved automatically remain in the following files:\n");
-
-		manualResolutionRequired.stream()
-				.map(change -> "\n" + change.getPath()
-						+ "\n     our change: " + change.getOurChangeType()
-						+ "\nincoming change: " + change.getTheirChangeType() + "\n")
-				.forEach(warningMessage::append);
-
-		warningMessage.append("\n\nUse your IDE to resolve the remaining merge conflicts, or run the following command:\n\n"
+		LOGGER.info("\n\nUse your IDE to resolve any remaining merge conflicts, or run the following command:\n\n"
 				+ "git mergetool\n\n"
 				+ "Once all conflicts have been resolved, stage the changes and commit to complete the merge:\n\n"
 				+ "git add -A .\n"
 				+ "git commit");
-
-		return warningMessage;
 	}
 }

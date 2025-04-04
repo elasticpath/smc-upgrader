@@ -21,6 +21,8 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 
 	private final ConflictResolutionDeterminer conflictResolutionDeterminer;
 
+	private final SafeOverwriteDeterminer safeOverwriteDeterminer;
+
 	/**
 	 * Constructor.
 	 *
@@ -31,15 +33,15 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 		changeFactory = new ChangeFactory();
 		changeContentsEquivalence = new ChangeContentsEquivalence(gitClient);
 		conflictResolutionDeterminer = new ConflictResolutionDeterminer();
+		safeOverwriteDeterminer = new SafeOverwriteDeterminer(gitClient);
 	}
 
 	/**
 	 * Resolves merge conflicts.
 	 *
 	 * @param upstreamRemoteName the name of the upstream remote
-	 * @return a list of {@link Change} instances representing the changes that could not be resolved automatically
 	 */
-	public List<Change> resolveMergeConflicts(final String upstreamRemoteName) {
+	public void resolveMergeConflicts(final String upstreamRemoteName) {
 		final Map<String, IndexDiff.StageState> conflicts = getGitClient().getConflicts();
 		final Set<IndexEntry> statusIndexEntries = getGitClient().getStatusIndexEntries();
 
@@ -51,27 +53,19 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 
 		final List<Change> mergeConflictChanges = changeFactory.createChanges(conflicts, statusIndexEntries);
 
-		final Map<Change, ConflictResolutionStrategy> changeResolutionMap = mergeConflictChanges.stream()
-				.collect(Collectors.toMap(Function.identity(),
-						change -> conflictResolutionDeterminer.determineResolution(change,
-								() -> getGitClient().allLocalCommitsExistInRemote(change, upstreamRemoteName),
-								() -> changeContentsEquivalence.oursTheirsChangeContentsAreEqual(change))));
-
-		changeResolutionMap.forEach(this::resolveConflict);
-
-		final long resolvedDiffCount = changeResolutionMap.values().stream()
-				.filter(conflictResolutionStrategy -> conflictResolutionStrategy == ConflictResolutionStrategy.ACCEPT_THEIRS)
-				.count();
+		long resolvedDiffCount = ProcessCollectionInParallelWithProgress.process(mergeConflictChanges, change -> {
+			ConflictResolutionStrategy strategy = conflictResolutionDeterminer.determineResolution(change,
+					() -> safeOverwriteDeterminer.pathIsSafeToOverwrite(change.getPath(), upstreamRemoteName),
+					() -> changeContentsEquivalence.oursTheirsChangeContentsAreEqual(change));
+			synchronized (this) {
+				resolveConflict(change, strategy);
+			}
+			return strategy == ConflictResolutionStrategy.ACCEPT_THEIRS;
+		});
 
 		if (resolvedDiffCount > 0) {
 			LOGGER.info("Resolved " + resolvedDiffCount + " conflict(s) by accepting the upstream change.");
 		}
-
-		return changeResolutionMap.entrySet().stream()
-				.filter(entry -> entry.getValue() == ConflictResolutionStrategy.MANUAL_RESOLUTION_REQUIRED)
-				.map(Map.Entry::getKey)
-				.sorted(Comparator.comparing(Change::getPath))
-				.collect(Collectors.toList());
 	}
 
 	private void resolveConflict(final Change change, final ConflictResolutionStrategy conflictResolutionStrategy) {

@@ -140,8 +140,8 @@ git fetch --all
 The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified release version by executing these steps:
 
 1. Merge step: Merges the `release/<version>` branch from `code.elasticpath.com` into the current branch.
-2. Resolve conflicts step: Iterates across each file with conflicts, checking to see if any commits to the file were made by the project development team. If not, it resolves the conflict using the `code.elasticpath.com` version of the file.
-3. Resolve diffs step: Iterates across each file in the repo, checking to see if any commits to the file were made by the project development team. If not, it overwrites the file contents with the `code.elasticpath.com` file contents.
+2. Resolve conflicts step: Iterates across each file with conflicts, checking to see if the file contents of the latest commit matches a commit in a `code.elasticpath.com` branch. If it does, resolves the conflict using the `code.elasticpath.com` version of the file.
+3. Resolve diffs step: Iterates across each file in the repo, checking to see if the file contents of the latest commit matches a commit in a `code.elasticpath.com` branch. If it does, overwrites the file contents with the `code.elasticpath.com` file contents.
 
 This can be started by running:
 

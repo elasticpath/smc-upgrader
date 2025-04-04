@@ -80,11 +80,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			upgradeController.performUpgrade(version, doMerge, doConflictResolution, doDiffResolution);
 
 			return 0;
-		} catch (LoggableException e) {
-			LOGGER.error(e.getMessage());
 		} catch (RuntimeException e) {
-			LOGGER.error("Unexpected error encountered while upgrading: " + e.getMessage());
-			LOGGER.debug("Error details:", e);
+			LOGGER.error("Unexpected error encountered while upgrading", e);
 		}
 
 		return 1;

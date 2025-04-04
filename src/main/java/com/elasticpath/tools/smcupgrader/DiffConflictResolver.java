@@ -3,9 +3,8 @@ package com.elasticpath.tools.smcupgrader;
 import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Ref;
@@ -18,6 +17,8 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 
 	private final DiffResolutionDeterminer diffResolutionDeterminer;
 
+	private final SafeOverwriteDeterminer safeOverwriteDeterminer;
+
 	/**
 	 * Constructor.
 	 *
@@ -27,6 +28,7 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 		super(gitClient);
 		changeFactory = new ChangeFactory();
 		diffResolutionDeterminer = new DiffResolutionDeterminer();
+		safeOverwriteDeterminer = new SafeOverwriteDeterminer(gitClient);
 	}
 
 	/**
@@ -47,19 +49,18 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 			LOGGER.info("Processing diffs to attempt automatic resolution...");
 		}
 
-		final Map<Change, ConflictResolutionStrategy> diffResolutionMap = diffConflictChanges.stream()
-				.collect(Collectors.toMap(Function.identity(),
-						change -> diffResolutionDeterminer.determineResolution(change,
-								() -> getGitClient().allLocalCommitsExistInRemote(change, upstreamRemoteName))));
-
-		diffResolutionMap.forEach(this::resolveConflict);
-
-		final long resolvedDiffCount = diffResolutionMap.values().stream()
-				.filter(conflictResolutionStrategy -> conflictResolutionStrategy == ConflictResolutionStrategy.ACCEPT_THEIRS)
-				.count();
+		long resolvedDiffCount = ProcessCollectionInParallelWithProgress.process(diffConflictChanges, change -> {
+			ConflictResolutionStrategy strategy = diffResolutionDeterminer.determineResolution(change,
+					() -> safeOverwriteDeterminer.pathIsSafeToOverwrite(change.getPath(), upstreamRemoteName)
+			);
+			synchronized (this) {
+				resolveConflict(change, strategy);
+			}
+			return strategy == ConflictResolutionStrategy.ACCEPT_THEIRS;
+		});
 
 		if (resolvedDiffCount > 0) {
-			LOGGER.info("Resolved " + resolvedDiffCount + " diff(s) by accepting the upstream change.");
+			LOGGER.info("Resolved {} diff(s) by accepting the upstream change.", resolvedDiffCount);
 		}
 	}
 

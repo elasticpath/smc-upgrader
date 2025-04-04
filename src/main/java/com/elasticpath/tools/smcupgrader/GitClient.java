@@ -4,16 +4,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.RemoteAddCommand;
@@ -23,6 +27,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.dircache.DirCacheEntry;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.IndexDiff;
 import org.eclipse.jgit.lib.ObjectId;
@@ -36,6 +43,8 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 /**
  * Performs git operations.
@@ -195,23 +204,67 @@ public class GitClient {
 	}
 
 	/**
-	 * Checks the commit history for the file represented by the given change, and determines whether every commit can also be found on the
-	 * given remote repository.
+	 * Returns an iterable of commits containing the specified path in any branch with a name starting with upstreamRemoteName.
 	 *
-	 * @param change             the change
-	 * @param upstreamRemoteName the name of the upstream remote to check for commits
-	 * @return {@code true} if every commit for the file represented by the given change exists on the remote repository
+	 * @param path a path that the commit must contain
+	 * @param upstreamRemoteName the branch name prefix
+	 * @return an iterable of commits
 	 */
-	public boolean allLocalCommitsExistInRemote(final Change change, final String upstreamRemoteName) {
+	public Iterable<RevCommit> getAllCommitsForPathInAllBranches(final String path, final String upstreamRemoteName) {
 		try (Git git = new Git(repository)) {
-			final Iterable<RevCommit> commits = git.log()
-					.addPath(change.getPath())
-					.call();
+			// Get all branches that start with "refs/remotes/" + upstreamRemoteName + "/"
+			String remoteBranchPrefix = "refs/remotes/" + upstreamRemoteName + "/";
+			List<AnyObjectId> upstreamRemoteBranchHeads = git.branchList()
+					.setListMode(ListBranchCommand.ListMode.REMOTE)
+					.call()
+					.stream()
+					.filter(ref -> ref.getName().startsWith(remoteBranchPrefix))
+					.map(ref -> (AnyObjectId) ref.getObjectId())
+					.collect(Collectors.toList());
 
-			return StreamSupport.stream(commits.spliterator(), true)
-					.allMatch(revCommit -> commitExistsInRemote(git, upstreamRemoteName, revCommit));
+			if (upstreamRemoteBranchHeads.isEmpty()) {
+				return Collections.emptyList(); // No matching branches
+			}
+
+			LogCommand logCommand = git.log()
+					.addPath(path);
+			for (AnyObjectId branchHead : upstreamRemoteBranchHeads) {
+				logCommand.add(branchHead);
+			}
+			return logCommand.call();
+		} catch (final GitAPIException | IncorrectObjectTypeException | MissingObjectException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns an iterable of commits in the current branch that contain the specified path.
+	 *
+	 * @param path a path that the commit must contain
+	 * @return an iterable of commits
+	 */
+	public Iterable<RevCommit> getAllCommitsForPath(final String path) {
+		try (Git git = new Git(repository)) {
+			return git.log()
+					.addPath(path)
+					.call();
 		} catch (final GitAPIException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns the latest commit in the current branch that contains the specified path.
+	 *
+	 * @param path a path that the commit must contain
+	 * @return a commit
+	 */
+	public RevCommit getLatestCommitForPath(final String path) {
+		Iterator<RevCommit> iterator = getAllCommitsForPath(path).iterator();
+		if (iterator.hasNext()) {
+			return iterator.next();
+		} else {
+			return null;
 		}
 	}
 
@@ -222,21 +275,6 @@ public class GitClient {
 			repository.writeMergeCommitMsg(null);
 			repository.writeMergeHeads(null);
 			Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
-	}
-
-	private static boolean commitExistsInRemote(final Git git, final String upstreamRemoteName, final RevCommit commit) {
-		try {
-			final List<Ref> matchingBranches = git.branchList()
-					.setListMode(ListBranchCommand.ListMode.REMOTE)
-					.setContains(commit.getId().getName())
-					.call();
-
-			return matchingBranches.stream()
-					.map(Ref::getName)
-					.anyMatch(branchName -> branchName.startsWith("refs/remotes/" + upstreamRemoteName + "/"));
-		} catch (final GitAPIException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	/**
@@ -321,6 +359,44 @@ public class GitClient {
 			loader.copyTo(outputStream);
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns a SHA-256 hash of the contents of the path at the specified commit.
+	 *
+	 * @param path the path of a file
+	 * @param commit a commit
+	 * @return an optional hash of the file contents, or Optional.empty if we were unable to generate the content hash
+	 */
+	public Optional<String> getContentHashOfPathAtCommit(final String path, final RevCommit commit) {
+		try {
+			RevTree tree = commit.getTree();
+
+			try (TreeWalk treeWalk = new TreeWalk(repository)) {
+				treeWalk.addTree(tree);
+				treeWalk.setRecursive(true);
+				treeWalk.setFilter(PathFilter.create(path));
+
+				if (!treeWalk.next()) {
+					throw new IOException("Path not found in commit: " + path);
+				}
+
+				ObjectId objectId = treeWalk.getObjectId(0);
+				ObjectLoader loader = repository.open(objectId);
+
+				MessageDigest digest = MessageDigest.getInstance("SHA-256");
+				byte[] hashBytes = digest.digest(loader.getBytes());
+
+				StringBuilder hexString = new StringBuilder();
+				for (byte b : hashBytes) {
+					hexString.append(String.format("%02x", b));
+				}
+
+				return Optional.of(hexString.toString());
+			}
+		} catch (final IOException | NoSuchAlgorithmException ex) {
+			return Optional.empty();
 		}
 	}
 
