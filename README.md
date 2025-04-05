@@ -107,11 +107,11 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
 
   <version>             The version of Elastic Path Self-Managed Commerce to upgrade to.
   -C=<workingDir>       The working directory containing the git repo to be upgraded. Defaults to the current working directory.
-  -d, --[no-]do-resolve-diffs
+  -d, --[no-]resolve-diffs
                         Toggles whether to reconcile diffs between the merged branch and the upstream contents. Enabled by default.
   -h, --help            Show this help message and exit.
-  -m, --[no-]do-merge   Toggles whether to perform a merge. Enabled by default.
-  -r, --[no-]do-resolve-conflicts
+  -m, --[no-]merge      Toggles whether to perform a merge. Enabled by default.
+  -r, --[no-]resolve-conflicts
                         Toggles whether to resolve merge conflicts. Enabled by default.
   -u, --upstream-repository-url=<upstreamRemoteRepositoryUrl>
                         The URL of the upstream repository containing upgrade commits.
@@ -164,7 +164,7 @@ git merge --abort
 If you prefer to start the merge manually, and then only have `smc-upgrader` attempt to resolve conflicts automatically, use this command:
 
 ```
-smc-upgrader --no-do-merge 8.5.x
+smc-upgrader --no-merge 8.5.x
 ```
 
 ### Troubleshooting
