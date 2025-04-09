@@ -238,33 +238,22 @@ public class GitClient {
 	}
 
 	/**
-	 * Returns an iterable of commits in the current branch that contain the specified path.
-	 *
-	 * @param path a path that the commit must contain
-	 * @return an iterable of commits
-	 */
-	public Iterable<RevCommit> getAllCommitsForPath(final String path) {
-		try (Git git = new Git(repository)) {
-			return git.log()
-					.addPath(path)
-					.call();
-		} catch (final GitAPIException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
 	 * Returns the latest commit in the current branch that contains the specified path.
 	 *
 	 * @param path a path that the commit must contain
-	 * @return a commit
+	 * @return a commit, or null if the path can't be found
 	 */
 	public RevCommit getLatestCommitForPath(final String path) {
-		Iterator<RevCommit> iterator = getAllCommitsForPath(path).iterator();
-		if (iterator.hasNext()) {
-			return iterator.next();
-		} else {
-			return null;
+		try (Git git = new Git(repository)) {
+			Iterable<RevCommit> commits = git.log()
+					.addPath(path)
+					.setMaxCount(1) // Only fetch the latest one
+					.call();
+
+			Iterator<RevCommit> iterator = commits.iterator();
+			return iterator.hasNext() ? iterator.next() : null;
+		} catch (final GitAPIException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
