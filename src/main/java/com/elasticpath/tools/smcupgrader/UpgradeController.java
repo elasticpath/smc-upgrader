@@ -8,6 +8,8 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
+
 /**
  * Main class that orchestrates a code update, by merging an upstream branch and resolving conflicts.
  */
@@ -39,7 +41,7 @@ public class UpgradeController {
 					.readEnvironment() // scan environment GIT_* variables
 					.build();
 
-			final GitClient gitClient = new GitClient(repository);
+			final GitClient gitClient = new GitClientImpl(repository);
 			upstreamRemoteManager = new UpstreamRemoteManager(gitClient, upstreamRemoteRepositoryUrl);
 			merger = new Merger(gitClient);
 			mergeConflictResolver = new MergeConflictResolver(gitClient);

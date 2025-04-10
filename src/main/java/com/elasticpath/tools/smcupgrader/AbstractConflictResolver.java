@@ -51,7 +51,14 @@ public class AbstractConflictResolver {
 		stage(change.getPath());
 	}
 
-	private void replaceContents(final String repoFile, final String hexSha, final FilePermissions filePermissions) {
+	/**
+	 * Replace contents of the specified file with the commit specified by hexSha.
+	 *
+	 * @param repoFile the file to replace
+	 * @param hexSha the sha of the commit to replace with
+	 * @param filePermissions the file permissions to set
+	 */
+	protected void replaceContents(final String repoFile, final String hexSha, final FilePermissions filePermissions) {
 		final Path filePath = Paths.get(gitClient.getWorkingDir().getAbsolutePath(), repoFile);
 		try {
 			Files.createDirectories(filePath.getParent());

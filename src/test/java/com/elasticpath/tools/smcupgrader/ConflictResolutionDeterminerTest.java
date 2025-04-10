@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class ConflictConflictResolutionDeterminerTestStrategy {
+class ConflictResolutionDeterminerTest {
 
 	private static final String FILENAME = "extensions/database/ext-data/src/main/resources/environments/local-perf/files/conf/cache/ehcache-local.xml";
 
