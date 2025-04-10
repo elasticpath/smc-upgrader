@@ -315,8 +315,6 @@ public class GitClientImpl implements GitClient {
 				treeParser.reset(reader, tree.getId());
 			}
 
-			walk.dispose();
-
 			return treeParser;
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
