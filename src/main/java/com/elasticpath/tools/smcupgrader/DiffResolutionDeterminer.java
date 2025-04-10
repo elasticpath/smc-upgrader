@@ -11,13 +11,12 @@ public class DiffResolutionDeterminer {
 	 * Determines the appropriate method of resolving a given conflict.
 	 *
 	 * @param change                             represents the conflict to resolve
-	 * @param allLocalCommitsExistInUpstreamRepo a function that determines whether all commits for the given change also exist on the remote
-	 *                                           repository
+	 * @param safeToOverwrite                    a function that determines whether the path is safe to overwrite
 	 * @return the {@link ConflictResolutionStrategy} that should be used to resolve this conflict
 	 */
 	public ConflictResolutionStrategy determineResolution(final Change change,
-			final Supplier<Boolean> allLocalCommitsExistInUpstreamRepo) {
-		if (allLocalCommitsExistInUpstreamRepo.get()) {
+			final Supplier<Boolean> safeToOverwrite) {
+		if (safeToOverwrite.get()) {
 			return ConflictResolutionStrategy.ACCEPT_THEIRS;
 		} else {
 			return ConflictResolutionStrategy.ACCEPT_OURS;

@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * Test class for {@link UpstreamRemoteManager}.
  */
 @ExtendWith(MockitoExtension.class)
-public class UpstreamRemoteManagerTest {
+class UpstreamRemoteManagerTest {
 
 	private static final String REMOTE_REPO_NAME = "upstream";
 
@@ -55,8 +55,6 @@ public class UpstreamRemoteManagerTest {
 
 		assertThatThrownBy(() -> upstreamRemoteManager.getUpstreamRemoteName())
 				.isInstanceOf(LoggableException.class);
-
-
 	}
 
 	@Test
