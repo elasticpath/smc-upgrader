@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -288,19 +286,9 @@ public class GitClientImpl implements GitClient {
 				}
 
 				ObjectId objectId = treeWalk.getObjectId(0);
-				ObjectLoader loader = repository.open(objectId);
-
-				MessageDigest digest = MessageDigest.getInstance("SHA-256");
-				byte[] hashBytes = digest.digest(loader.getBytes());
-
-				StringBuilder hexString = new StringBuilder();
-				for (byte b : hashBytes) {
-					hexString.append(String.format("%02x", b));
-				}
-
-				return Optional.of(hexString.toString());
+				return Optional.of(objectId.name());
 			}
-		} catch (final IOException | NoSuchAlgorithmException ex) {
+		} catch (final IOException ex) {
 			return Optional.empty();
 		}
 	}
