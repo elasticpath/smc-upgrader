@@ -51,19 +51,19 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			defaultValue = "false")
 	private boolean debugLogging;
 
-	@CommandLine.Option(names = { "-m", "-merge" },
+	@CommandLine.Option(names = { "-m", "--merge" },
 			description = "Toggles whether to perform a merge. Enabled by default.",
 			negatable = true,
 			defaultValue = "true")
 	private boolean doMerge;
 
-	@CommandLine.Option(names = { "-r", "-resolve-conflicts" },
+	@CommandLine.Option(names = { "-r", "--resolve-conflicts" },
 			description = "Toggles whether to resolve merge conflicts. Enabled by default.",
 			negatable = true,
 			defaultValue = "true")
 	private boolean doConflictResolution;
 
-	@CommandLine.Option(names = { "-d", "-resolve-diffs" },
+	@CommandLine.Option(names = { "-d", "--resolve-diffs" },
 			description = "Toggles whether to reconcile diffs between the merged branch and the upstream contents. Enabled by default.",
 			negatable = true, defaultValue = "true")
 	private boolean doDiffResolution;
