@@ -2,6 +2,14 @@ package com.elasticpath.tools.smcupgrader;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -18,6 +26,15 @@ public class UpgradeController {
 	 * The Logger for the application.
 	 */
 	static final Logger LOGGER = LoggerFactory.getLogger(UpgradeController.class);
+
+	/**
+	 * Pattern to match version strings in README.txt files.
+	 * Matches strings like "Elastic Path Commerce 8.7.0 (build 8.7.0.20250730203654-29b4ea)"
+	 * and captures just the version number (e.g., "8.7.0").
+	 */
+	private static final java.util.regex.Pattern VERSION_PATTERN = java.util.regex.Pattern.compile(
+		"Elastic Path Commerce\\s+([0-9]+\\.[0-9]+\\.[0-9]+)");
+
 
 	private final UpstreamRemoteManager upstreamRemoteManager;
 
@@ -63,6 +80,9 @@ public class UpgradeController {
 	 * @param doDiffResolution             perform diff resolution
 	 */
 	public void performUpgrade(final String version, final boolean doCleanWorkingDirectoryCheck, final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
+		String currentVersion = determineCurrentVersion();
+		LOGGER.info("Detected current version {}.", currentVersion);
+
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
 
 		LOGGER.debug("Upgrading from remote repository '{}'", upstreamRemoteName);
@@ -91,5 +111,62 @@ public class UpgradeController {
 				+ "Once all conflicts have been resolved, stage the changes and commit to complete the merge:\n\n"
 				+ "git add -A .\n"
 				+ "git commit");
+	}
+
+	/**
+	 * Determines the current version of the source code by checking either the pom.xml or README.txt.
+	 *
+	 * @return the current version string
+	 * @throws IllegalStateException if the version cannot be determined from either source
+	 */
+	public String determineCurrentVersion() {
+		try {
+			// First try to get version from pom.xml
+			try {
+				File pomFile = new File("pom.xml");
+				if (pomFile.exists()) {
+					Document doc = DocumentBuilderFactory.newInstance()
+							.newDocumentBuilder()
+							.parse(pomFile);
+					doc.getDocumentElement().normalize();
+
+					// Try to get version from project > properties > ep.release.version
+					NodeList propertiesNodes = doc.getElementsByTagName("properties");
+					if (propertiesNodes.getLength() > 0) {
+						Element properties = (Element) propertiesNodes.item(0);
+						NodeList versionProperty = properties.getElementsByTagName("ep.release.version");
+						if (versionProperty.getLength() > 0) {
+							String version = versionProperty.item(0).getTextContent().trim();
+							if (!version.isEmpty()) {
+								return version;
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				LOGGER.debug("Could not read version from pom.xml, trying README.txt", e);
+			}
+
+			// If pom.xml method failed, try README.txt
+			Path readmePath = Paths.get("README.txt");
+			if (Files.exists(readmePath)) {
+				String firstLine;
+				try (java.util.stream.Stream<String> lines = Files.lines(readmePath, StandardCharsets.UTF_8)) {
+					firstLine = lines.findFirst().orElse("");
+				}
+
+				// Match version using the VERSION_PATTERN constant
+				java.util.regex.Matcher matcher = VERSION_PATTERN.matcher(firstLine);
+
+				if (matcher.find()) {
+					return matcher.group(1);
+				}
+			}
+
+			throw new IllegalStateException("Could not determine current version from pom.xml or README.txt");
+
+		} catch (IOException e) {
+			throw new IllegalStateException("Error while trying to determine current version", e);
+		}
 	}
 }
