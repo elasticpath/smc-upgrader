@@ -100,23 +100,32 @@ The following section describes the different usage and examples for `smc-upgrad
 ## Command Line Options
 
 ```text
- Usage: smc-upgrader [-dhmrvV] [-C=<workingDir>]
-                    [-u=<upstreamRemoteRepositoryUrl>] <version>
-
+Usage: smc-upgrader [-dhmrvV] [--[no-]clean-working-directory-check]
+                    [-C=<workingDir>] [-u=<upstreamRemoteRepositoryUrl>]
+                    <version>
 Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
-
-  <version>             The version of Elastic Path Self-Managed Commerce to upgrade to.
-  -C=<workingDir>       The working directory containing the git repo to be upgraded. Defaults to the current working directory.
-  -d, --[no-]resolve-diffs
-                        Toggles whether to reconcile diffs between the merged branch and the upstream contents. Enabled by default.
-  -h, --help            Show this help message and exit.
-  -m, --[no-]merge      Toggles whether to perform a merge. Enabled by default.
+      <version>              The version of Elastic Path Self-Managed Commerce
+                               to upgrade to.
+  -C=<workingDir>            The working directory containing the git repo to
+                               be upgraded. Defaults to the current working
+                               directory.
+      --[no-]clean-working-directory-check
+                             Toggles whether to do a clean working directory
+                               check. Enabled by default.
+  -d, --[no-]resolve-diffs   Toggles whether to reconcile diffs between the
+                               merged branch and the upstream contents. Enabled
+                               by default.
+  -h, --help                 Show this help message and exit.
+  -m, --[no-]merge           Toggles whether to perform a merge. Enabled by
+                               default.
   -r, --[no-]resolve-conflicts
-                        Toggles whether to resolve merge conflicts. Enabled by default.
+                             Toggles whether to resolve merge conflicts.
+                               Enabled by default.
   -u, --upstream-repository-url=<upstreamRemoteRepositoryUrl>
-                        The URL of the upstream repository containing upgrade commits.
-  -v, --verbose         Enables debug logging.
-  -V, --version         Print version information and exit.
+                             The URL of the upstream repository containing
+                               upgrade commits.
+  -v, --verbose              Enables debug logging.
+  -V, --version              Print version information and exit.
 ```
 
 ## Usage Examples

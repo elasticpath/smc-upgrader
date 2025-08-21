@@ -56,18 +56,19 @@ public class UpgradeController {
 	 * Setting both {@code doMerge} and {@code doConflictResolution} to {@code false} will not modify the local working state and is akin to a dry
 	 * run.
 	 *
-	 * @param version              the target version to upgrade to
-	 * @param doMerge              perform the code merge
-	 * @param doConflictResolution perform conflict resolution
-	 * @param doDiffResolution     perform diff resolution
+	 * @param version                      the target version to upgrade to
+	 * @param doCleanWorkingDirectoryCheck perform a clean working directory check
+	 * @param doMerge                      perform the code merge
+	 * @param doConflictResolution         perform conflict resolution
+	 * @param doDiffResolution             perform diff resolution
 	 */
-	public void performUpgrade(final String version, final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
+	public void performUpgrade(final String version, final boolean doCleanWorkingDirectoryCheck, final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
 
 		LOGGER.debug("Upgrading from remote repository '{}'", upstreamRemoteName);
 
 		if (doMerge) {
-			merger.merge(upstreamRemoteName, version);
+			merger.merge(doCleanWorkingDirectoryCheck, upstreamRemoteName, version);
 			LOGGER.info("Merge succeeded.");
 		} else {
 			LOGGER.info("Skipping merge.");

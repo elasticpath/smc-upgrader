@@ -51,6 +51,12 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			defaultValue = "false")
 	private boolean debugLogging;
 
+	@CommandLine.Option(names = { "--clean-working-directory-check" },
+			description = "Toggles whether to do a clean working directory check. Enabled by default.",
+			negatable = true,
+			defaultValue = "true")
+	private boolean doCleanWorkingDirectoryCheck;
+
 	@CommandLine.Option(names = { "-m", "--merge" },
 			description = "Toggles whether to perform a merge. Enabled by default.",
 			negatable = true,
@@ -77,7 +83,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 
 			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
 
-			upgradeController.performUpgrade(version, doMerge, doConflictResolution, doDiffResolution);
+			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doMerge, doConflictResolution, doDiffResolution);
 
 			return 0;
 		} catch (RuntimeException e) {
