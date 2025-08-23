@@ -21,6 +21,8 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 /**
@@ -78,7 +80,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	public Integer call() {
 		try {
 			if (debugLogging) {
-				((ch.qos.logback.classic.Logger) LOGGER).setLevel(Level.DEBUG);
+				Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+				rootLogger.setLevel(Level.DEBUG);
 			}
 
 			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
