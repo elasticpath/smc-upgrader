@@ -6,15 +6,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
@@ -32,9 +35,7 @@ public class UpgradeController {
 	 * Matches strings like "Elastic Path Commerce 8.7.0 (build 8.7.0.20250730203654-29b4ea)"
 	 * and captures just the version number (e.g., "8.7.0").
 	 */
-	private static final java.util.regex.Pattern VERSION_PATTERN = java.util.regex.Pattern.compile(
-		"Elastic Path Commerce\\s+([0-9]+\\.[0-9]+\\.[0-9]+)");
-
+	private static final Pattern VERSION_PATTERN = Pattern.compile("Elastic Path Commerce\\s+([0-9]+\\.[0-9]+\\.[0-9]+)");
 
 	private final UpstreamRemoteManager upstreamRemoteManager;
 
@@ -151,12 +152,12 @@ public class UpgradeController {
 			Path readmePath = Paths.get("README.txt");
 			if (Files.exists(readmePath)) {
 				String firstLine;
-				try (java.util.stream.Stream<String> lines = Files.lines(readmePath, StandardCharsets.UTF_8)) {
+				try (Stream<String> lines = Files.lines(readmePath, StandardCharsets.UTF_8)) {
 					firstLine = lines.findFirst().orElse("");
 				}
 
 				// Match version using the VERSION_PATTERN constant
-				java.util.regex.Matcher matcher = VERSION_PATTERN.matcher(firstLine);
+				Matcher matcher = VERSION_PATTERN.matcher(firstLine);
 
 				if (matcher.find()) {
 					return matcher.group(1);
@@ -168,5 +169,20 @@ public class UpgradeController {
 		} catch (IOException e) {
 			throw new IllegalStateException("Error while trying to determine current version", e);
 		}
+	}
+
+	/**
+	 * Converts a version string in the format "8.6.0" to the format "8.6.x", used by the release branches.
+	 *
+	 * @param version the version string to convert
+	 * @return the converted version string
+	 */
+	public String convertVersionToReleaseFormat(final String version) {
+		Pattern twoPartVersion = Pattern.compile("^(\\d+\\.\\d+).*");
+		Matcher matcher = twoPartVersion.matcher(version);
+		if (matcher.matches()) {
+			return matcher.group(1) + ".x";
+		}
+		return "";
 	}
 }
