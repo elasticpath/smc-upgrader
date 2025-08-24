@@ -59,6 +59,12 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			defaultValue = "true")
 	private boolean doCleanWorkingDirectoryCheck;
 
+	@CommandLine.Option(names = { "-p", "--revert-patches" },
+			description = "Toggles whether to revert patches before merging. Enabled by default.",
+			negatable = true,
+			defaultValue = "false")
+	private boolean doRevertPatches;
+
 	@CommandLine.Option(names = { "-m", "--merge" },
 			description = "Toggles whether to perform a merge. Enabled by default.",
 			negatable = true,
@@ -86,7 +92,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 
 			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
 
-			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doMerge, doConflictResolution, doDiffResolution);
+			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doRevertPatches, doMerge, doConflictResolution, doDiffResolution);
 
 			return 0;
 		} catch (RuntimeException e) {

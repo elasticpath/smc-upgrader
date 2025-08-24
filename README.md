@@ -100,7 +100,7 @@ The following section describes the different usage and examples for `smc-upgrad
 ## Command Line Options
 
 ```text
-Usage: smc-upgrader [-dhmrvV] [--[no-]clean-working-directory-check]
+Usage: smc-upgrader [-dhmprvV] [--[no-]clean-working-directory-check]
                     [-C=<workingDir>] [-u=<upstreamRemoteRepositoryUrl>]
                     <version>
 Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
@@ -118,6 +118,8 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
   -h, --help                 Show this help message and exit.
   -m, --[no-]merge           Toggles whether to perform a merge. Enabled by
                                default.
+  -p, --[no-]revert-patches  Toggles whether to revert patches before merging.
+                               Enabled by default.
   -r, --[no-]resolve-conflicts
                              Toggles whether to resolve merge conflicts.
                                Enabled by default.
@@ -141,7 +143,7 @@ git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 For best results, update the local git repository with the latest changes from the upstream repository before each time the application is run:
 
 ```
-git fetch --all
+git fetch smc-upgrades
 ```
 
 ### Upgrading

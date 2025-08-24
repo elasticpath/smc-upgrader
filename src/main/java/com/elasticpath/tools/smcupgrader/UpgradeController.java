@@ -39,6 +39,8 @@ public class UpgradeController {
 
 	private final UpstreamRemoteManager upstreamRemoteManager;
 
+	private final PatchReverter patchReverter;
+
 	private final Merger merger;
 
 	private final MergeConflictResolver mergeConflictResolver;
@@ -61,6 +63,7 @@ public class UpgradeController {
 
 			final GitClient gitClient = new GitClientImpl(repository);
 			upstreamRemoteManager = new UpstreamRemoteManager(gitClient, upstreamRemoteRepositoryUrl);
+			patchReverter = new PatchReverter(gitClient);
 			merger = new Merger(gitClient);
 			mergeConflictResolver = new MergeConflictResolver(gitClient);
 			diffConflictResolver = new DiffConflictResolver(gitClient);
@@ -76,17 +79,26 @@ public class UpgradeController {
 	 *
 	 * @param version                      the target version to upgrade to
 	 * @param doCleanWorkingDirectoryCheck perform a clean working directory check
+	 * @param doRevertPatches              revert any patches
 	 * @param doMerge                      perform the code merge
 	 * @param doConflictResolution         perform conflict resolution
 	 * @param doDiffResolution             perform diff resolution
 	 */
-	public void performUpgrade(final String version, final boolean doCleanWorkingDirectoryCheck, final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
-		String currentVersion = determineCurrentVersion();
+	public void performUpgrade(final String version, final boolean doCleanWorkingDirectoryCheck, final boolean doRevertPatches,
+							   final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
+		String currentVersion = convertVersionToReleaseFormat(determineCurrentVersion());
 		LOGGER.info("Detected current version {}.", currentVersion);
 
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
-
 		LOGGER.debug("Upgrading from remote repository '{}'", upstreamRemoteName);
+
+		if (doRevertPatches) {
+			if (!currentVersion.equals(version)) {
+				patchReverter.revertPatches(upstreamRemoteName, currentVersion);
+			} else {
+				LOGGER.info("We're not doing a version upgrade, so skipping the patch revert step.");
+			}
+		}
 
 		if (doMerge) {
 			merger.merge(doCleanWorkingDirectoryCheck, upstreamRemoteName, version);
@@ -107,7 +119,7 @@ public class UpgradeController {
 			LOGGER.info("Skipping diff conflict resolution.");
 		}
 
-		LOGGER.info("\n\nUse your IDE to resolve any remaining merge conflicts, or run the following command:\n\n"
+		LOGGER.info("Use your IDE to resolve any remaining merge conflicts, or run the following command:\n\n"
 				+ "git mergetool\n\n"
 				+ "Once all conflicts have been resolved, stage the changes and commit to complete the merge:\n\n"
 				+ "git add -A .\n"
