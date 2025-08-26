@@ -60,7 +60,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	private boolean doCleanWorkingDirectoryCheck;
 
 	@CommandLine.Option(names = { "-p", "--revert-patches" },
-			description = "Toggles whether to revert patches before merging. Enabled by default.",
+			description = "Toggles whether to revert patches before merging. EXPERIMENTAL. Disabled by default.",
 			negatable = true,
 			defaultValue = "false")
 	private boolean doRevertPatches;
