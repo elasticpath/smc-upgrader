@@ -119,7 +119,7 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
   -m, --[no-]merge           Toggles whether to perform a merge. Enabled by
                                default.
   -p, --[no-]revert-patches  Toggles whether to revert patches before merging.
-                               EXPERIMENTAL. Disabled by default.
+                               Enabled by default.
   -r, --[no-]resolve-conflicts
                              Toggles whether to resolve merge conflicts.
                                Enabled by default.
