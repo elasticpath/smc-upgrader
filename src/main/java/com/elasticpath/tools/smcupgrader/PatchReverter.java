@@ -2,8 +2,6 @@ package com.elasticpath.tools.smcupgrader;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -55,7 +53,8 @@ public class PatchReverter {
 				.collect(Collectors.toList());
 
 		final Ref releaseBranch = gitClient.getReleaseBranch(upstreamRemoteName, version);
-		final Map<String, String> patchCommitContentHashes = StreamSupport.stream(gitClient.getAllCommitsForBranch(releaseBranch).spliterator(), false)
+		final Map<String, String> patchCommitContentHashes =
+				StreamSupport.stream(gitClient.getAllCommitsForBranch(releaseBranch).spliterator(), false)
 				// Skip upgrade commits
 				.filter(commit -> {
 					Matcher matcher = UPGRADE_COMMIT_PATTERN.matcher(commit.getShortMessage());
@@ -66,7 +65,8 @@ public class PatchReverter {
 		long revertedCommitCount = ProcessCollectionInSerialWithProgress.process(localCommits, localCommit -> {
 			final String localCommitContentHash = gitClient.getContentHash(localCommit);
 			if (patchCommitContentHashes.containsKey(localCommitContentHash)) {
-				LOGGER.info("Reverting commit '{}' (matches with remote commit '{}')", localCommit.getShortMessage(), patchCommitContentHashes.get(localCommitContentHash));
+				LOGGER.info("Reverting commit '{}' (matches with remote commit '{}')", localCommit.getShortMessage(),
+						patchCommitContentHashes.get(localCommitContentHash));
 				try {
 					gitClient.revert(localCommit);
 					return true;
