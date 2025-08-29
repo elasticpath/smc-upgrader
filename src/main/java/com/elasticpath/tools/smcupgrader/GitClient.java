@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.lib.IndexDiff;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -59,6 +60,13 @@ public interface GitClient {
 	void merge(Ref toMerge);
 
 	/**
+	 * Performs a revert operation for the given ref.
+	 *
+	 * @param toRevert the {@link AnyObjectId} to revert from the current working branch.
+	 */
+	void revert(AnyObjectId toRevert);
+
+	/**
 	 * Returns merge conflicts that exist in the local working directory.
 	 *
 	 * @return a map of conflicting file names to their {@link IndexDiff.StageState StageState}.
@@ -71,6 +79,21 @@ public interface GitClient {
 	 * @return the set of {@link IndexEntry} instances representing every index entry in the git database
 	 */
 	Set<IndexEntry> getStatusIndexEntries();
+
+	/**
+	 * Returns an iterable commits in the local working branch.
+	 *
+	 * @return an iterable of commits
+	 */
+	Iterable<RevCommit> getAllCommits();
+
+	/**
+	 * Returns an iterable of commits for the specified branch.
+	 *
+	 * @param branch the branch ref
+	 * @return an iterable of commits
+	 */
+	Iterable<RevCommit> getAllCommitsForBranch(Ref branch);
 
 	/**
 	 * Returns an iterable of commits containing the specified path in any branch with a name starting with upstreamRemoteName.
@@ -141,4 +164,13 @@ public interface GitClient {
 	 * @return an optional hash of the file contents, or Optional.empty if we were unable to generate the content hash
 	 */
 	Optional<String> getContentHashOfPathAtCommit(String path, RevCommit commit);
+
+	/**
+	 * Returns a SHA-256 hash of the contents of the specified commit.
+	 * The hash is computed based on the contents of all files in the commit.
+	 *
+	 * @param commit the commit to hash
+	 * @return a hash of the commit contents
+	 */
+	String getContentHash(RevCommit commit);
 }

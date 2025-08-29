@@ -41,7 +41,7 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 
 		final List<Change> diffConflictChanges = changeFactory.createChanges(diff);
 
-		LOGGER.info("\n" + diffConflictChanges.size() + " non-conflict file(s) found that differ from upstream " + version + " branch.");
+		LOGGER.info(diffConflictChanges.size() + " non-conflict file(s) found that differ from upstream " + version + " branch.");
 
 		if (!diffConflictChanges.isEmpty()) {
 			LOGGER.info("Processing diffs to attempt automatic resolution...");

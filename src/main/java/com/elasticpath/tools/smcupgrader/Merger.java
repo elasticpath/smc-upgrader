@@ -28,11 +28,12 @@ public class Merger {
 	/**
 	 * Performs a merge of the branch containing the upgraded codebase.
 	 *
+	 * @param doCleanWorkingDirectoryCheck check if the working directory is clean
 	 * @param upstreamRemoteName   the name of the upstream remote
 	 * @param upgradeTargetVersion the target version to upgrade to
 	 */
-	public void merge(final String upstreamRemoteName, final String upgradeTargetVersion) {
-		if (gitClient.workingDirectoryHasChanges()) {
+	public void merge(final boolean doCleanWorkingDirectoryCheck, final String upstreamRemoteName, final String upgradeTargetVersion) {
+		if (doCleanWorkingDirectoryCheck && gitClient.workingDirectoryHasChanges()) {
 			throw new LoggableException(
 					"The working directory for Git repository "
 							+ gitClient.getWorkingDir().getAbsolutePath()

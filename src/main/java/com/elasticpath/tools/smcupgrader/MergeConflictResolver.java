@@ -42,7 +42,7 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 		final Map<String, IndexDiff.StageState> conflicts = getGitClient().getConflicts();
 		final Set<IndexEntry> statusIndexEntries = getGitClient().getStatusIndexEntries();
 
-		LOGGER.info("\n" + conflicts.size() + " conflict(s) found.");
+		LOGGER.info(conflicts.size() + " conflict(s) found.");
 
 		if (!conflicts.isEmpty()) {
 			LOGGER.info("Processing merge conflicts to attempt automatic resolution...");
