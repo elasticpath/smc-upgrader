@@ -84,8 +84,12 @@ public class UpgradeController {
 	 * @param doConflictResolution         perform conflict resolution
 	 * @param doDiffResolution             perform diff resolution
 	 */
-	public void performUpgrade(final String version, final boolean doCleanWorkingDirectoryCheck, final boolean doRevertPatches,
-							   final boolean doMerge, final boolean doConflictResolution, final boolean doDiffResolution) {
+	public void performUpgrade(final String version,
+							   final boolean doCleanWorkingDirectoryCheck,
+							   final boolean doRevertPatches,
+							   final boolean doMerge,
+							   final boolean doConflictResolution,
+							   final boolean doDiffResolution) {
 		String currentVersion = convertVersionToReleaseFormat(determineCurrentVersion());
 		LOGGER.info("Detected current version {}.", currentVersion);
 
