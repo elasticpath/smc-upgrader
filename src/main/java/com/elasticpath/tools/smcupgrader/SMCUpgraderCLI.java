@@ -18,12 +18,16 @@ package com.elasticpath.tools.smcupgrader;
 import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+
+import com.elasticpath.tools.smcupgrader.ai.AiPlanGenerator;
+import com.elasticpath.tools.smcupgrader.ai.UpgradePath;
 
 /**
  * The main SMC Upgrader class.
@@ -33,8 +37,9 @@ import picocli.CommandLine;
 public class SMCUpgraderCLI implements Callable<Integer> {
 	private static final String DEFAULT_UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
 
-	@CommandLine.Parameters(index = "0",
-			description = "The version of Elastic Path Self-Managed Commerce to upgrade to.")
+	@CommandLine.Parameters(index = "0", arity = "0..1",
+			description = "The version of Elastic Path Self-Managed Commerce to upgrade to. "
+					+ "Optional when using --ai:start or --ai:continue.")
 	private String version;
 
 	@CommandLine.Option(names = { "-C" },
@@ -87,6 +92,14 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			negatable = true, defaultValue = "true")
 	private boolean doDiffResolution;
 
+	@CommandLine.Option(names = { "--ai:start" },
+			description = "Start AI-assisted upgrade mode and generate upgrade plan. Requires version parameter.")
+	private boolean aiStart;
+
+	@CommandLine.Option(names = { "--ai:continue" },
+			description = "Continue AI-assisted upgrade from saved plan.")
+	private boolean aiContinue;
+
 	@Override
 	public Integer call() {
 		try {
@@ -97,14 +110,65 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 
 			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
 
+			// Handle AI assist modes
+			if (aiStart) {
+				return handleAiStart(upgradeController);
+			} else if (aiContinue) {
+				return handleAiContinue(upgradeController);
+			}
+
+			// Standard upgrade mode - version is required
+			if (version == null || version.trim().isEmpty()) {
+				LOGGER.error("Version parameter is required for standard upgrade mode.");
+				LOGGER.error("Usage: smc-upgrader <version>");
+				LOGGER.error("   or: smc-upgrader --ai:start <version>");
+				LOGGER.error("   or: smc-upgrader --ai:continue");
+				return 1;
+			}
+
 			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
 					doConflictResolution, doDiffResolution);
 
 			return 0;
 		} catch (RuntimeException e) {
 			LOGGER.error("Unexpected error encountered while upgrading", e);
+		} catch (IOException e) {
+			LOGGER.error("IO error encountered", e);
 		}
 
+		return 1;
+	}
+
+	/**
+	 * Handle AI assist start mode.
+	 *
+	 * @param upgradeController the upgrade controller
+	 * @return exit code
+	 * @throws IOException if an error occurs
+	 */
+	private Integer handleAiStart(final UpgradeController upgradeController) throws IOException {
+		if (version == null || version.trim().isEmpty()) {
+			LOGGER.error("Version parameter is required for --ai:start mode.");
+			LOGGER.error("Usage: smc-upgrader --ai:start <version>");
+			return 1;
+		}
+
+		UpgradePath upgradePath = UpgradePath.loadFromResource();
+		AiPlanGenerator generator = new AiPlanGenerator(upgradePath, upgradeController);
+
+		boolean generated = generator.generatePlan(version, workingDir);
+		return generated ? 0 : 1;
+	}
+
+	/**
+	 * Handle AI assist continue mode.
+	 *
+	 * @param upgradeController the upgrade controller
+	 * @return exit code
+	 */
+	private Integer handleAiContinue(final UpgradeController upgradeController) {
+		LOGGER.info("AI continue mode not yet implemented.");
+		LOGGER.info("This will be implemented in Sprint 4.");
 		return 1;
 	}
 
