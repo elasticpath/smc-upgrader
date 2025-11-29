@@ -24,10 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
+import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
 /**
  * Generates AI-assisted upgrade plans.
@@ -103,6 +107,17 @@ public class AiPlanGenerator {
 		// Write to file
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
 
+		// Commit to git
+		GitClient gitClient = createGitClient(workingDir);
+		if (gitClient != null) {
+			try {
+				commitPlanFile(gitClient, "Generate upgrade plan from " + currentVersion + " to " + targetVersion);
+			} catch (RuntimeException e) {
+				// Don't fail if git commit fails (e.g., signing service unavailable)
+				LOGGER.debug("Could not commit plan file to git: {}", e.getMessage());
+			}
+		}
+
 		LOGGER.info("Generated upgrade plan: {}", planFile.getAbsolutePath());
 		LOGGER.info("");
 		LOGGER.info("You can review and customize the plan if needed.");
@@ -176,6 +191,11 @@ public class AiPlanGenerator {
 				step.setTool(template.getTool());
 				step.setStatus(template.getStatus());
 
+				// Set version for smc-upgrader steps
+				if ("smc-upgrader".equals(template.getTool())) {
+					step.setVersion(toVersion);
+				}
+
 				if (template.getValidationCommand() != null) {
 					step.setValidationCommand(substituteVariables(template.getValidationCommand(), fromVersion, toVersion));
 				}
@@ -203,5 +223,43 @@ public class AiPlanGenerator {
 		return template
 				.replace("{FROM_VERSION}", fromVersion)
 				.replace("{TO_VERSION}", toVersion);
+	}
+
+	/**
+	 * Create a GitClient for the working directory.
+	 *
+	 * @param workingDir the working directory
+	 * @return a GitClient, or null if not in a git repository
+	 */
+	private GitClient createGitClient(final File workingDir) {
+		try {
+			FileRepositoryBuilder builder = new FileRepositoryBuilder();
+			Repository repository = builder
+					.setWorkTree(workingDir)
+					.readEnvironment()
+					.findGitDir()
+					.build();
+			return new GitClientImpl(repository);
+		} catch (IOException e) {
+			// Not in a git repository
+			LOGGER.debug("Could not create GitClient: {}", e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Commit the plan file to git.
+	 *
+	 * @param gitClient the git client
+	 * @param message   the commit message
+	 */
+	private void commitPlanFile(final GitClient gitClient, final String message) {
+		// Stage the plan file
+		gitClient.stage(PLAN_FILE_NAME);
+
+		// Commit the plan file
+		gitClient.commit(message);
+
+		LOGGER.debug("Committed plan file: {}", message);
 	}
 }

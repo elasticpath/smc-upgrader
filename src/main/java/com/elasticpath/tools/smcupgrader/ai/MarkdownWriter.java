@@ -74,6 +74,10 @@ public final class MarkdownWriter {
 		markdown.append("Task: ").append(step.getTask()).append("  \n");
 		markdown.append("Tool: ").append(step.getTool()).append("  \n");
 
+		if (step.getVersion() != null && !step.getVersion().trim().isEmpty()) {
+			markdown.append("Version: ").append(step.getVersion()).append("  \n");
+		}
+
 		if (step.hasValidationCommand()) {
 			markdown.append("Validation command: ").append(step.getValidationCommand()).append("  \n");
 		}

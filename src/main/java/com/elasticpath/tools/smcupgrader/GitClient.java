@@ -149,6 +149,13 @@ public interface GitClient {
 	void unstage(String path);
 
 	/**
+	 * Commits staged changes with the given message.
+	 *
+	 * @param message the commit message
+	 */
+	void commit(String message);
+
+	/**
 	 * Deletes a file from the local file system and git repository.
 	 *
 	 * @param path the path of the file to delete

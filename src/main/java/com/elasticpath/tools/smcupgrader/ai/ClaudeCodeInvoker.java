@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ClaudeCodeInvoker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClaudeCodeInvoker.class);
-	private static final String CLAUDE_PROMPT_FILE = ".claude-prompt.txt";
+	private static final int PROMPT_MAX_DISPLAY_LENGTH = 50;
+	private static final int COMMAND_MAX_DISPLAY_LENGTH = 100;
 
 	private final File workingDir;
 
@@ -47,23 +47,55 @@ public class ClaudeCodeInvoker {
 	 * Invoke Claude Code with a prompt.
 	 *
 	 * @param prompt the prompt to send to Claude
-	 * @return true if invocation was successful
+	 * @return true if Claude completed successfully
 	 * @throws IOException if an error occurs
 	 */
 	public boolean invokeClaudeCode(final String prompt) throws IOException {
-		// Write prompt to temporary file
-		File promptFile = new File(workingDir, CLAUDE_PROMPT_FILE);
-		Files.write(promptFile.toPath(), prompt.getBytes(StandardCharsets.UTF_8));
+		// Check if Claude Code is available
+		if (!isClaudeCodeAvailable()) {
+			LOGGER.error("Claude Code CLI is not available.");
+			LOGGER.error("Please install Claude Code from: https://claude.com/claude-code");
+			return false;
+		}
 
-		LOGGER.info("Prompt file created at: {}", promptFile.getAbsolutePath());
-		LOGGER.info("");
-		LOGGER.info("To execute this step, run:");
-		LOGGER.info("  claude --prompt-file {}", CLAUDE_PROMPT_FILE);
-		LOGGER.info("");
-		LOGGER.info("After Claude completes the task, run:");
-		LOGGER.info("  smc-upgrader --ai:continue");
+		// Check if we have console access
+		boolean hasConsole = System.console() != null;
+		LOGGER.debug("System console available: {}", hasConsole);
+		LOGGER.debug("Executing command: claude {}", prompt.substring(0, Math.min(PROMPT_MAX_DISPLAY_LENGTH, prompt.length())) + "...");
 
-		return true;
+		LOGGER.info("Executing Claude Code with prompt...");
+		LOGGER.info("");
+
+		try {
+			// Execute Claude Code through shell to ensure proper terminal allocation
+			// Use single quotes for safer shell escaping (only need to escape single quotes themselves)
+			String escapedPrompt = prompt.replace("'", "'\\''");
+			String command = "claude '" + escapedPrompt + "'";
+
+			LOGGER.debug("Shell command: {}", command.substring(0, Math.min(COMMAND_MAX_DISPLAY_LENGTH, command.length())) + "...");
+
+			Process process = new ProcessBuilder("/bin/sh", "-c", command)
+					.directory(workingDir)
+					.redirectInput(ProcessBuilder.Redirect.INHERIT)
+					.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+					.redirectError(ProcessBuilder.Redirect.INHERIT)
+					.start();
+
+			// Wait for Claude to complete
+			int exitCode = process.waitFor();
+
+			LOGGER.info("");
+			if (exitCode == 0) {
+				return true;
+			} else {
+				LOGGER.warn("Claude Code exited with code: {}", exitCode);
+				return false;
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.error("Claude Code execution was interrupted", e);
+			return false;
+		}
 	}
 
 	/**
@@ -108,16 +140,4 @@ public class ClaudeCodeInvoker {
 		}
 	}
 
-	/**
-	 * Clean up the prompt file.
-	 *
-	 * @throws IOException if an error occurs
-	 */
-	public void cleanupPromptFile() throws IOException {
-		File promptFile = new File(workingDir, CLAUDE_PROMPT_FILE);
-		if (promptFile.exists()) {
-			Files.delete(promptFile.toPath());
-			LOGGER.debug("Cleaned up prompt file: {}", promptFile.getAbsolutePath());
-		}
-	}
 }

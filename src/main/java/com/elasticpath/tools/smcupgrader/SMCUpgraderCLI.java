@@ -23,10 +23,12 @@ import java.util.concurrent.Callable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import com.elasticpath.tools.smcupgrader.ai.AiPlanGenerator;
+import com.elasticpath.tools.smcupgrader.ai.AiPlanExecutor;
 import com.elasticpath.tools.smcupgrader.ai.UpgradePath;
 
 /**
@@ -108,17 +110,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 				rootLogger.setLevel(Level.DEBUG);
 			}
 
-			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
-
-			// Handle AI assist modes
-			if (aiStart) {
-				return handleAiStart(upgradeController);
-			} else if (aiContinue) {
-				return handleAiContinue(upgradeController);
-			}
-
 			// Standard upgrade mode - version is required
-			if (version == null || version.trim().isEmpty()) {
+			if (!aiContinue && StringUtils.isEmptyOrNull(version)) {
 				LOGGER.error("Version parameter is required for standard upgrade mode.");
 				LOGGER.error("Usage: smc-upgrader <version>");
 				LOGGER.error("   or: smc-upgrader --ai:start <version>");
@@ -126,8 +119,17 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 				return 1;
 			}
 
-			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
+			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
+
+			// Handle AI assist modes
+			if (aiStart) {
+				return handleAiStart(upgradeController);
+			} else if (aiContinue) {
+				return handleAiContinue();
+			} else {
+				upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doRevertPatches, doMerge, doConflictResolution,
 					doConflictResolution, doDiffResolution);
+			}
 
 			return 0;
 		} catch (RuntimeException e) {
@@ -147,12 +149,6 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	 * @throws IOException if an error occurs
 	 */
 	private Integer handleAiStart(final UpgradeController upgradeController) throws IOException {
-		if (version == null || version.trim().isEmpty()) {
-			LOGGER.error("Version parameter is required for --ai:start mode.");
-			LOGGER.error("Usage: smc-upgrader --ai:start <version>");
-			return 1;
-		}
-
 		UpgradePath upgradePath = UpgradePath.loadFromResource();
 		AiPlanGenerator generator = new AiPlanGenerator(upgradePath, upgradeController);
 
@@ -163,13 +159,17 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	/**
 	 * Handle AI assist continue mode.
 	 *
-	 * @param upgradeController the upgrade controller
 	 * @return exit code
 	 */
-	private Integer handleAiContinue(final UpgradeController upgradeController) {
-		LOGGER.info("AI continue mode not yet implemented.");
-		LOGGER.info("This will be implemented in Sprint 4.");
-		return 1;
+	private Integer handleAiContinue() {
+		try {
+			AiPlanExecutor executor = new AiPlanExecutor(workingDir);
+			boolean stepExecuted = executor.executeNextStep();
+			return stepExecuted ? 0 : 1;
+		} catch (IOException e) {
+			LOGGER.error("Error executing plan", e);
+			return 1;
+		}
 	}
 
 	/**

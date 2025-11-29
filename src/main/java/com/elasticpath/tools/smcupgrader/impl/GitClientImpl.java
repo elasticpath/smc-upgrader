@@ -345,6 +345,15 @@ public class GitClientImpl implements GitClient {
 	}
 
 	@Override
+	public void commit(final String message) {
+		try (Git git = new Git(repository)) {
+			git.commit().setMessage(message).call();
+		} catch (final GitAPIException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public void delete(final String path) {
 		try (Git git = new Git(repository)) {
 			git.rm().addFilepattern(path).call();

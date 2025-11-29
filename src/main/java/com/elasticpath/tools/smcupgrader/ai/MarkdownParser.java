@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.commonmark.node.Document;
 import org.commonmark.node.HardLineBreak;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
@@ -40,6 +39,7 @@ public final class MarkdownParser {
 	private static final Pattern TO_VERSION_PATTERN = Pattern.compile("Upgrade to:\\s*(.+)");
 	private static final Pattern TASK_PATTERN = Pattern.compile("Task:\\s*(.+)");
 	private static final Pattern TOOL_PATTERN = Pattern.compile("Tool:\\s*(.+)");
+	private static final Pattern VERSION_PATTERN = Pattern.compile("Version:\\s*(.+)");
 	private static final Pattern VALIDATION_PATTERN = Pattern.compile("Validation command:\\s*(.+)");
 	private static final Pattern STATUS_PATTERN = Pattern.compile("Status:\\s*(.+)");
 
@@ -90,9 +90,7 @@ public final class MarkdownParser {
 			if (child instanceof Heading) {
 				Heading heading = (Heading) child;
 
-				if (heading.getLevel() == 1) {
-					// Main title, skip
-				} else if (heading.getLevel() == 2) {
+				if (heading.getLevel() == 2) {
 					// Save previous step if exists
 					if (currentStep != null && promptBuilder != null) {
 						currentStep.setPrompt(promptBuilder.toString().trim());
@@ -114,14 +112,14 @@ public final class MarkdownParser {
 				String paragraphText = extractText(child);
 
 				// Try to parse metadata
-				if (parseMetadata(paragraphText, currentStep, plan)) {
-					// Metadata was parsed
-				} else if (currentStep != null && currentStep.getTool() != null && promptBuilder != null) {
-					// This is part of the prompt for claude steps
-					if (promptBuilder.length() > 0) {
-						promptBuilder.append("\n\n");
+				if (!parseMetadata(paragraphText, currentStep, plan)) {
+					if (currentStep != null && currentStep.getTool() != null && promptBuilder != null) {
+						// This is part of the prompt for claude steps
+						if (promptBuilder.length() > 0) {
+							promptBuilder.append("\n\n");
+						}
+						promptBuilder.append(paragraphText);
 					}
-					promptBuilder.append(paragraphText);
 				}
 			}
 
@@ -183,6 +181,13 @@ public final class MarkdownParser {
 			matcher = TOOL_PATTERN.matcher(line);
 			if (matcher.find()) {
 				currentStep.setTool(matcher.group(1).trim());
+				foundMetadata = true;
+				continue;
+			}
+
+			matcher = VERSION_PATTERN.matcher(line);
+			if (matcher.find()) {
+				currentStep.setVersion(matcher.group(1).trim());
 				foundMetadata = true;
 				continue;
 			}

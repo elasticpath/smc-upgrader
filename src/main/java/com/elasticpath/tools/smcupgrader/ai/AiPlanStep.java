@@ -22,6 +22,7 @@ public class AiPlanStep {
 	private String title;
 	private String task;
 	private String tool;
+	private String version;
 	private String validationCommand;
 	private String status;
 	private String prompt;
@@ -104,6 +105,24 @@ public class AiPlanStep {
 	 */
 	public void setTool(final String tool) {
 		this.tool = tool;
+	}
+
+	/**
+	 * Get the version.
+	 *
+	 * @return the version, or null if not applicable
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+	/**
+	 * Set the version.
+	 *
+	 * @param version the version
+	 */
+	public void setVersion(final String version) {
+		this.version = version;
 	}
 
 	/**
