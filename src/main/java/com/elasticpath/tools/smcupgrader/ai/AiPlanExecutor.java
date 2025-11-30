@@ -336,7 +336,13 @@ public class AiPlanExecutor {
 
 		// Invoke Claude with the prompt
 		if (step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {
-			boolean claudeSuccess = claudeInvoker.invokeClaudeCode(step.getPrompt());
+			// Build the full prompt including validation command if present
+			String fullPrompt = step.getPrompt();
+			if (step.hasValidationCommand()) {
+				fullPrompt += "\n\nValidation command: " + step.getValidationCommand();
+			}
+
+			boolean claudeSuccess = claudeInvoker.invokeClaudeCode(fullPrompt);
 
 			LOGGER.info("");
 			if (claudeSuccess) {
