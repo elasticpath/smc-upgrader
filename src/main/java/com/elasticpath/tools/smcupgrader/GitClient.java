@@ -142,6 +142,11 @@ public interface GitClient {
 	void stage(String path);
 
 	/**
+	 * Adds all modified, new, and deleted files to the git index.
+	 */
+	void stageAll();
+
+	/**
 	 * Removes a file from the git index.
 	 *
 	 * @param path the path of the file to remove from the git index

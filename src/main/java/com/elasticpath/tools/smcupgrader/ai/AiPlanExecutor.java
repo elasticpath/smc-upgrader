@@ -129,6 +129,10 @@ public class AiPlanExecutor {
 
 			case "M":
 				// Mark complete
+				// For Claude steps, commit all changes before marking complete
+				if (nextStep.isClaudeStep()) {
+					commitAllChanges(nextStep.getTitle());
+				}
 				stepCompleted = true;
 				shouldExit = true;
 				break;
@@ -439,5 +443,30 @@ public class AiPlanExecutor {
 		gitClient.commit(message);
 
 		LOGGER.debug("Committed plan file: {}", message);
+	}
+
+	/**
+	 * Commit all changes in the working directory.
+	 *
+	 * @param message the commit message
+	 */
+	private void commitAllChanges(final String message) {
+		if (gitClient == null) {
+			LOGGER.debug("No git client available, skipping commit");
+			return;
+		}
+
+		try {
+			// Stage all changes (modified, new, and deleted files)
+			gitClient.stageAll();
+
+			// Commit all changes
+			gitClient.commit(message);
+
+			LOGGER.info("Committed all changes: {}", message);
+		} catch (RuntimeException e) {
+			// Don't fail if git commit fails (e.g., signing service unavailable, nothing to commit)
+			LOGGER.debug("Could not commit changes to git: {}", e.getMessage());
+		}
 	}
 }

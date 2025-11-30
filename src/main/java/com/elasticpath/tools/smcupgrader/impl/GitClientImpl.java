@@ -336,6 +336,18 @@ public class GitClientImpl implements GitClient {
 	}
 
 	@Override
+	public void stageAll() {
+		try (Git git = new Git(repository)) {
+			// Stage all modified and new files
+			git.add().addFilepattern(".").call();
+			// Stage deletions
+			git.add().addFilepattern(".").setUpdate(true).call();
+		} catch (final GitAPIException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public void unstage(final String path) {
 		try (Git git = new Git(repository)) {
 			git.reset().addPath(path).call();
