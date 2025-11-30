@@ -62,12 +62,13 @@ public class AiPlanExecutor {
 	/**
 	 * Package-private constructor for testing.
 	 *
-	 * @param workingDir the working directory
-	 * @param gitClient  the git client (for testing)
+	 * @param workingDir     the working directory
+	 * @param gitClient      the git client (for testing)
+	 * @param claudeInvoker  the claude invoker (for testing)
 	 */
-	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
+	AiPlanExecutor(final File workingDir, final GitClient gitClient, final ClaudeCodeInvoker claudeInvoker) {
 		this.workingDir = workingDir;
-		this.claudeInvoker = new ClaudeCodeInvoker(workingDir);
+		this.claudeInvoker = claudeInvoker;
 		this.upgradeController = new UpgradeController(workingDir, DEFAULT_UPSTREAM_REPO_URL);
 		this.gitClient = gitClient;
 	}

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.elasticpath.tools.smcupgrader.GitClient;
-import com.elasticpath.tools.smcupgrader.UpgradeController;
 
 /**
  * Tests for {@link AiPlanExecutor}.
@@ -42,14 +42,14 @@ class AiPlanExecutorTest {
 	@TempDir
 	File tempDir;
 
-	private UpgradeController upgradeController;
 	private GitClient gitClient;
+	private ClaudeCodeInvoker claudeInvoker;
 	private AiPlanExecutor executor;
 
 	@BeforeEach
-	void setUp() {
-		upgradeController = mock(UpgradeController.class);
+	void setUp() throws IOException {
 		gitClient = mock(GitClient.class);
+		claudeInvoker = mock(ClaudeCodeInvoker.class);
 
 		// Configure mock to accept git operations without doing anything
 		doNothing().when(gitClient).stage(anyString());
@@ -57,7 +57,11 @@ class AiPlanExecutorTest {
 		doNothing().when(gitClient).unstage(anyString());
 		doNothing().when(gitClient).commit(anyString());
 
-		executor = new AiPlanExecutor(tempDir, gitClient);
+		// Configure mock Claude invoker to always return false (Claude not available)
+		when(claudeInvoker.isClaudeCodeAvailable()).thenReturn(false);
+		when(claudeInvoker.invokeClaudeCode(anyString())).thenReturn(false);
+
+		executor = new AiPlanExecutor(tempDir, gitClient, claudeInvoker);
 	}
 
 	@Test
@@ -143,13 +147,6 @@ class AiPlanExecutorTest {
 		step.setPrompt("Test prompt");
 
 		writePlanFile(Arrays.asList(step));
-
-		// Only run this test if Claude is NOT available (to avoid interactive blocking)
-		ClaudeCodeInvoker invoker = new ClaudeCodeInvoker(tempDir);
-		if (invoker.isClaudeCodeAvailable()) {
-			// Skip test - would block on interactive prompt
-			return;
-		}
 
 		executor.setTestChoice("E"); // Execute the step
 		boolean result = executor.executeNextStep();

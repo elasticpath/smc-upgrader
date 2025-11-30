@@ -26,6 +26,7 @@ import org.commonmark.node.HardLineBreak;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
 import org.commonmark.node.Paragraph;
+import org.commonmark.node.SoftLineBreak;
 import org.commonmark.node.Text;
 import org.commonmark.parser.Parser;
 
@@ -247,6 +248,8 @@ public final class MarkdownParser {
 		if (node instanceof Text) {
 			text.append(((Text) node).getLiteral());
 		} else if (node instanceof HardLineBreak) {
+			text.append("\n");
+		} else if (node instanceof SoftLineBreak) {
 			text.append("\n");
 		}
 
