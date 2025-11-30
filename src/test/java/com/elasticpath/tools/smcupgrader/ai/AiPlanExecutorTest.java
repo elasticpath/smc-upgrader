@@ -54,6 +54,7 @@ class AiPlanExecutorTest {
 		// Configure mock to accept git operations without doing anything
 		doNothing().when(gitClient).stage(anyString());
 		doNothing().when(gitClient).stageAll();
+		doNothing().when(gitClient).unstage(anyString());
 		doNothing().when(gitClient).commit(anyString());
 
 		executor = new AiPlanExecutor(tempDir, gitClient);
@@ -301,6 +302,8 @@ class AiPlanExecutorTest {
 		step.setTask("Test task");
 		step.setTool(tool);
 		step.setStatus(status);
+		step.setCommitAllChangesOnCompletion(true);
+		step.setCommitPlanOnCompletion(true);
 		return step;
 	}
 

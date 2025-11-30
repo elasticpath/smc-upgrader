@@ -26,6 +26,8 @@ public class AiPlanStep {
 	private String validationCommand;
 	private String status;
 	private String prompt;
+	private boolean commitAllChangesOnCompletion;
+	private boolean commitPlanOnCompletion;
 
 	/**
 	 * Default constructor for JSON deserialization.
@@ -177,6 +179,42 @@ public class AiPlanStep {
 	 */
 	public void setPrompt(final String prompt) {
 		this.prompt = prompt;
+	}
+
+	/**
+	 * Check if all changes should be committed when this step is completed.
+	 *
+	 * @return true if all changes should be committed on completion
+	 */
+	public boolean isCommitAllChangesOnCompletion() {
+		return commitAllChangesOnCompletion;
+	}
+
+	/**
+	 * Set whether all changes should be committed when this step is completed.
+	 *
+	 * @param commitAllChangesOnCompletion true to commit all changes on completion
+	 */
+	public void setCommitAllChangesOnCompletion(final boolean commitAllChangesOnCompletion) {
+		this.commitAllChangesOnCompletion = commitAllChangesOnCompletion;
+	}
+
+	/**
+	 * Check if the plan file should be committed when this step is completed.
+	 *
+	 * @return true if the plan file should be committed on completion
+	 */
+	public boolean isCommitPlanOnCompletion() {
+		return commitPlanOnCompletion;
+	}
+
+	/**
+	 * Set whether the plan file should be committed when this step is completed.
+	 *
+	 * @param commitPlanOnCompletion true to commit the plan file on completion
+	 */
+	public void setCommitPlanOnCompletion(final boolean commitPlanOnCompletion) {
+		this.commitPlanOnCompletion = commitPlanOnCompletion;
 	}
 
 	/**

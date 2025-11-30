@@ -82,6 +82,8 @@ public final class MarkdownWriter {
 			markdown.append("Validation command: ").append(step.getValidationCommand()).append("  \n");
 		}
 
+		markdown.append("Commit all changes on completion: ").append(step.isCommitAllChangesOnCompletion()).append("  \n");
+		markdown.append("Commit plan on completion: ").append(step.isCommitPlanOnCompletion()).append("  \n");
 		markdown.append("Status: ").append(step.getStatus()).append("\n\n");
 
 		// Prompt for claude steps

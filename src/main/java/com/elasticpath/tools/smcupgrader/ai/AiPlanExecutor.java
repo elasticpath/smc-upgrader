@@ -139,8 +139,8 @@ public class AiPlanExecutor {
 
 			case "M":
 				// Mark complete
-				// For Claude steps, commit all changes before marking complete
-				if (nextStep.isClaudeStep()) {
+				// Commit all changes if configured to do so
+				if (nextStep.isCommitAllChangesOnCompletion()) {
 					commitAllChanges(nextStep.getTitle());
 				}
 				stepCompleted = true;
@@ -159,7 +159,7 @@ public class AiPlanExecutor {
 		// Save updated plan if step was marked complete
 		if (stepCompleted) {
 			nextStep.setStatus("complete");
-			savePlan(planFile, plan);
+			savePlan(planFile, plan, nextStep);
 			LOGGER.info("");
 			LOGGER.info("Step marked as complete.");
 		}
@@ -389,23 +389,19 @@ public class AiPlanExecutor {
 	/**
 	 * Save the plan back to the file.
 	 *
-	 * @param planFile the plan file
-	 * @param plan     the plan document
+	 * @param planFile      the plan file
+	 * @param plan          the plan document
+	 * @param completedStep the step that was just completed
 	 * @throws IOException if an error occurs
 	 */
-	private void savePlan(final File planFile, final PlanDocument plan) throws IOException {
+	private void savePlan(final File planFile, final PlanDocument plan, final AiPlanStep completedStep) throws IOException {
 		String markdown = MarkdownWriter.generateMarkdown(plan.getSteps(), plan.getFromVersion(), plan.getToVersion());
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
 
-		// Find the completed step to include in commit message
-		String completedStepTitle = plan.getSteps().stream()
-				.filter(step -> "complete".equals(step.getStatus()))
-				.reduce((first, second) -> second) // Get the last completed step
-				.map(AiPlanStep::getTitle)
-				.orElse("step");
-
-		// Commit to git
-		commitPlanFile("Mark step complete: " + completedStepTitle);
+		// Commit to git if configured to do so
+		if (completedStep.isCommitPlanOnCompletion()) {
+			commitPlanFile("Mark step complete: " + completedStep.getTitle());
+		}
 	}
 
 	/**
@@ -453,6 +449,9 @@ public class AiPlanExecutor {
 	private void commitAllChanges(final String message) {
 		// Stage all changes (modified, new, and deleted files)
 		gitClient.stageAll();
+
+		// Unstage the plan file - it should be committed separately
+		gitClient.unstage(PLAN_FILE_NAME);
 
 		// Commit all changes
 		gitClient.commit(message);

@@ -41,6 +41,8 @@ public final class MarkdownParser {
 	private static final Pattern TOOL_PATTERN = Pattern.compile("Tool:\\s*(.+)");
 	private static final Pattern VERSION_PATTERN = Pattern.compile("Version:\\s*(.+)");
 	private static final Pattern VALIDATION_PATTERN = Pattern.compile("Validation command:\\s*(.+)");
+	private static final Pattern COMMIT_ALL_CHANGES_PATTERN = Pattern.compile("Commit all changes on completion:\\s*(.+)");
+	private static final Pattern COMMIT_PLAN_PATTERN = Pattern.compile("Commit plan on completion:\\s*(.+)");
 	private static final Pattern STATUS_PATTERN = Pattern.compile("Status:\\s*(.+)");
 
 	private MarkdownParser() {
@@ -195,6 +197,20 @@ public final class MarkdownParser {
 			matcher = VALIDATION_PATTERN.matcher(line);
 			if (matcher.find()) {
 				currentStep.setValidationCommand(matcher.group(1).trim());
+				foundMetadata = true;
+				continue;
+			}
+
+			matcher = COMMIT_ALL_CHANGES_PATTERN.matcher(line);
+			if (matcher.find()) {
+				currentStep.setCommitAllChangesOnCompletion(Boolean.parseBoolean(matcher.group(1).trim()));
+				foundMetadata = true;
+				continue;
+			}
+
+			matcher = COMMIT_PLAN_PATTERN.matcher(line);
+			if (matcher.find()) {
+				currentStep.setCommitPlanOnCompletion(Boolean.parseBoolean(matcher.group(1).trim()));
 				foundMetadata = true;
 				continue;
 			}
