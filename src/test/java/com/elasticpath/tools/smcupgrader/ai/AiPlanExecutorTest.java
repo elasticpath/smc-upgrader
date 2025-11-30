@@ -16,6 +16,8 @@
 package com.elasticpath.tools.smcupgrader.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 
 /**
@@ -40,12 +43,20 @@ class AiPlanExecutorTest {
 	File tempDir;
 
 	private UpgradeController upgradeController;
+	private GitClient gitClient;
 	private AiPlanExecutor executor;
 
 	@BeforeEach
 	void setUp() {
 		upgradeController = mock(UpgradeController.class);
-		executor = new AiPlanExecutor(tempDir);
+		gitClient = mock(GitClient.class);
+
+		// Configure mock to accept git operations without doing anything
+		doNothing().when(gitClient).stage(anyString());
+		doNothing().when(gitClient).stageAll();
+		doNothing().when(gitClient).commit(anyString());
+
+		executor = new AiPlanExecutor(tempDir, gitClient);
 	}
 
 	@Test

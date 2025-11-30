@@ -60,6 +60,19 @@ public class AiPlanExecutor {
 	}
 
 	/**
+	 * Package-private constructor for testing.
+	 *
+	 * @param workingDir the working directory
+	 * @param gitClient  the git client (for testing)
+	 */
+	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
+		this.workingDir = workingDir;
+		this.claudeInvoker = new ClaudeCodeInvoker(workingDir);
+		this.upgradeController = new UpgradeController(workingDir, DEFAULT_UPSTREAM_REPO_URL);
+		this.gitClient = gitClient;
+	}
+
+	/**
 	 * Execute the next step in the plan.
 	 *
 	 * @return true if a step was executed, false if all steps are complete
@@ -105,7 +118,6 @@ public class AiPlanExecutor {
 
 		// Handle user choice
 		boolean stepCompleted = false;
-		boolean shouldExit = false;
 
 		switch (choice.toUpperCase()) {
 			case "E":
@@ -118,13 +130,11 @@ public class AiPlanExecutor {
 					LOGGER.error("Unknown tool: {}", nextStep.getTool());
 					return false;
 				}
-				shouldExit = true;
 				break;
 
 			case "C":
 				// Check validation
 				stepCompleted = checkStepValidation(nextStep);
-				shouldExit = true;
 				break;
 
 			case "M":
@@ -134,7 +144,6 @@ public class AiPlanExecutor {
 					commitAllChanges(nextStep.getTitle());
 				}
 				stepCompleted = true;
-				shouldExit = true;
 				break;
 
 			case "X":
@@ -156,10 +165,8 @@ public class AiPlanExecutor {
 		}
 
 		// Exit after action
-		if (shouldExit) {
-			LOGGER.info("");
-			LOGGER.info("Exiting. Run 'smc-upgrader --ai:continue' to continue with the next step.");
-		}
+		LOGGER.info("");
+		LOGGER.info("Exiting. Run 'smc-upgrader --ai:continue' to continue with the next step.");
 
 		return true;
 	}
@@ -398,14 +405,7 @@ public class AiPlanExecutor {
 				.orElse("step");
 
 		// Commit to git
-		if (gitClient != null) {
-			try {
-				commitPlanFile("Mark step complete: " + completedStepTitle);
-			} catch (RuntimeException e) {
-				// Don't fail if git commit fails (e.g., signing service unavailable)
-				LOGGER.debug("Could not commit plan file to git: {}", e.getMessage());
-			}
-		}
+		commitPlanFile("Mark step complete: " + completedStepTitle);
 	}
 
 	/**
@@ -451,22 +451,12 @@ public class AiPlanExecutor {
 	 * @param message the commit message
 	 */
 	private void commitAllChanges(final String message) {
-		if (gitClient == null) {
-			LOGGER.debug("No git client available, skipping commit");
-			return;
-		}
+		// Stage all changes (modified, new, and deleted files)
+		gitClient.stageAll();
 
-		try {
-			// Stage all changes (modified, new, and deleted files)
-			gitClient.stageAll();
+		// Commit all changes
+		gitClient.commit(message);
 
-			// Commit all changes
-			gitClient.commit(message);
-
-			LOGGER.info("Committed all changes: {}", message);
-		} catch (RuntimeException e) {
-			// Don't fail if git commit fails (e.g., signing service unavailable, nothing to commit)
-			LOGGER.debug("Could not commit changes to git: {}", e.getMessage());
-		}
+		LOGGER.info("Committed all changes: {}", message);
 	}
 }

@@ -20,7 +20,7 @@
       "tool": "claude",
       "validationCommand": "git diff --check",
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. Ensure that you do not overwrite important \"ours\" changes with \"theirs\". Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
     },
     {
       "title": "Fix compilation failures",
