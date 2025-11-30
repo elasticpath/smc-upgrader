@@ -40,8 +40,8 @@ public final class MarkdownWriter {
 
 		// Header
 		markdown.append("# SMC Upgrader - AI Assist Plan\n\n");
-		markdown.append("Upgrade from: ").append(fromVersion).append("  \n");
-		markdown.append("Upgrade to: ").append(toVersion).append("  \n");
+		markdown.append("Upgrade from: ").append(fromVersion).append("\n");
+		markdown.append("Upgrade to: ").append(toVersion).append("\n");
 		markdown.append("Generated: ").append(LocalDate.now()).append("\n\n");
 		markdown.append("---\n\n");
 
@@ -71,19 +71,19 @@ public final class MarkdownWriter {
 		markdown.append("## ").append(step.getTitle()).append("\n\n");
 
 		// Metadata
-		markdown.append("Task: ").append(step.getTask()).append("  \n");
-		markdown.append("Tool: ").append(step.getTool()).append("  \n");
+		markdown.append("Task: ").append(step.getTask()).append("\n");
+		markdown.append("Tool: ").append(step.getTool()).append("\n");
 
 		if (step.getVersion() != null && !step.getVersion().trim().isEmpty()) {
-			markdown.append("Version: ").append(step.getVersion()).append("  \n");
+			markdown.append("Version: ").append(step.getVersion()).append("\n");
 		}
 
 		if (step.hasValidationCommand()) {
-			markdown.append("Validation command: ").append(step.getValidationCommand()).append("  \n");
+			markdown.append("Validation command: ").append(step.getValidationCommand()).append("\n");
 		}
 
-		markdown.append("Commit all changes on completion: ").append(step.isCommitAllChangesOnCompletion()).append("  \n");
-		markdown.append("Commit plan on completion: ").append(step.isCommitPlanOnCompletion()).append("  \n");
+		markdown.append("Commit all changes on completion: ").append(step.isCommitAllChangesOnCompletion()).append("\n");
+		markdown.append("Commit plan on completion: ").append(step.isCommitPlanOnCompletion()).append("\n");
 		markdown.append("Status: ").append(step.getStatus()).append("\n\n");
 
 		// Prompt for claude steps
