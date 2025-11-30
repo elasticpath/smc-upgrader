@@ -266,7 +266,7 @@ public class AiPlanExecutor {
 				// Execute the upgrade with standard options
 				upgradeController.performUpgrade(
 						targetVersion,
-						true,  // doCleanWorkingDirectoryCheck
+						false,  // doCleanWorkingDirectoryCheck
 						true,  // doRevertPatches
 						true,  // doMerge
 						true,  // doConflictResolution
