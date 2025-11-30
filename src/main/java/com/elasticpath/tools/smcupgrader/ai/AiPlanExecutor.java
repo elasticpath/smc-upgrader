@@ -232,7 +232,6 @@ public class AiPlanExecutor {
 		}
 
 		LOGGER.info("Running validation command: {}", step.getValidationCommand());
-		LOGGER.info("");
 
 		boolean validationPassed = runValidationCommand(step.getValidationCommand());
 

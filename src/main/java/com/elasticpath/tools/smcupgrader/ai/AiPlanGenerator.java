@@ -190,11 +190,9 @@ public class AiPlanGenerator {
 				step.setTask(substituteVariables(template.getTask(), fromVersion, toVersion));
 				step.setTool(template.getTool());
 				step.setStatus(template.getStatus());
-
-				// Set version for smc-upgrader steps
-				if ("smc-upgrader".equals(template.getTool())) {
-					step.setVersion(toVersion);
-				}
+				step.setCommitPlanOnCompletion(template.isCommitPlanOnCompletion());
+				step.setCommitAllChangesOnCompletion(template.isCommitAllChangesOnCompletion());
+				step.setVersion(toVersion);
 
 				if (template.getValidationCommand() != null) {
 					step.setValidationCommand(substituteVariables(template.getValidationCommand(), fromVersion, toVersion));
