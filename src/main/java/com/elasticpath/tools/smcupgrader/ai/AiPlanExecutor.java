@@ -140,10 +140,6 @@ public class AiPlanExecutor {
 
 			case "M":
 				// Mark complete
-				// Commit all changes if configured to do so
-				if (nextStep.isCommitAllChangesOnCompletion()) {
-					commitAllChanges(nextStep.getTitle());
-				}
 				stepCompleted = true;
 				break;
 
@@ -159,6 +155,11 @@ public class AiPlanExecutor {
 
 		// Save updated plan if step was marked complete
 		if (stepCompleted) {
+			// Commit all changes if configured to do so
+			if (nextStep.isCommitAllChangesOnCompletion()) {
+				commitAllChanges(nextStep.getTitle());
+			}
+
 			nextStep.setStatus("complete");
 			savePlan(planFile, plan, nextStep);
 			LOGGER.info("");
