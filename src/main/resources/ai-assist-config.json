@@ -34,7 +34,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any compilation issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any compilation issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix static analysis failures",
@@ -44,7 +44,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix unit test failures",
@@ -54,7 +54,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix integration test failures",
@@ -64,7 +64,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix local database reset failures",
@@ -74,7 +74,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix Integration Server startup issues",
@@ -84,7 +84,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Integration Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Integration Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix Batch Server startup issues",
@@ -94,7 +94,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Batch Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Batch Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix Search Server startup issues",
@@ -104,7 +104,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Search Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Search Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix Cortex startup issues",
@@ -114,7 +114,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Cortex and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Cortex and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix Commerce Manager startup issues",
@@ -124,7 +124,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Commerce Manager and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Commerce Manager and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Fix Cucumber and Selenium test failures",
@@ -134,7 +134,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any Cucumber or Selenium test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful."
+      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any Cucumber or Selenium test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     }
   ]
 }
