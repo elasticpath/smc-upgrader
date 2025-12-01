@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Scanner;
 
 import org.eclipse.jgit.lib.Repository;
@@ -94,6 +95,9 @@ public class AiPlanExecutor {
 		// Parse the plan
 		PlanDocument plan = MarkdownParser.parsePlanFile(planFile);
 
+		// Show all steps with completion status
+		displayStepList(plan);
+
 		// Find next incomplete step
 		AiPlanStep nextStep = plan.findNextIncompleteStep();
 
@@ -111,7 +115,6 @@ public class AiPlanExecutor {
 		if (nextStep.hasValidationCommand()) {
 			LOGGER.info("  Validation command: {}", nextStep.getValidationCommand());
 		}
-		LOGGER.info("  Status: {}", nextStep.getStatus());
 		LOGGER.info("");
 
 		// Show menu and get user choice
@@ -180,6 +183,34 @@ public class AiPlanExecutor {
 	 */
 	void setTestChoice(final String choice) {
 		this.testChoice = choice;
+	}
+
+	/**
+	 * Display a numbered list of all steps in the plan with completion status.
+	 *
+	 * @param plan the plan document
+	 */
+	private void displayStepList(final PlanDocument plan) {
+		LOGGER.info("Upgrade Steps:");
+		LOGGER.info("");
+
+		List<AiPlanStep> steps = plan.getSteps();
+		for (int i = 0; i < steps.size(); i++) {
+			AiPlanStep step = steps.get(i);
+			String stepNumber = (i + 1) + ". ";
+			String title = step.getTitle();
+
+			if ("complete".equals(step.getStatus())) {
+				// Use ANSI strikethrough for completed steps
+				LOGGER.info("{}\u001B[9m{}\u001B[0m", stepNumber, title);
+			} else {
+				LOGGER.info("{}{}", stepNumber, title);
+			}
+		}
+
+		LOGGER.info("");
+		LOGGER.info("Progress: {} of {} steps completed", plan.countCompletedSteps(), plan.getTotalSteps());
+		LOGGER.info("");
 	}
 
 	/**
