@@ -71,7 +71,6 @@ public final class MarkdownWriter {
 		markdown.append("## ").append(step.getTitle()).append("\n\n");
 
 		// Metadata
-		markdown.append("Task: ").append(step.getTask()).append("\n");
 		markdown.append("Tool: ").append(step.getTool()).append("\n");
 
 		if (step.getVersion() != null && !step.getVersion().trim().isEmpty()) {

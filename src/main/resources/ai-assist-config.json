@@ -10,15 +10,13 @@
   "upgradeSteps": [
     {
       "title": "Git merge from {FROM_VERSION} to {TO_VERSION}",
-      "task": "Upgrade source from {FROM_VERSION} to {TO_VERSION}",
       "tool": "smc-upgrader",
       "commitAllChangesOnCompletion": false,
       "commitPlanOnCompletion": false,
       "status": "incomplete"
     },
     {
-      "title": "Resolve {TO_VERSION} merge conflicts",
-      "task": "Resolve remaining Git merge conflicts",
+      "title": "Resolve remaining Git merge conflicts",
       "tool": "claude",
       "validationCommand": "git diff --check",
       "commitAllChangesOnCompletion": true,
@@ -27,8 +25,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
     },
     {
-      "title": "Fix compilation failures",
-      "task": "Resolve all compilation issues",
+      "title": "Resolve all compilation issues",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipAllTests",
       "commitAllChangesOnCompletion": true,
@@ -37,8 +34,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any compilation issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix static analysis failures",
-      "task": "Resolve all static analysis failures",
+      "title": "Resolve all static analysis failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests -DskipFitTests",
       "commitAllChangesOnCompletion": true,
@@ -47,8 +43,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix unit test failures",
-      "task": "Resolve all unit test failures",
+      "title": "Resolve all unit test failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -DskipFitTests",
       "commitAllChangesOnCompletion": true,
@@ -57,8 +52,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix integration test failures",
-      "task": "Resolve all integration test failures",
+      "title": "Resolve all integration test failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipCucumberTests -DskipFitTests",
       "commitAllChangesOnCompletion": true,
@@ -67,8 +61,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis or test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix local database reset failures",
-      "task": "Resolve database reset failures",
+      "title": "Resolve local database reset failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -Dreset-db -f extensions/database",
       "commitAllChangesOnCompletion": true,
@@ -77,8 +70,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Integration Server startup issues",
-      "task": "Fix Integration Server startup issues",
+      "title": "Resolve Integration Server startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
@@ -87,8 +79,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Integration Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Batch Server startup issues",
-      "task": "Fix Batch Server startup issues",
+      "title": "Resolve Batch Server startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
@@ -97,8 +88,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Batch Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Search Server startup issues",
-      "task": "Fix Search Server startup issues",
+      "title": "Resolve Search Server startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
@@ -107,8 +97,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Search Server and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Cortex startup issues",
-      "task": "Fix Cortex startup issues",
+      "title": "Resolve Cortex startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
@@ -117,8 +106,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Cortex and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Commerce Manager startup issues",
-      "task": "Fix Commerce Manager startup issues",
+      "title": "Resolve Commerce Manager startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
@@ -127,8 +115,7 @@
       "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Commerce Manager and help to fix any startup issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Cucumber and Selenium test failures",
-      "task": "Resolve all Cucumber and Selenium test failures",
+      "title": "Resolve all Cucumber and Selenium test failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipTests=true -DskipITests=true",
       "commitAllChangesOnCompletion": true,
@@ -139,16 +126,14 @@
   ],
   "patchConsumptionSteps": [
     {
-      "title": "Git merge latest patches",
-      "task": "Upgrade source with latest patches",
+      "title": "Git merge from latest {TO_VERSION} patches",
       "tool": "smc-upgrader",
       "commitAllChangesOnCompletion": false,
       "commitPlanOnCompletion": false,
       "status": "incomplete"
     },
     {
-      "title": "Resolve merge conflicts",
-      "task": "Resolve remaining Git merge conflicts",
+      "title": "Resolve remaining Git merge conflicts",
       "tool": "claude",
       "validationCommand": "git diff --check",
       "commitAllChangesOnCompletion": true,
@@ -157,8 +142,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
     },
     {
-      "title": "Fix compilation failures",
-      "task": "Resolve all compilation issues",
+      "title": "Resolve all compilation issues",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipAllTests",
       "commitAllChangesOnCompletion": true,
@@ -167,8 +151,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any compilation issues. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix static analysis failures",
-      "task": "Resolve all static analysis failures",
+      "title": "Resolve all static analysis failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests -DskipFitTests",
       "commitAllChangesOnCompletion": true,
@@ -177,8 +160,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix unit test failures",
-      "task": "Resolve all unit test failures",
+      "title": "Resolve all unit test failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -DskipFitTests",
       "commitAllChangesOnCompletion": true,
@@ -187,8 +169,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix integration test failures",
-      "task": "Resolve all integration test failures",
+      "title": "Resolve all integration test failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipCucumberTests -DskipFitTests",
       "commitAllChangesOnCompletion": true,
@@ -197,8 +178,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix local database reset failures",
-      "task": "Resolve database reset failures",
+      "title": "Resolve local database reset failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -Dreset-db -f extensions/database",
       "commitAllChangesOnCompletion": true,
@@ -207,8 +187,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Integration Server startup issues",
-      "task": "Fix Integration Server startup issues",
+      "title": "Resolve Integration Server startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
@@ -217,8 +196,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Batch Server startup issues",
-      "task": "Fix Batch Server startup issues",
+      "title": "Resolve Batch Server startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
@@ -227,8 +205,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Search Server startup issues",
-      "task": "Fix Search Server startup issues",
+      "title": "Resolve Search Server startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
@@ -237,8 +214,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Cortex startup issues",
-      "task": "Fix Cortex startup issues",
+      "title": "Resolve Cortex startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
@@ -247,8 +223,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Commerce Manager startup issues",
-      "task": "Fix Commerce Manager startup issues",
+      "title": "Resolve Commerce Manager startup issues",
       "tool": "claude",
       "validationCommand": "mvn clean package cargo:run -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
@@ -257,8 +232,7 @@
       "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
-      "title": "Fix Cucumber and Selenium test failures",
-      "task": "Resolve all Cucumber and Selenium test failures",
+      "title": "Resolve Cucumber and Selenium test failures",
       "tool": "claude",
       "validationCommand": "mvn clean install -DskipTests=true -DskipITests=true",
       "commitAllChangesOnCompletion": true,

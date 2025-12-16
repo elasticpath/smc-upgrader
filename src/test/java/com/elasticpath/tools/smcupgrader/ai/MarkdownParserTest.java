@@ -52,7 +52,6 @@ class MarkdownParserTest {
 				+ "Upgrade to: 8.6.x  \n\n"
 				+ "---\n\n"
 				+ "## Git merge from 8.5.x to 8.6.x\n\n"
-				+ "Task: Merge upstream changes  \n"
 				+ "Tool: smc-upgrader  \n"
 				+ "Status: incomplete\n\n";
 
@@ -61,7 +60,6 @@ class MarkdownParserTest {
 		assertThat(plan.getSteps()).hasSize(1);
 		AiPlanStep step = plan.getSteps().get(0);
 		assertThat(step.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
-		assertThat(step.getTask()).isEqualTo("Merge upstream changes");
 		assertThat(step.getTool()).isEqualTo("smc-upgrader");
 		assertThat(step.getStatus()).isEqualTo("incomplete");
 		assertThat(step.getValidationCommand()).isNull();
@@ -175,13 +173,11 @@ class MarkdownParserTest {
 		// Generate a plan, write it to markdown, then parse it back
 		AiPlanStep step1 = new AiPlanStep();
 		step1.setTitle("Git merge from 8.5.x to 8.6.x");
-		step1.setTask("Merge changes");
 		step1.setTool("smc-upgrader");
 		step1.setStatus("incomplete");
 
 		AiPlanStep step2 = new AiPlanStep();
 		step2.setTitle("Resolve conflicts");
-		step2.setTask("Fix conflicts");
 		step2.setTool("claude");
 		step2.setValidationCommand("git diff --check");
 		step2.setStatus("incomplete");
@@ -199,13 +195,11 @@ class MarkdownParserTest {
 
 		AiPlanStep parsedStep1 = plan.getSteps().get(0);
 		assertThat(parsedStep1.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
-		assertThat(parsedStep1.getTask()).isEqualTo("Merge changes");
 		assertThat(parsedStep1.getTool()).isEqualTo("smc-upgrader");
 		assertThat(parsedStep1.getStatus()).isEqualTo("incomplete");
 
 		AiPlanStep parsedStep2 = plan.getSteps().get(1);
 		assertThat(parsedStep2.getTitle()).isEqualTo("Resolve conflicts");
-		assertThat(parsedStep2.getTask()).isEqualTo("Fix conflicts");
 		assertThat(parsedStep2.getTool()).isEqualTo("claude");
 		assertThat(parsedStep2.getValidationCommand()).isEqualTo("git diff --check");
 		assertThat(parsedStep2.getStatus()).isEqualTo("incomplete");

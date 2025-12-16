@@ -110,7 +110,6 @@ public class AiPlanExecutor {
 
 		// Show next step info
 		LOGGER.info("Next step: {}", nextStep.getTitle());
-		LOGGER.info("  Task: {}", nextStep.getTask());
 		LOGGER.info("  Tool: {}", nextStep.getTool());
 		if (nextStep.hasValidationCommand()) {
 			LOGGER.info("  Validation command: {}", nextStep.getValidationCommand());
@@ -285,7 +284,7 @@ public class AiPlanExecutor {
 	 * @throws IOException if an error occurs
 	 */
 	private boolean executeSmcUpgraderStep(final AiPlanStep step) throws IOException {
-		LOGGER.info("Executing smc-upgrader step: {}", step.getTask());
+		LOGGER.info("Executing smc-upgrader step: {}", step.getTitle());
 
 		// Get target version from step
 		String targetVersion = step.getVersion();
@@ -383,7 +382,7 @@ public class AiPlanExecutor {
 			}
 		} else {
 			LOGGER.warn("No prompt defined for this Claude step.");
-			LOGGER.info("Please manually complete the task: {}", step.getTask());
+			LOGGER.info("Please manually complete: {}", step.getTitle());
 		}
 
 		// Claude steps are never auto-completed - user must verify and mark complete manually

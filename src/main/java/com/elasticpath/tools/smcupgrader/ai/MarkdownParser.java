@@ -38,7 +38,6 @@ public final class MarkdownParser {
 	private static final Parser PARSER = Parser.builder().build();
 	private static final Pattern FROM_VERSION_PATTERN = Pattern.compile("Upgrade from:\\s*(.+)");
 	private static final Pattern TO_VERSION_PATTERN = Pattern.compile("Upgrade to:\\s*(.+)");
-	private static final Pattern TASK_PATTERN = Pattern.compile("Task:\\s*(.+)");
 	private static final Pattern TOOL_PATTERN = Pattern.compile("Tool:\\s*(.+)");
 	private static final Pattern VERSION_PATTERN = Pattern.compile("Version:\\s*(.+)");
 	private static final Pattern VALIDATION_PATTERN = Pattern.compile("Validation command:\\s*(.+)");
@@ -174,13 +173,6 @@ public final class MarkdownParser {
 		String[] lines = text.split("\n");
 
 		for (String line : lines) {
-			matcher = TASK_PATTERN.matcher(line);
-			if (matcher.find()) {
-				currentStep.setTask(matcher.group(1).trim());
-				foundMetadata = true;
-				continue;
-			}
-
 			matcher = TOOL_PATTERN.matcher(line);
 			if (matcher.find()) {
 				currentStep.setTool(matcher.group(1).trim());

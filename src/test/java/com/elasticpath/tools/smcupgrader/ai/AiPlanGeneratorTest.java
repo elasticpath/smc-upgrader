@@ -229,7 +229,6 @@ class AiPlanGeneratorTest {
 	private AiPlanStep createStep(String title, String tool, String validationCommand) {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
-		step.setTask("Test task");
 		step.setTool(tool);
 		step.setStatus("incomplete");
 		step.setValidationCommand(validationCommand);

@@ -20,7 +20,6 @@ package com.elasticpath.tools.smcupgrader.ai;
  */
 public class AiPlanStep {
 	private String title;
-	private String task;
 	private String tool;
 	private String version;
 	private String validationCommand;
@@ -39,16 +38,14 @@ public class AiPlanStep {
 	 * Constructor for creating a plan step.
 	 *
 	 * @param title             the step title
-	 * @param task              the task description
 	 * @param tool              the tool to use (smc-upgrader or claude)
 	 * @param validationCommand optional validation command
 	 * @param status            the step status (incomplete or complete)
 	 * @param prompt            optional prompt for claude steps
 	 */
-	public AiPlanStep(final String title, final String task, final String tool,
+	public AiPlanStep(final String title, final String tool,
 					  final String validationCommand, final String status, final String prompt) {
 		this.title = title;
-		this.task = task;
 		this.tool = tool;
 		this.validationCommand = validationCommand;
 		this.status = status;
@@ -71,24 +68,6 @@ public class AiPlanStep {
 	 */
 	public void setTitle(final String title) {
 		this.title = title;
-	}
-
-	/**
-	 * Get the task description.
-	 *
-	 * @return the task
-	 */
-	public String getTask() {
-		return task;
-	}
-
-	/**
-	 * Set the task description.
-	 *
-	 * @param task the task
-	 */
-	public void setTask(final String task) {
-		this.task = task;
 	}
 
 	/**
