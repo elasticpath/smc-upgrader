@@ -184,7 +184,7 @@ class AiPlanGeneratorTest {
 		// Create generator that always returns false for overwrite
 		AiPlanGenerator testGenerator = new AiPlanGenerator(upgradePath, upgradeController) {
 			@Override
-			boolean promptForOverwrite(File file) {
+			boolean promptForOverwrite(File file) throws IOException {
 				return false;
 			}
 		};
@@ -209,7 +209,7 @@ class AiPlanGeneratorTest {
 		// Create generator that always returns true for overwrite
 		AiPlanGenerator testGenerator = new AiPlanGenerator(upgradePath, upgradeController) {
 			@Override
-			boolean promptForOverwrite(File file) {
+			boolean promptForOverwrite(File file) throws IOException {
 				return true;
 			}
 		};

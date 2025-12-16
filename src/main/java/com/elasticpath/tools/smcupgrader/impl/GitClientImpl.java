@@ -359,7 +359,7 @@ public class GitClientImpl implements GitClient {
 	@Override
 	public void commit(final String message) {
 		try (Git git = new Git(repository)) {
-			git.commit().setMessage(message).call();
+			git.commit().setMessage(message).setSign(false).call();
 		} catch (final GitAPIException e) {
 			throw new RuntimeException(e);
 		}

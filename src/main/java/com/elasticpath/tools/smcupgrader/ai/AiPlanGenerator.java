@@ -65,6 +65,11 @@ public class AiPlanGenerator {
 	public boolean generatePlan(final String targetVersion, final File workingDir) throws IOException {
 		File planFile = new File(workingDir, PLAN_FILE_NAME);
 
+		// Determine current version first
+		String currentVersion = upgradeController.convertVersionToReleaseFormat(
+				upgradeController.determineCurrentVersion());
+		LOGGER.info("Detected current version: {}", currentVersion);
+
 		// Check if plan already exists
 		if (planFile.exists()) {
 			if (!promptForOverwrite(planFile)) {
@@ -81,11 +86,6 @@ public class AiPlanGenerator {
 			throw new IllegalArgumentException("Invalid target version: " + targetVersion
 					+ ". Valid versions are: " + upgradePath.getVersions());
 		}
-
-		// Determine current version
-		String currentVersion = upgradeController.convertVersionToReleaseFormat(
-				upgradeController.determineCurrentVersion());
-		LOGGER.info("Detected current version: {}", currentVersion);
 
 		// Validate upgrade path
 		if (!upgradePath.validateVersionPath(currentVersion, targetVersion)) {
@@ -111,10 +111,17 @@ public class AiPlanGenerator {
 		GitClient gitClient = createGitClient(workingDir);
 		if (gitClient != null) {
 			try {
-				commitPlanFile(gitClient, "Generate upgrade plan from " + currentVersion + " to " + targetVersion);
+				String commitMessage;
+				if (currentVersion.equals(targetVersion)) {
+					commitMessage = "Generate upgrade plan for latest patches";
+				} else {
+					commitMessage = "Generate upgrade plan from " + currentVersion + " to " + targetVersion;
+				}
+				commitPlanFile(gitClient, commitMessage);
+				LOGGER.info("Committed plan file to git");
 			} catch (RuntimeException e) {
 				// Don't fail if git commit fails (e.g., signing service unavailable)
-				LOGGER.debug("Could not commit plan file to git: {}", e.getMessage());
+				LOGGER.warn("Could not commit plan file to git: {}", e.getMessage(), e);
 			}
 		}
 
@@ -138,10 +145,11 @@ public class AiPlanGenerator {
 	 * @param planFile the existing plan file
 	 * @return true to proceed with overwrite, false to cancel
 	 */
-	boolean promptForOverwrite(final File planFile) {
+	boolean promptForOverwrite(final File planFile) throws IOException {
 		LOGGER.warn("WARNING: An upgrade plan already exists at: {}", planFile.getAbsolutePath());
 		LOGGER.warn("");
 		LOGGER.warn("This plan may contain customizations or progress from a previous upgrade.");
+		LOGGER.warn("");
 
 		Console console = System.console();
 		String response;
@@ -149,9 +157,17 @@ public class AiPlanGenerator {
 		if (console != null) {
 			response = console.readLine("Do you want to overwrite it? [y/N]: ");
 		} else {
+			// Check if stdin is available (non-blocking check)
+			if (System.in.available() == 0) {
+				// In test/automated environments with no stdin, default to not overwriting
+				LOGGER.debug("No stdin available, defaulting to not overwrite");
+				return false;
+			}
+
 			// Fallback for environments without console (like IDEs)
 			Scanner scanner = new Scanner(System.in);
 			System.out.print("Do you want to overwrite it? [y/N]: ");
+			System.out.flush();  // Ensure prompt is displayed
 			response = scanner.nextLine();
 		}
 
