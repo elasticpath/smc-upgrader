@@ -29,7 +29,8 @@ import com.google.gson.Gson;
  */
 public class UpgradePath {
 	private List<String> versions;
-	private List<AiPlanStep> defaultSteps;
+	private List<AiPlanStep> upgradeSteps;
+	private List<AiPlanStep> patchConsumptionSteps;
 
 	/**
 	 * Default constructor for JSON deserialization.
@@ -40,12 +41,14 @@ public class UpgradePath {
 	/**
 	 * Constructor.
 	 *
-	 * @param versions     list of valid version strings
-	 * @param defaultSteps list of default step templates
+	 * @param versions              list of valid version strings
+	 * @param upgradeSteps          list of upgrade step templates
+	 * @param patchConsumptionSteps list of patch consumption step templates
 	 */
-	public UpgradePath(final List<String> versions, final List<AiPlanStep> defaultSteps) {
+	public UpgradePath(final List<String> versions, final List<AiPlanStep> upgradeSteps, final List<AiPlanStep> patchConsumptionSteps) {
 		this.versions = versions;
-		this.defaultSteps = defaultSteps;
+		this.upgradeSteps = upgradeSteps;
+		this.patchConsumptionSteps = patchConsumptionSteps;
 	}
 
 	/**
@@ -85,9 +88,18 @@ public class UpgradePath {
 		if (toIndex == -1) {
 			throw new IllegalArgumentException("Invalid to version: " + toVersion);
 		}
-		if (fromIndex >= toIndex) {
+		if (fromIndex > toIndex) {
 			throw new IllegalArgumentException(
-					"From version must be earlier than to version. From: " + fromVersion + ", To: " + toVersion);
+					"From version must not be later than to version. From: " + fromVersion + ", To: " + toVersion);
+		}
+
+		// Special case: if from equals to (patch consumption), return a sequence with the version repeated
+		// This creates one transition from version to version for applying patches
+		if (fromIndex == toIndex) {
+			List<String> result = new ArrayList<>();
+			result.add(fromVersion);
+			result.add(toVersion);
+			return result;
 		}
 
 		// Return all versions from fromIndex to toIndex (inclusive)
@@ -129,21 +141,39 @@ public class UpgradePath {
 	}
 
 	/**
-	 * Get the list of default step templates.
+	 * Get the list of upgrade step templates.
 	 *
-	 * @return the default steps
+	 * @return the upgrade steps
 	 */
-	public List<AiPlanStep> getDefaultSteps() {
-		return defaultSteps;
+	public List<AiPlanStep> getUpgradeSteps() {
+		return upgradeSteps;
 	}
 
 	/**
-	 * Set the list of default step templates.
+	 * Set the list of upgrade step templates.
 	 *
-	 * @param defaultSteps the default steps
+	 * @param upgradeSteps the upgrade steps
 	 */
-	public void setDefaultSteps(final List<AiPlanStep> defaultSteps) {
-		this.defaultSteps = defaultSteps;
+	public void setUpgradeSteps(final List<AiPlanStep> upgradeSteps) {
+		this.upgradeSteps = upgradeSteps;
+	}
+
+	/**
+	 * Get the list of patch consumption step templates.
+	 *
+	 * @return the patch consumption steps
+	 */
+	public List<AiPlanStep> getPatchConsumptionSteps() {
+		return patchConsumptionSteps;
+	}
+
+	/**
+	 * Set the list of patch consumption step templates.
+	 *
+	 * @param patchConsumptionSteps the patch consumption steps
+	 */
+	public void setPatchConsumptionSteps(final List<AiPlanStep> patchConsumptionSteps) {
+		this.patchConsumptionSteps = patchConsumptionSteps;
 	}
 
 	/**

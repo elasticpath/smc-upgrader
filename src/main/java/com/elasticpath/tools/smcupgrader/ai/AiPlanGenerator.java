@@ -91,7 +91,7 @@ public class AiPlanGenerator {
 		if (!upgradePath.validateVersionPath(currentVersion, targetVersion)) {
 			throw new IllegalArgumentException(
 					"Cannot upgrade from " + currentVersion + " to " + targetVersion
-							+ ". Current version must be earlier than target version.");
+							+ ". Current version must not be later than target version.");
 		}
 
 		// Calculate version sequence
@@ -183,8 +183,13 @@ public class AiPlanGenerator {
 			String fromVersion = versionSequence.get(i);
 			String toVersion = versionSequence.get(i + 1);
 
+			// Determine which steps to use based on whether this is an upgrade or patch consumption
+			List<AiPlanStep> stepsToUse = fromVersion.equals(toVersion)
+					? upgradePath.getPatchConsumptionSteps()
+					: upgradePath.getUpgradeSteps();
+
 			// Create steps for this transition
-			for (AiPlanStep template : upgradePath.getDefaultSteps()) {
+			for (AiPlanStep template : stepsToUse) {
 				AiPlanStep step = new AiPlanStep();
 				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion));
 				step.setTask(substituteVariables(template.getTask(), fromVersion, toVersion));

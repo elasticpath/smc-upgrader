@@ -53,11 +53,15 @@ class AiPlanGeneratorTest {
 
 		// Create test upgrade path
 		List<String> versions = Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x");
-		List<AiPlanStep> defaultSteps = Arrays.asList(
+		List<AiPlanStep> upgradeSteps = Arrays.asList(
 				createStep("Git merge from {FROM_VERSION} to {TO_VERSION}", "smc-upgrader", null),
 				createStep("Resolve {TO_VERSION} merge conflicts", "claude", "git diff --check")
 		);
-		upgradePath = new UpgradePath(versions, defaultSteps);
+		List<AiPlanStep> patchSteps = Arrays.asList(
+				createStep("Git merge latest patches", "smc-upgrader", null),
+				createStep("Resolve merge conflicts", "claude", "git diff --check")
+		);
+		upgradePath = new UpgradePath(versions, upgradeSteps, patchSteps);
 
 		generator = new AiPlanGenerator(upgradePath, upgradeController);
 	}
@@ -122,7 +126,7 @@ class AiPlanGeneratorTest {
 
 		assertThatThrownBy(() -> generator.generatePlan("8.5.x", tempDir))
 				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("Current version must be earlier than target version");
+				.hasMessageContaining("Current version must not be later than target version");
 	}
 
 	@Test
