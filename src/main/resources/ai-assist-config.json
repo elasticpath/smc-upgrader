@@ -148,7 +148,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any compilation issues. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any compilation issues. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 15 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve all static analysis failures",
@@ -157,7 +157,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 20 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve all unit test failures",
@@ -166,7 +166,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 45 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve all integration test failures",
@@ -175,7 +175,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis or test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 20 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve local database reset failures",
@@ -238,7 +238,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 90 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     }
   ]
 }
