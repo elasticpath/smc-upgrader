@@ -36,7 +36,7 @@
     {
       "title": "Resolve local database reset failures",
       "tool": "claude",
-      "validationCommand": "mvn clean install -Dreset-db -f extensions/database",
+      "validationCommand": "mvn clean install -Preset-db -f extensions/database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
@@ -153,7 +153,7 @@
     {
       "title": "Resolve local database reset failures",
       "tool": "claude",
-      "validationCommand": "mvn clean install -Dreset-db -f extensions/database",
+      "validationCommand": "mvn clean install -Preset-db -f extensions/database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
