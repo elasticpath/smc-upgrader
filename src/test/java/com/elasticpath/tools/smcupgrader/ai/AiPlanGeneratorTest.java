@@ -53,15 +53,11 @@ class AiPlanGeneratorTest {
 
 		// Create test upgrade path
 		List<String> versions = Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x");
-		List<AiPlanStep> upgradeSteps = Arrays.asList(
+		List<AiPlanStep> steps = Arrays.asList(
 				createStep("Git merge from {FROM_VERSION} to {TO_VERSION}", "smc-upgrader", null),
 				createStep("Resolve {TO_VERSION} merge conflicts", "claude", "git diff --check")
 		);
-		List<AiPlanStep> patchSteps = Arrays.asList(
-				createStep("Git merge latest patches", "smc-upgrader", null),
-				createStep("Resolve merge conflicts", "claude", "git diff --check")
-		);
-		upgradePath = new UpgradePath(versions, upgradeSteps, patchSteps);
+		upgradePath = new UpgradePath(versions, "", "", steps);
 
 		generator = new AiPlanGenerator(upgradePath, upgradeController);
 	}

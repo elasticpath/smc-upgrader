@@ -199,13 +199,17 @@ public class AiPlanGenerator {
 			String fromVersion = versionSequence.get(i);
 			String toVersion = versionSequence.get(i + 1);
 
-			// Determine which steps to use based on whether this is an upgrade or patch consumption
-			List<AiPlanStep> stepsToUse = fromVersion.equals(toVersion)
-					? upgradePath.getPatchConsumptionSteps()
-					: upgradePath.getUpgradeSteps();
+			// Determine which prompt prefix to use based on whether this is an upgrade or patch consumption
+			boolean isPatchConsumption = fromVersion.equals(toVersion);
+			String promptPrefixTemplate = isPatchConsumption
+					? upgradePath.getPatchConsumptionPromptPrefix()
+					: upgradePath.getUpgradePromptPrefix();
+			String promptPrefix = (promptPrefixTemplate != null && !promptPrefixTemplate.isEmpty())
+					? substituteVariables(promptPrefixTemplate, fromVersion, toVersion)
+					: null;
 
-			// Create steps for this transition
-			for (AiPlanStep template : stepsToUse) {
+			// Create steps for this transition (use the same steps for both upgrades and patch consumption)
+			for (AiPlanStep template : upgradePath.getSteps()) {
 				AiPlanStep step = new AiPlanStep();
 				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion));
 				step.setTool(template.getTool());
@@ -219,7 +223,12 @@ public class AiPlanGenerator {
 				}
 
 				if (template.getPrompt() != null) {
-					step.setPrompt(substituteVariables(template.getPrompt(), fromVersion, toVersion));
+					String prompt = substituteVariables(template.getPrompt(), fromVersion, toVersion);
+					// Prepend the prefix if it's not null or empty
+					if (promptPrefix != null && !promptPrefix.isEmpty()) {
+						prompt = promptPrefix + prompt;
+					}
+					step.setPrompt(prompt);
 				}
 
 				allSteps.add(step);

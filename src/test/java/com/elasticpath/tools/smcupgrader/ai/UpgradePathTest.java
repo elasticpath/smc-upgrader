@@ -35,8 +35,7 @@ class UpgradePathTest {
 
 		assertThat(upgradePath).isNotNull();
 		assertThat(upgradePath.getVersions()).isNotEmpty();
-		assertThat(upgradePath.getUpgradeSteps()).isNotEmpty();
-		assertThat(upgradePath.getPatchConsumptionSteps()).isNotEmpty();
+		assertThat(upgradePath.getSteps()).isNotEmpty();
 	}
 
 	@Test
@@ -148,19 +147,14 @@ class UpgradePathTest {
 	}
 
 	@Test
-	void testUpgradeStepsLoaded() throws IOException {
+	void testStepsLoaded() throws IOException {
 		UpgradePath upgradePath = UpgradePath.loadFromResource();
 
-		List<AiPlanStep> upgradeSteps = upgradePath.getUpgradeSteps();
-		List<AiPlanStep> patchSteps = upgradePath.getPatchConsumptionSteps();
+		List<AiPlanStep> steps = upgradePath.getSteps();
 
-		assertThat(upgradeSteps).isNotEmpty();
-		assertThat(upgradeSteps).anyMatch(step -> "smc-upgrader".equals(step.getTool()));
-		assertThat(upgradeSteps).anyMatch(step -> "claude".equals(step.getTool()));
-
-		assertThat(patchSteps).isNotEmpty();
-		assertThat(patchSteps).anyMatch(step -> "smc-upgrader".equals(step.getTool()));
-		assertThat(patchSteps).anyMatch(step -> "claude".equals(step.getTool()));
+		assertThat(steps).isNotEmpty();
+		assertThat(steps).anyMatch(step -> "smc-upgrader".equals(step.getTool()));
+		assertThat(steps).anyMatch(step -> "claude".equals(step.getTool()));
 	}
 
 	/**
@@ -170,6 +164,6 @@ class UpgradePathTest {
 	 */
 	private UpgradePath createTestUpgradePath() {
 		List<String> versions = Arrays.asList("8.3.x", "8.4.x", "8.5.x", "8.6.x", "8.7.x", "8.8.x");
-		return new UpgradePath(versions, null, null);
+		return new UpgradePath(versions, "", "", null);
 	}
 }

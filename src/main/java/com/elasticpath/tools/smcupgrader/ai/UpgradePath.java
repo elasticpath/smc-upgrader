@@ -29,8 +29,9 @@ import com.google.gson.Gson;
  */
 public class UpgradePath {
 	private List<String> versions;
-	private List<AiPlanStep> upgradeSteps;
-	private List<AiPlanStep> patchConsumptionSteps;
+	private String upgradePromptPrefix;
+	private String patchConsumptionPromptPrefix;
+	private List<AiPlanStep> steps;
 
 	/**
 	 * Default constructor for JSON deserialization.
@@ -41,14 +42,17 @@ public class UpgradePath {
 	/**
 	 * Constructor.
 	 *
-	 * @param versions              list of valid version strings
-	 * @param upgradeSteps          list of upgrade step templates
-	 * @param patchConsumptionSteps list of patch consumption step templates
+	 * @param versions                      list of valid version strings
+	 * @param upgradePromptPrefix           prompt prefix for upgrade steps
+	 * @param patchConsumptionPromptPrefix  prompt prefix for patch consumption steps
+	 * @param steps                         list of step templates
 	 */
-	public UpgradePath(final List<String> versions, final List<AiPlanStep> upgradeSteps, final List<AiPlanStep> patchConsumptionSteps) {
+	public UpgradePath(final List<String> versions, final String upgradePromptPrefix, final String patchConsumptionPromptPrefix,
+			final List<AiPlanStep> steps) {
 		this.versions = versions;
-		this.upgradeSteps = upgradeSteps;
-		this.patchConsumptionSteps = patchConsumptionSteps;
+		this.upgradePromptPrefix = upgradePromptPrefix;
+		this.patchConsumptionPromptPrefix = patchConsumptionPromptPrefix;
+		this.steps = steps;
 	}
 
 	/**
@@ -141,39 +145,21 @@ public class UpgradePath {
 	}
 
 	/**
-	 * Get the list of upgrade step templates.
+	 * Get the list of step templates.
 	 *
-	 * @return the upgrade steps
+	 * @return the steps
 	 */
-	public List<AiPlanStep> getUpgradeSteps() {
-		return upgradeSteps;
+	public List<AiPlanStep> getSteps() {
+		return steps;
 	}
 
 	/**
-	 * Set the list of upgrade step templates.
+	 * Set the list of step templates.
 	 *
-	 * @param upgradeSteps the upgrade steps
+	 * @param steps the steps
 	 */
-	public void setUpgradeSteps(final List<AiPlanStep> upgradeSteps) {
-		this.upgradeSteps = upgradeSteps;
-	}
-
-	/**
-	 * Get the list of patch consumption step templates.
-	 *
-	 * @return the patch consumption steps
-	 */
-	public List<AiPlanStep> getPatchConsumptionSteps() {
-		return patchConsumptionSteps;
-	}
-
-	/**
-	 * Set the list of patch consumption step templates.
-	 *
-	 * @param patchConsumptionSteps the patch consumption steps
-	 */
-	public void setPatchConsumptionSteps(final List<AiPlanStep> patchConsumptionSteps) {
-		this.patchConsumptionSteps = patchConsumptionSteps;
+	public void setSteps(final List<AiPlanStep> steps) {
+		this.steps = steps;
 	}
 
 	/**
@@ -184,5 +170,41 @@ public class UpgradePath {
 	 */
 	public boolean isValidVersion(final String version) {
 		return versions != null && versions.contains(version);
+	}
+
+	/**
+	 * Get the upgrade prompt prefix.
+	 *
+	 * @return the upgrade prompt prefix
+	 */
+	public String getUpgradePromptPrefix() {
+		return upgradePromptPrefix;
+	}
+
+	/**
+	 * Set the upgrade prompt prefix.
+	 *
+	 * @param upgradePromptPrefix the upgrade prompt prefix
+	 */
+	public void setUpgradePromptPrefix(final String upgradePromptPrefix) {
+		this.upgradePromptPrefix = upgradePromptPrefix;
+	}
+
+	/**
+	 * Get the patch consumption prompt prefix.
+	 *
+	 * @return the patch consumption prompt prefix
+	 */
+	public String getPatchConsumptionPromptPrefix() {
+		return patchConsumptionPromptPrefix;
+	}
+
+	/**
+	 * Set the patch consumption prompt prefix.
+	 *
+	 * @param patchConsumptionPromptPrefix the patch consumption prompt prefix
+	 */
+	public void setPatchConsumptionPromptPrefix(final String patchConsumptionPromptPrefix) {
+		this.patchConsumptionPromptPrefix = patchConsumptionPromptPrefix;
 	}
 }

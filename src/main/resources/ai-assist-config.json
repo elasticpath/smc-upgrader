@@ -7,7 +7,9 @@
     "8.7.x-pre-jakarta",
     "8.7.x"
   ],
-  "upgradeSteps": [
+  "upgradePromptPrefix": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. ",
+  "patchConsumptionPromptPrefix": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base version {TO_VERSION}. ",
+  "steps": [
     {
       "title": "Git merge from {FROM_VERSION} to {TO_VERSION}",
       "tool": "smc-upgrader",
@@ -22,16 +24,16 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
+      "prompt": "Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
     },
     {
       "title": "Resolve all compilation issues",
       "tool": "claude",
-      "validationCommand": "mvn clean install -DskipAllTests",
+      "validationCommand": "mvn clean install -DskipAllTests -T0.75C",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any compilation issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 15 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "Run the validation command below and help to fix any compilation issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 10 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve local database reset failures",
@@ -40,25 +42,25 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
+      "prompt": "Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve all static analysis failures",
       "tool": "claude",
-      "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests",
+      "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests -T0.75C",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any static analysis failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 20 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "Run the validation command below and help to fix any static analysis failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 10 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve all unit test failures",
       "tool": "claude",
-      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip",
+      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip -T0.75C",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 45 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "Run the validation command below and help to fix any test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 20 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve all integration test failures",
@@ -67,7 +69,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "Run the validation command below and help to fix any test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve Integration Server startup issues",
@@ -76,7 +78,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Integration Server and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "Run the validation command below to start the Integration Server and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     },
     {
       "title": "Resolve Batch Server startup issues",
@@ -85,7 +87,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Batch Server and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
+      "prompt": "Run the validation command below to start the Batch Server and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve Search Server startup issues",
@@ -94,7 +96,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start the Search Server and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
+      "prompt": "Run the validation command below to start the Search Server and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve Cortex startup issues",
@@ -103,7 +105,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Cortex and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
+      "prompt": "Run the validation command below to start Cortex and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve Commerce Manager startup issues",
@@ -112,133 +114,16 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below to start Commerce Manager and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
+      "prompt": "Run the validation command below to start Commerce Manager and help to fix any startup issues. You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\". The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve Cucumber test failures",
       "tool": "claude",
-      "validationCommand": "mvn verify -pl :cortex-cucumber-tests,:cortex-cucumber-jwt,:cortex-cucumber-oidc-tests,:http-mock-server-system-tests-cucumber,:integration-cucumber-tests",
+      "validationCommand": "mvn verify -pl :cortex-cucumber-tests,:cortex-cucumber-oidc-tests,:http-mock-server-system-tests-cucumber,:integration-cucumber-tests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "status": "incomplete",
-      "prompt": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. Run the validation command below and help to fix any Cucumber or Selenium test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 90 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
-    }
-  ],
-  "patchConsumptionSteps": [
-    {
-      "title": "Git merge from latest {TO_VERSION} patches",
-      "tool": "smc-upgrader",
-      "commitAllChangesOnCompletion": false,
-      "commitPlanOnCompletion": false,
-      "status": "incomplete"
-    },
-    {
-      "title": "Resolve remaining Git merge conflicts",
-      "tool": "claude",
-      "validationCommand": "git diff --check",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. We do not need to run Maven commands to check if the code compiles in this step."
-    },
-    {
-      "title": "Resolve all compilation issues",
-      "tool": "claude",
-      "validationCommand": "mvn clean install -DskipAllTests",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any compilation issues. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 15 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
-    },
-    {
-      "title": "Resolve local database reset failures",
-      "tool": "claude",
-      "validationCommand": "mvn clean install -Preset-db -f extensions/database",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
-    },
-    {
-      "title": "Resolve all static analysis failures",
-      "tool": "claude",
-      "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any static analysis failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 20 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
-    },
-    {
-      "title": "Resolve all unit test failures",
-      "tool": "claude",
-      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 45 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
-    },
-    {
-      "title": "Resolve all integration test failures",
-      "tool": "claude",
-      "validationCommand": "mvn clean install -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below and help to fix any test failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
-    },
-    {
-      "title": "Resolve Integration Server startup issues",
-      "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/integration/ext-integration-webapp",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
-    },
-    {
-      "title": "Resolve Batch Server startup issues",
-      "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/batch/ext-batch-webapp",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
-    },
-    {
-      "title": "Resolve Search Server startup issues",
-      "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/search/ext-search-webapp",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
-    },
-    {
-      "title": "Resolve Cortex startup issues",
-      "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/cortex/ext-cortex-webapp",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
-    },
-    {
-      "title": "Resolve Commerce Manager startup issues",
-      "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/cm/ext-cm-modules/ext-cm-webapp",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
-    },
-    {
-      "title": "Resolve Cucumber test failures",
-      "tool": "claude",
-      "validationCommand": "mvn verify -pl :cortex-cucumber-tests,:cortex-cucumber-jwt,:cortex-cucumber-oidc-tests,:http-mock-server-system-tests-cucumber,:integration-cucumber-tests",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "status": "incomplete",
-      "prompt": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base. Run the validation command below to reset the local database and help to fix any failures. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 90 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
+      "prompt": "Run the validation command below and help to fix any Cucumber or Selenium test failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 90 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time. The validation command is expected to take around 60 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time."
     }
   ]
 }
