@@ -554,13 +554,15 @@ public class AiPlanExecutor {
 	 * @param message the commit message
 	 */
 	private void commitPlanFile(final String message) {
+		LOGGER.info("Committing plan file...");
+
 		// Stage the plan file
 		gitClient.stage(PLAN_FILE_NAME);
 
 		// Commit the plan file
 		gitClient.commit(message);
 
-		LOGGER.debug("Committed plan file: {}", message);
+		LOGGER.info("Committed plan file: {}", message);
 	}
 
 	/**
@@ -569,7 +571,7 @@ public class AiPlanExecutor {
 	 * @param message the commit message
 	 */
 	private void commitAllChanges(final String message) {
-		LOGGER.info("Committing changes...");
+		LOGGER.info("Committing source changes...");
 
 		// Stage all changes (modified, new, and deleted files)
 		gitClient.stageAll();
@@ -580,6 +582,6 @@ public class AiPlanExecutor {
 		// Commit all changes
 		gitClient.commit(message);
 
-		LOGGER.info("Committed all changes: {}", message);
+		LOGGER.info("Committed source changes: {}", message);
 	}
 }
