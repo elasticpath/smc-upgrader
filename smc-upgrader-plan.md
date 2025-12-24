@@ -31,5 +31,5 @@ Test prompt for 8.5.x to 8.6.x
 
 Customers can edit this plan to add custom steps or modify existing ones. Each step will be executed in sequence when running `smc-upgrader --ai:continue`.
 
-To mark a step as complete, change `Status: not started` to `Status: complete`.
+Steps progress through three states: `not started` -> `in progress` -> `complete`.
 
