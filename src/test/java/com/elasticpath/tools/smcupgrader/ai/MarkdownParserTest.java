@@ -53,7 +53,7 @@ class MarkdownParserTest {
 				+ "---\n\n"
 				+ "## Git merge from 8.5.x to 8.6.x\n\n"
 				+ "Tool: smc-upgrader  \n"
-				+ "Status: incomplete\n\n";
+				+ "Status: not started\n\n";
 
 		PlanDocument plan = MarkdownParser.parsePlan(markdown);
 
@@ -61,7 +61,7 @@ class MarkdownParserTest {
 		AiPlanStep step = plan.getSteps().get(0);
 		assertThat(step.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
 		assertThat(step.getTool()).isEqualTo("smc-upgrader");
-		assertThat(step.getStatus()).isEqualTo("incomplete");
+		assertThat(step.getStatus()).isEqualTo("not started");
 		assertThat(step.getValidationCommand()).isNull();
 	}
 
@@ -174,13 +174,13 @@ class MarkdownParserTest {
 		AiPlanStep step1 = new AiPlanStep();
 		step1.setTitle("Git merge from 8.5.x to 8.6.x");
 		step1.setTool("smc-upgrader");
-		step1.setStatus("incomplete");
+		step1.setStatus("not started");
 
 		AiPlanStep step2 = new AiPlanStep();
 		step2.setTitle("Resolve conflicts");
 		step2.setTool("claude");
 		step2.setValidationCommand("git diff --check");
-		step2.setStatus("incomplete");
+		step2.setStatus("not started");
 		step2.setPrompt("Please resolve merge conflicts");
 
 		java.util.List<AiPlanStep> steps = java.util.Arrays.asList(step1, step2);
@@ -196,13 +196,13 @@ class MarkdownParserTest {
 		AiPlanStep parsedStep1 = plan.getSteps().get(0);
 		assertThat(parsedStep1.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
 		assertThat(parsedStep1.getTool()).isEqualTo("smc-upgrader");
-		assertThat(parsedStep1.getStatus()).isEqualTo("incomplete");
+		assertThat(parsedStep1.getStatus()).isEqualTo("not started");
 
 		AiPlanStep parsedStep2 = plan.getSteps().get(1);
 		assertThat(parsedStep2.getTitle()).isEqualTo("Resolve conflicts");
 		assertThat(parsedStep2.getTool()).isEqualTo("claude");
 		assertThat(parsedStep2.getValidationCommand()).isEqualTo("git diff --check");
-		assertThat(parsedStep2.getStatus()).isEqualTo("incomplete");
+		assertThat(parsedStep2.getStatus()).isEqualTo("not started");
 		assertThat(parsedStep2.getPrompt()).isEqualTo("Please resolve merge conflicts");
 	}
 }

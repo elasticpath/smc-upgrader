@@ -55,7 +55,7 @@ public final class MarkdownWriter {
 		markdown.append("## Notes\n\n");
 		markdown.append("Customers can edit this plan to add custom steps or modify existing ones. ");
 		markdown.append("Each step will be executed in sequence when running `smc-upgrader --ai:continue`.\n\n");
-		markdown.append("To mark a step as complete, change `Status: incomplete` to `Status: complete`.\n\n");
+		markdown.append("Steps progress through three states: `not started` -> `in progress` -> `complete`.\n\n");
 
 		return markdown.toString();
 	}

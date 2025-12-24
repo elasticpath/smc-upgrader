@@ -226,7 +226,7 @@ class AiPlanGeneratorTest {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
 		step.setTool(tool);
-		step.setStatus("incomplete");
+		step.setStatus("not started");
 		step.setValidationCommand(validationCommand);
 		if ("claude".equals(tool)) {
 			step.setPrompt("Test prompt for {FROM_VERSION} to {TO_VERSION}");

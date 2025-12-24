@@ -42,7 +42,7 @@ class PlanDocumentTest {
 
 	@Test
 	void testAddStep() {
-		AiPlanStep step = createStep("Step 1", "incomplete");
+		AiPlanStep step = createStep("Step 1", "not started");
 
 		plan.addStep(step);
 
@@ -65,9 +65,9 @@ class PlanDocumentTest {
 
 	@Test
 	void testFindNextIncompleteStep_firstIncomplete() {
-		AiPlanStep step1 = createStep("Step 1", "incomplete");
+		AiPlanStep step1 = createStep("Step 1", "not started");
 		plan.addStep(step1);
-		plan.addStep(createStep("Step 2", "incomplete"));
+		plan.addStep(createStep("Step 2", "not started"));
 
 		assertThat(plan.findNextIncompleteStep()).isEqualTo(step1);
 	}
@@ -75,9 +75,9 @@ class PlanDocumentTest {
 	@Test
 	void testFindNextIncompleteStep_secondIncomplete() {
 		plan.addStep(createStep("Step 1", "complete"));
-		AiPlanStep step2 = createStep("Step 2", "incomplete");
+		AiPlanStep step2 = createStep("Step 2", "not started");
 		plan.addStep(step2);
-		plan.addStep(createStep("Step 3", "incomplete"));
+		plan.addStep(createStep("Step 3", "not started"));
 
 		assertThat(plan.findNextIncompleteStep()).isEqualTo(step2);
 	}
@@ -98,7 +98,7 @@ class PlanDocumentTest {
 	@Test
 	void testIsAllStepsComplete_someIncomplete() {
 		plan.addStep(createStep("Step 1", "complete"));
-		plan.addStep(createStep("Step 2", "incomplete"));
+		plan.addStep(createStep("Step 2", "not started"));
 
 		assertThat(plan.isAllStepsComplete()).isFalse();
 	}
@@ -111,7 +111,7 @@ class PlanDocumentTest {
 	@Test
 	void testCountCompletedSteps_mixed() {
 		plan.addStep(createStep("Step 1", "complete"));
-		plan.addStep(createStep("Step 2", "incomplete"));
+		plan.addStep(createStep("Step 2", "not started"));
 		plan.addStep(createStep("Step 3", "complete"));
 
 		assertThat(plan.countCompletedSteps()).isEqualTo(2);
@@ -120,7 +120,7 @@ class PlanDocumentTest {
 	@Test
 	void testGetTotalSteps() {
 		plan.addStep(createStep("Step 1", "complete"));
-		plan.addStep(createStep("Step 2", "incomplete"));
+		plan.addStep(createStep("Step 2", "not started"));
 
 		assertThat(plan.getTotalSteps()).isEqualTo(2);
 	}

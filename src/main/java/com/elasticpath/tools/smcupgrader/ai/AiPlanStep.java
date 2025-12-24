@@ -40,7 +40,7 @@ public class AiPlanStep {
 	 * @param title             the step title
 	 * @param tool              the tool to use (smc-upgrader or claude)
 	 * @param validationCommand optional validation command
-	 * @param status            the step status (incomplete or complete)
+	 * @param status            the step status (not started, in progress, or complete)
 	 * @param prompt            optional prompt for claude steps
 	 */
 	public AiPlanStep(final String title, final String tool,
@@ -127,7 +127,7 @@ public class AiPlanStep {
 	/**
 	 * Get the step status.
 	 *
-	 * @return the status (incomplete or complete)
+	 * @return the status (not started, in progress, or complete)
 	 */
 	public String getStatus() {
 		return status;
@@ -136,7 +136,7 @@ public class AiPlanStep {
 	/**
 	 * Set the step status.
 	 *
-	 * @param status the status (incomplete or complete)
+	 * @param status the status (not started, in progress, or complete)
 	 */
 	public void setStatus(final String status) {
 		this.status = status;
@@ -221,6 +221,15 @@ public class AiPlanStep {
 	 */
 	public boolean isComplete() {
 		return "complete".equals(status);
+	}
+
+	/**
+	 * Check if this step is in progress.
+	 *
+	 * @return true if status is "in progress"
+	 */
+	public boolean isInProgress() {
+		return "in progress".equals(status);
 	}
 
 	/**

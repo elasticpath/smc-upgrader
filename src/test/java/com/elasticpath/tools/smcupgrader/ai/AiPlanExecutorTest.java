@@ -87,30 +87,31 @@ class AiPlanExecutorTest {
 	@Test
 	void testExecuteNextStep_smcUpgraderStepNoValidation() throws IOException {
 		// Create plan with incomplete smc-upgrader step (no validation, no version)
-		AiPlanStep step = createStep("Step 1", "smc-upgrader", "incomplete");
+		AiPlanStep step = createStep("Step 1", "smc-upgrader", "not started");
+		step.setCommitAllChangesOnCompletion(false); // Don't prompt for completion
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("E"); // Execute the step
+		// No testChoice needed - step will auto-execute since it's "not started"
 		boolean result = executor.executeNextStep();
 
 		// Should execute but NOT auto-complete (no version, no validation)
 		assertThat(result).isTrue();
 
-		// Verify plan was NOT updated
+		// Verify step was marked as in progress (since it didn't complete)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("incomplete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
 	}
 
 	@Test
 	void testExecuteNextStep_smcUpgraderStepWithValidationSuccess() throws IOException {
 		// Create plan with incomplete smc-upgrader step with validation
-		AiPlanStep step = createStep("Step 1", "smc-upgrader", "incomplete");
+		AiPlanStep step = createStep("Step 1", "smc-upgrader", "not started");
 		step.setValidationCommand("exit 0");
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("E"); // Execute the step
+		// No testChoice needed - step will auto-execute since it's "not started"
 		boolean result = executor.executeNextStep();
 
 		// Should auto-complete
@@ -124,52 +125,94 @@ class AiPlanExecutorTest {
 	@Test
 	void testExecuteNextStep_smcUpgraderStepWithValidationFailure() throws IOException {
 		// Create plan with incomplete smc-upgrader step with validation
-		AiPlanStep step = createStep("Step 1", "smc-upgrader", "incomplete");
+		AiPlanStep step = createStep("Step 1", "smc-upgrader", "not started");
 		step.setValidationCommand("exit 1");
+		step.setCommitAllChangesOnCompletion(false); // Don't prompt for completion
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("E"); // Execute the step
+		// No testChoice needed - step will auto-execute since it's "not started"
 		boolean result = executor.executeNextStep();
 
 		// Should NOT auto-complete
 		assertThat(result).isTrue();
 
-		// Verify plan was NOT updated
+		// Verify step was marked as in progress (validation failed, so didn't complete)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("incomplete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
 	}
 
 	@Test
 	void testExecuteNextStep_claudeStep() throws IOException {
 		// Create plan with incomplete claude step
-		AiPlanStep step = createStep("Step 1", "claude", "incomplete");
+		AiPlanStep step = createStep("Step 1", "claude", "not started");
 		step.setPrompt("Test prompt");
+		step.setCommitAllChangesOnCompletion(false); // So it doesn't prompt for completion
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("E"); // Execute the step
+		// No testChoice needed - step will auto-execute since it's "not started"
 		boolean result = executor.executeNextStep();
 
 		// Should execute but not auto-complete
 		assertThat(result).isTrue();
 
-		// Verify plan was NOT updated (Claude steps are never auto-completed)
+		// Verify step was marked as in progress (Claude steps are never auto-completed)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("incomplete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+	}
+
+	@Test
+	void testExecuteNextStep_claudeStepWithCompletionPrompt_userSaysYes() throws IOException {
+		// Create plan with Claude step that has commitAllChanges=true
+		AiPlanStep step = createStep("Step 1", "claude", "not started");
+		step.setPrompt("Test prompt");
+		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.setTestChoice("Y"); // User says yes to "Was this step successfully completed?"
+		boolean result = executor.executeNextStep();
+
+		// Should execute and mark complete because user said yes
+		assertThat(result).isTrue();
+
+		// Verify step was marked as complete
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+	}
+
+	@Test
+	void testExecuteNextStep_claudeStepWithCompletionPrompt_userSaysNo() throws IOException {
+		// Create plan with Claude step that has commitAllChanges=true
+		AiPlanStep step = createStep("Step 1", "claude", "not started");
+		step.setPrompt("Test prompt");
+		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.setTestChoice("N"); // User says no to "Was this step successfully completed?"
+		boolean result = executor.executeNextStep();
+
+		// Should execute but remain in progress because user said no
+		assertThat(result).isTrue();
+
+		// Verify step stays in progress
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
 	}
 
 	@Test
 	void testExecuteNextStep_skipsCompletedSteps() throws IOException {
 		// Create plan with mixed completed/incomplete steps
 		AiPlanStep step1 = createStep("Step 1", "smc-upgrader", "complete");
-		AiPlanStep step2 = createStep("Step 2", "smc-upgrader", "incomplete");
+		AiPlanStep step2 = createStep("Step 2", "smc-upgrader", "not started");
 		step2.setValidationCommand("exit 0");  // Add validation so it can complete
-		AiPlanStep step3 = createStep("Step 3", "smc-upgrader", "incomplete");
+		AiPlanStep step3 = createStep("Step 3", "smc-upgrader", "not started");
 
 		writePlanFile(Arrays.asList(step1, step2, step3));
 
-		executor.setTestChoice("E"); // Execute the step
+		// No testChoice needed - step2 will auto-execute since it's "not started"
 		boolean result = executor.executeNextStep();
 
 		assertThat(result).isTrue();
@@ -178,7 +221,7 @@ class AiPlanExecutorTest {
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
 		assertThat(plan.getSteps().get(1).getStatus()).isEqualTo("complete");
-		assertThat(plan.getSteps().get(2).getStatus()).isEqualTo("incomplete");
+		assertThat(plan.getSteps().get(2).getStatus()).isEqualTo("not started");
 	}
 
 	@Test
@@ -205,12 +248,13 @@ class AiPlanExecutorTest {
 	@Test
 	void testExecuteNextStep_withVersion() throws IOException {
 		// Test execution with version field set
-		AiPlanStep step = createStep("Git merge from 8.6.x to 8.7.x", "smc-upgrader", "incomplete");
+		AiPlanStep step = createStep("Git merge from 8.6.x to 8.7.x", "smc-upgrader", "not started");
 		step.setVersion("8.7.x");
+		step.setCommitAllChangesOnCompletion(false); // Don't prompt for completion
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("E"); // Execute the step
+		// No testChoice needed - step will auto-execute since it's "not started"
 		// The step should fail because it tries to execute the upgrade
 		// but in a test environment the git repo doesn't exist
 		// However, we can verify the execution works by checking logs
@@ -222,8 +266,8 @@ class AiPlanExecutorTest {
 
 	@Test
 	void testExecuteNextStep_checkValidation_success() throws IOException {
-		// Create plan with step that has validation
-		AiPlanStep step = createStep("Step 1", "claude", "incomplete");
+		// Create plan with step already in progress (so menu is shown)
+		AiPlanStep step = createStep("Step 1", "claude", "in progress");
 		step.setValidationCommand("exit 0");
 
 		writePlanFile(Arrays.asList(step));
@@ -240,9 +284,10 @@ class AiPlanExecutorTest {
 
 	@Test
 	void testExecuteNextStep_checkValidation_failure() throws IOException {
-		// Create plan with step that has validation
-		AiPlanStep step = createStep("Step 1", "claude", "incomplete");
+		// Create plan with step already in progress (so menu is shown)
+		AiPlanStep step = createStep("Step 1", "claude", "in progress");
 		step.setValidationCommand("exit 1");
+		step.setCommitAllChangesOnCompletion(false); // Don't prompt for completion
 
 		writePlanFile(Arrays.asList(step));
 
@@ -251,15 +296,15 @@ class AiPlanExecutorTest {
 
 		assertThat(result).isTrue();
 
-		// Verify plan was NOT updated (validation failed)
+		// Verify plan was NOT updated (validation failed, stays in progress)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("incomplete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
 	}
 
 	@Test
 	void testExecuteNextStep_manualMarkComplete() throws IOException {
-		// Create plan with incomplete step
-		AiPlanStep step = createStep("Step 1", "claude", "incomplete");
+		// Create plan with step already in progress (so menu is shown)
+		AiPlanStep step = createStep("Step 1", "claude", "in progress");
 
 		writePlanFile(Arrays.asList(step));
 
@@ -275,8 +320,9 @@ class AiPlanExecutorTest {
 
 	@Test
 	void testExecuteNextStep_exitChoice() throws IOException {
-		// Create plan with incomplete step
-		AiPlanStep step = createStep("Step 1", "smc-upgrader", "incomplete");
+		// Create plan with step already in progress (so menu is shown)
+		AiPlanStep step = createStep("Step 1", "smc-upgrader", "in progress");
+		// No need to set commitAllChangesOnCompletion since X exits before that check
 
 		writePlanFile(Arrays.asList(step));
 
@@ -285,9 +331,9 @@ class AiPlanExecutorTest {
 
 		assertThat(result).isFalse();
 
-		// Verify plan was NOT updated
+		// Verify plan was NOT updated (stays in progress)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("incomplete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
 	}
 
 	/**

@@ -98,14 +98,34 @@ public class AiPlanExecutor {
 		// Show all steps with completion status
 		displayStepList(plan);
 
-		// Find next incomplete step
-		AiPlanStep nextStep = plan.findNextIncompleteStep();
+		// Check if there's already a step in progress
+		AiPlanStep inProgressStep = plan.findInProgressStep();
+		AiPlanStep nextStep;
+		boolean showMenu;
 
-		if (nextStep == null) {
-			LOGGER.info("All steps complete! Upgrade finished.");
-			LOGGER.info("");
-			LOGGER.info("Completed {} of {} steps.", plan.countCompletedSteps(), plan.getTotalSteps());
-			return false;
+		if (inProgressStep != null) {
+			// There's a step already in progress, use it and show the menu
+			nextStep = inProgressStep;
+			showMenu = true;
+		} else {
+			// No step in progress, find the next not-started step
+			nextStep = plan.findNextIncompleteStep();
+
+			if (nextStep == null) {
+				LOGGER.info("All steps complete! Upgrade finished.");
+				LOGGER.info("");
+				LOGGER.info("Completed {} of {} steps.", plan.countCompletedSteps(), plan.getTotalSteps());
+				return false;
+			}
+
+			// Mark it as in progress
+			nextStep.setStatus("in progress");
+
+			// Save the plan and commit
+			savePlan(planFile, plan, "Mark step as in progress: " + nextStep.getTitle());
+
+			// Execute directly without showing the menu
+			showMenu = false;
 		}
 
 		// Show next step info
@@ -116,51 +136,67 @@ public class AiPlanExecutor {
 		}
 		LOGGER.info("");
 
-		// Show menu and get user choice
-		String choice = promptUserChoice();
-
-		// Handle user choice
+		// Handle user choice or execute directly
 		boolean stepCompleted = false;
 
-		switch (choice.toUpperCase()) {
-			case "E":
-				// Execute the step
-				if (nextStep.isSmcUpgraderStep()) {
-					stepCompleted = executeSmcUpgraderStep(nextStep);
-				} else if (nextStep.isClaudeStep()) {
-					stepCompleted = executeClaudeStep(nextStep);
-				} else {
-					LOGGER.error("Unknown tool: {}", nextStep.getTool());
-					return false;
-				}
-				break;
+		if (showMenu) {
+			// Show menu and get user choice
+			String choice = promptUserChoice();
 
-			case "C":
-				// Check validation
-				stepCompleted = checkStepValidation(nextStep);
-				break;
+			switch (choice.toUpperCase()) {
+				case "E":
+					// Execute the step
+					if (nextStep.isSmcUpgraderStep()) {
+						stepCompleted = executeSmcUpgraderStep(nextStep);
+					} else if (nextStep.isClaudeStep()) {
+						stepCompleted = executeClaudeStep(nextStep);
+					} else {
+						LOGGER.error("Unknown tool: {}", nextStep.getTool());
+						return false;
+					}
+					break;
 
-			case "M":
-				// Mark complete
+				case "C":
+					// Check validation
+					stepCompleted = checkStepValidation(nextStep);
+					break;
+
+				case "M":
+					// Mark complete
 				stepCompleted = true;
 				break;
 
-			case "X":
-				// Exit
-				LOGGER.info("Exiting. Run 'smc-upgrader --ai:continue' to return to this step.");
-				return false;
+				case "X":
+					// Exit
+					LOGGER.info("Exiting. Run 'smc-upgrader --ai:continue' to return to this step.");
+					return false;
 
-			default:
-				LOGGER.error("Invalid choice: {}", choice);
+				default:
+					LOGGER.error("Invalid choice: {}", choice);
+					return false;
+			}
+		} else {
+			// Execute directly without menu
+			if (nextStep.isSmcUpgraderStep()) {
+				stepCompleted = executeSmcUpgraderStep(nextStep);
+			} else if (nextStep.isClaudeStep()) {
+				stepCompleted = executeClaudeStep(nextStep);
+			} else {
+				LOGGER.error("Unknown tool: {}", nextStep.getTool());
 				return false;
+			}
+		}
+
+		// If step didn't auto-complete and commitAllChanges is true, ask the user
+		if (!stepCompleted && nextStep.isCommitAllChangesOnCompletion()) {
+			LOGGER.info("");
+			stepCompleted = promptForStepCompletion();
 		}
 
 		// Save updated plan if step was marked complete
 		if (stepCompleted) {
-			// Commit all changes if configured to do so
-			if (nextStep.isCommitAllChangesOnCompletion()) {
-				commitAllChanges(nextStep.getTitle());
-			}
+			// Commit all changes
+			commitAllChanges(nextStep.getTitle());
 
 			nextStep.setStatus("complete");
 			savePlan(planFile, plan, nextStep);
@@ -245,6 +281,39 @@ public class AiPlanExecutor {
 		}
 
 		return response != null ? response.trim() : "X";
+	}
+
+	/**
+	 * Prompt the user to confirm if the step was successfully completed.
+	 *
+	 * @return true if the user confirms completion
+	 */
+	private boolean promptForStepCompletion() {
+		// If test choice is set, use it instead of prompting
+		if (testChoice != null) {
+			String choice = testChoice;
+			testChoice = null; // Clear after useO
+			return "Y".equalsIgnoreCase(choice) || "M".equalsIgnoreCase(choice);
+		}
+
+		LOGGER.info("Was this step successfully completed?");
+		LOGGER.info("  [Y/M] Mark this step as complete");
+		LOGGER.info("  [N/X] Exit");
+		LOGGER.info("");
+
+		Console console = System.console();
+		String response;
+
+		if (console != null) {
+			response = console.readLine("Your choice: ");
+		} else {
+			// Fallback for environments without console (like IDEs)
+			Scanner scanner = new Scanner(System.in);
+			System.out.print("Your choice: ");
+			response = scanner.nextLine();
+		}
+
+		return response != null && (response.trim().equalsIgnoreCase("Y") || response.trim().equalsIgnoreCase("M"));
 	}
 
 	/**
@@ -442,6 +511,22 @@ public class AiPlanExecutor {
 	}
 
 	/**
+	 * Save the plan to a file and commit with a custom message.
+	 *
+	 * @param planFile      the plan file
+	 * @param plan          the plan document
+	 * @param commitMessage the commit message
+	 * @throws IOException if an error occurs
+	 */
+	private void savePlan(final File planFile, final PlanDocument plan, final String commitMessage) throws IOException {
+		String markdown = MarkdownWriter.generateMarkdown(plan.getSteps(), plan.getFromVersion(), plan.getToVersion());
+		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
+
+		// Always commit with the provided message
+		commitPlanFile(commitMessage);
+	}
+
+	/**
 	 * Create a GitClient for the working directory.
 	 *
 	 * @param workingDir the working directory
@@ -484,6 +569,8 @@ public class AiPlanExecutor {
 	 * @param message the commit message
 	 */
 	private void commitAllChanges(final String message) {
+		LOGGER.info("Committing changes...");
+
 		// Stage all changes (modified, new, and deleted files)
 		gitClient.stageAll();
 

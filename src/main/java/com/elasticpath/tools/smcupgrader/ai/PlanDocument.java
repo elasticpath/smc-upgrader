@@ -102,6 +102,20 @@ public class PlanDocument {
 	}
 
 	/**
+	 * Find the first step that is in progress.
+	 *
+	 * @return the first in-progress step, or null if none are in progress
+	 */
+	public AiPlanStep findInProgressStep() {
+		for (AiPlanStep step : steps) {
+			if (step.isInProgress()) {
+				return step;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Check if all steps are complete.
 	 *
 	 * @return true if all steps are complete
