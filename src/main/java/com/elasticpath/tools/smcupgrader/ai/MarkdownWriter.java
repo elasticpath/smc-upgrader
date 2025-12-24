@@ -15,7 +15,6 @@
 
 package com.elasticpath.tools.smcupgrader.ai;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -41,8 +40,7 @@ public final class MarkdownWriter {
 		// Header
 		markdown.append("# SMC Upgrader - AI Assist Plan\n\n");
 		markdown.append("Upgrade from: ").append(fromVersion).append("\n");
-		markdown.append("Upgrade to: ").append(toVersion).append("\n");
-		markdown.append("Generated: ").append(LocalDate.now()).append("\n\n");
+		markdown.append("Upgrade to: ").append(toVersion).append("\n\n");
 		markdown.append("---\n\n");
 
 		// Steps
