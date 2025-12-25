@@ -31,6 +31,7 @@ public class ClaudeCodeInvoker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClaudeCodeInvoker.class);
 	private static final int PROMPT_MAX_DISPLAY_LENGTH = 50;
 	private static final int COMMAND_MAX_DISPLAY_LENGTH = 100;
+	public static final String CLAUDE_CLI_PARAMETERS = "--dangerously-skip-permissions --model sonnet";
 
 	private final File workingDir;
 
@@ -70,7 +71,7 @@ public class ClaudeCodeInvoker {
 			// Execute Claude Code through shell to ensure proper terminal allocation
 			// Use single quotes for safer shell escaping (only need to escape single quotes themselves)
 			String escapedPrompt = prompt.replace("'", "'\\''");
-			String command = "claude --dangerously-skip-permissions '" + escapedPrompt + "'";
+			String command = "claude " + CLAUDE_CLI_PARAMETERS + " '" + escapedPrompt + "'";
 
 			LOGGER.debug("Shell command: {}", command.substring(0, Math.min(COMMAND_MAX_DISPLAY_LENGTH, command.length())) + "...");
 
