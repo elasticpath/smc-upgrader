@@ -7,6 +7,7 @@ It has the following benefits:
 * Ensures the upgrade is performed via the approach recommended by Elastic Path.
 * Can upgrade from and to any version of Elastic Path Self-Managed Commerce.
 * Reconciles conflicts caused by the presence of Elastic Path post-release patches.
+* Supports optional AI Assist Mode which can take care of most of the conflict resolution steps automatically.
 
 # Installation
 
@@ -93,19 +94,19 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 
 1. Execute `smc-upgrader --help` to verify the installation.
 
-# Usage and Examples
-
-The following section describes the different usage and examples for `smc-upgrader`:
-
-## Command Line Options
+# Command Line Options
 
 ```text
-Usage: smc-upgrader [-dfhmprvV] [--[no-]clean-working-directory-check]
-                    [-C=<workingDir>] [-u=<upstreamRemoteRepositoryUrl>]
-                    <version>
+Usage: smc-upgrader [-dfhmprvV] [--ai:continue] [--ai:start]
+                    [--[no-]clean-working-directory-check] [-C=<workingDir>]
+                    [-u=<upstreamRemoteRepositoryUrl>] [<version>]
 Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
-      <version>              The version of Elastic Path Self-Managed Commerce
-                               to upgrade to.
+      [<version>]            The version of Elastic Path Self-Managed Commerce
+                               to upgrade to. Optional when using --ai:start or
+                               --ai:continue.
+      --ai:continue          Continue AI-assisted upgrade from saved plan.
+      --ai:start             Start AI-assisted upgrade mode and generate
+                               upgrade plan. Requires version parameter.
   -C=<workingDir>            The working directory containing the git repo to
                                be upgraded. Defaults to the current working
                                directory.
@@ -132,9 +133,11 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
   -V, --version              Print version information and exit.
 ```
 
-## Usage Examples
+# Standard Mode Usage
 
-### Setup
+The following sections describe how to use `smc-upgrader` in standard mode (without the `--ai` flags).
+
+## Setup
 
 Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository as a remote:
 
@@ -142,7 +145,7 @@ Before running the application for the first time, ensure the Elastic Path Self-
 git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 ```
 
-### Upgrading
+## Upgrading
 
 The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified release version by executing these steps:
 
@@ -175,9 +178,9 @@ If you prefer to start the merge manually, and then only have `smc-upgrader` att
 smc-upgrader --no-merge 8.5.x
 ```
 
-### Troubleshooting
+## Troubleshooting
 
-#### Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.
+### Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.
 
 If `smc-upgrader` shows this error, it usually means that your Git repository was initialized using a snapshot of the source code, rather than by cloning from `code.elasticpath.com`. This will be the case if your project team started with SMC 7.0.1 or earlier, before the `code.elasticpath.com` public repository was available.
 
@@ -219,6 +222,95 @@ git branch -D temp-branch
 
 You should only have to do this once; future uses of the tool should work without issue.
 
-### Demonstration
+## Demonstration
 
-![SMC Upgrader usage demonstration](smc-upgrader.gif)
+![SMC Upgrader standard mode demonstration](smc-upgrader.gif)
+
+# AI Assist Mode Usage
+
+The following sections describe how to use `smc-upgrader` in AI assist mode (with the `--ai` flags).
+
+## Setup
+
+Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository as a remote:
+
+```shell
+git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
+```
+
+You will also need to [install Claude Code](https://code.claude.com/docs/en/quickstart). Make sure to sign up for a [non-free plan](https://claude.com/pricing). 
+
+## AI Assist Start
+
+AI Assist Mode can be used to help with version upgrades or to consume all the latest patches for your current version.
+
+To start AI assisted patch consumption, run:
+
+```shell
+smc-upgrader --ai:start <version>
+```
+
+Where `<version>` represents your current version, such as `8.5.x`.
+
+To start an AI assisted upgrade, run:
+
+```shell
+smc-upgrader --ai:start <version>
+```
+
+Where `<version>` represents the version you want to upgrade to, such as `8.7.x`.
+
+This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
+
+We recommend that you review the upgrade plan before continuing. You can add or remove steps, change prompts, or make any other required changes to the plan, which will be read by the tool for all subsequent operations.
+
+## AI Assist Continue
+
+Once you are ready to continue, run:
+
+```shell
+smc-upgrader --ai:continue
+```
+
+The tool will read the upgrade plan from `smc-upgrader-plan.md` and check to see if there are any steps in the `in progress` state. If it finds one, it will prompt the user to decide what they want to do next, as in the following example:
+
+```text
+INFO : Next step: Resolve all unit test failures
+INFO :   Tool: claude
+INFO :   Validation command: mvn clean install -DskipITests -DskipCucumberTests -T0.75C
+INFO :
+INFO : What would you like to do?
+INFO :   [E] Execute this step
+INFO :   [C] Check if this step is complete
+INFO :   [M] Mark this step as complete
+INFO :   [X] Exit
+```
+
+If you choose `E`, then Claude Code will be executed again with the prompt specified in the plan.
+If you choose `C`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
+If you choose `M`, the step will be marked as `complete`, and the tool will exit.
+If you choose `X`, the tool will just exit without doing anything else.
+
+If there are no steps `in progress`, the tool will find the first `not started` step, change it to `in progress`, and execute the step automatically.
+
+By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, Claude Code will be invoked with the prompt from the plan.
+
+You can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
+
+When Claude Code exits, you will be prompted to decide what you want to do:
+
+```text
+INFO : Claude Code completed successfully.
+INFO :
+INFO : Was this step successfully completed?
+INFO :   [Y/M] Mark this step as complete
+INFO :   [C] Check if this step is complete
+INFO :   [N/X] Exit
+INFO :
+```
+
+If you choose `Y` or `M`, the step will be marked as `complete`, and the tool will exit.
+If you choose `C`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
+If you choose `N` or `X`, the tool will just exit without doing anything else.
+
+You can then run `smc-upgrader --ai:continue` again to continue the current step or move on to the next step. Keep running this command until all steps are completed.
