@@ -203,6 +203,48 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
+	void testExecuteNextStep_claudeStepWithCompletionPrompt_checkValidationSuccess() throws IOException {
+		// Create plan with Claude step that has commitAllChanges=true and a validation command
+		AiPlanStep step = createStep("Step 1", "claude", "not started");
+		step.setPrompt("Test prompt");
+		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
+		step.setValidationCommand("exit 0"); // Validation will succeed
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.setTestChoice("C"); // User chooses to check validation
+		boolean result = executor.executeNextStep();
+
+		// Should execute and mark complete because validation passed
+		assertThat(result).isTrue();
+
+		// Verify step was marked as complete
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+	}
+
+	@Test
+	void testExecuteNextStep_claudeStepWithCompletionPrompt_checkValidationFailure() throws IOException {
+		// Create plan with Claude step that has commitAllChanges=true and a validation command
+		AiPlanStep step = createStep("Step 1", "claude", "not started");
+		step.setPrompt("Test prompt");
+		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
+		step.setValidationCommand("exit 1"); // Validation will fail
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.setTestChoice("C"); // User chooses to check validation
+		boolean result = executor.executeNextStep();
+
+		// Should execute but remain in progress because validation failed
+		assertThat(result).isTrue();
+
+		// Verify step stays in progress
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+	}
+
+	@Test
 	void testExecuteNextStep_skipsCompletedSteps() throws IOException {
 		// Create plan with mixed completed/incomplete steps
 		AiPlanStep step1 = createStep("Step 1", "smc-upgrader", "complete");

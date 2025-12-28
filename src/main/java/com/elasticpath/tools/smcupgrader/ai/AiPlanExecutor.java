@@ -190,7 +190,7 @@ public class AiPlanExecutor {
 		// If step didn't auto-complete and commitAllChanges is true, ask the user
 		if (!stepCompleted && nextStep.isCommitAllChangesOnCompletion()) {
 			LOGGER.info("");
-			stepCompleted = promptForStepCompletion();
+			stepCompleted = promptForStepCompletion(nextStep);
 		}
 
 		// Save updated plan if step was marked complete
@@ -206,7 +206,7 @@ public class AiPlanExecutor {
 
 		// Exit after action
 		LOGGER.info("");
-		LOGGER.info("Exiting. Run 'smc-upgrader --ai:continue' to continue with the next step.");
+		LOGGER.info("Exiting. Please verify the work, then run 'smc-upgrader --ai:continue' to resume or proceed to the next step.");
 
 		return true;
 	}
@@ -286,18 +286,24 @@ public class AiPlanExecutor {
 	/**
 	 * Prompt the user to confirm if the step was successfully completed.
 	 *
+	 * @param step the step to check
 	 * @return true if the user confirms completion
+	 * @throws IOException if an error occurs
 	 */
-	private boolean promptForStepCompletion() {
+	private boolean promptForStepCompletion(final AiPlanStep step) throws IOException {
 		// If test choice is set, use it instead of prompting
 		if (testChoice != null) {
 			String choice = testChoice;
-			testChoice = null; // Clear after useO
+			testChoice = null; // Clear after use
+			if ("C".equalsIgnoreCase(choice)) {
+				return checkStepValidation(step);
+			}
 			return "Y".equalsIgnoreCase(choice) || "M".equalsIgnoreCase(choice);
 		}
 
 		LOGGER.info("Was this step successfully completed?");
 		LOGGER.info("  [Y/M] Mark this step as complete");
+		LOGGER.info("  [C] Check if this step is complete");
 		LOGGER.info("  [N/X] Exit");
 		LOGGER.info("");
 
@@ -313,7 +319,15 @@ public class AiPlanExecutor {
 			response = scanner.nextLine();
 		}
 
-		return response != null && (response.trim().equalsIgnoreCase("Y") || response.trim().equalsIgnoreCase("M"));
+		if (response != null) {
+			String choice = response.trim();
+			if (choice.equalsIgnoreCase("C")) {
+				return checkStepValidation(step);
+			}
+			return choice.equalsIgnoreCase("Y") || choice.equalsIgnoreCase("M");
+		}
+
+		return false;
 	}
 
 	/**
@@ -453,10 +467,6 @@ public class AiPlanExecutor {
 			LOGGER.warn("No prompt defined for this Claude step.");
 			LOGGER.info("Please manually complete: {}", step.getTitle());
 		}
-
-		// Claude steps are never auto-completed - user must verify and mark complete manually
-		LOGGER.info("");
-		LOGGER.info("Please verify the work, then run 'smc-upgrader --ai:continue' to resume or proceed to the next step.");
 
 		return false;
 	}

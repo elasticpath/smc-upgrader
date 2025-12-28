@@ -113,9 +113,9 @@ public class AiPlanGenerator {
 			try {
 				String commitMessage;
 				if (currentVersion.equals(targetVersion)) {
-					commitMessage = "Generate upgrade plan for latest patches";
+					commitMessage = "Generated upgrade plan for latest patches";
 				} else {
-					commitMessage = "Generate upgrade plan from " + currentVersion + " to " + targetVersion;
+					commitMessage = "Generated upgrade plan from " + currentVersion + " to " + targetVersion;
 				}
 				commitPlanFile(gitClient, commitMessage);
 				LOGGER.info("Committed plan file to git");
