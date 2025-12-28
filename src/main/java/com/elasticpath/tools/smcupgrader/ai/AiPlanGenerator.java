@@ -213,7 +213,7 @@ public class AiPlanGenerator {
 				AiPlanStep step = new AiPlanStep();
 				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion));
 				step.setTool(template.getTool());
-				step.setStatus(template.getStatus());
+				step.setStatus(template.getStatus() != null ? template.getStatus() : "not started");
 				step.setCommitPlanOnCompletion(template.isCommitPlanOnCompletion());
 				step.setCommitAllChangesOnCompletion(template.isCommitAllChangesOnCompletion());
 				step.setVersion(toVersion);
