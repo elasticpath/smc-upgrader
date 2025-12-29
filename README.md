@@ -281,13 +281,13 @@ INFO :   Validation command: mvn clean install -DskipITests -DskipCucumberTests 
 INFO :
 INFO : What would you like to do?
 INFO :   [E] Execute this step
-INFO :   [C] Check if this step is complete
+INFO :   [V] Verify that this step is complete
 INFO :   [M] Mark this step as complete
 INFO :   [X] Exit
 ```
 
 If you choose `E`, then Claude Code will be executed again with the prompt specified in the plan.
-If you choose `C`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
+If you choose `V`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
 If you choose `M`, the step will be marked as `complete`, and the tool will exit.
 If you choose `X`, the tool will just exit without doing anything else.
 
@@ -304,7 +304,7 @@ INFO : Claude Code completed successfully.
 INFO :
 INFO : Was this step successfully completed?
 INFO :   [Y/M] Mark this step as complete
-INFO :   [C] Check if this step is complete
+INFO :   [V] Verify that this step is complete
 INFO :   [N/X] Exit
 INFO :
 ```

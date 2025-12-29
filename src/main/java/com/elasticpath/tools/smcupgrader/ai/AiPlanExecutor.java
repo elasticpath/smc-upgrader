@@ -156,8 +156,8 @@ public class AiPlanExecutor {
 					}
 					break;
 
-				case "C":
-					// Check validation
+				case "V":
+					// Verify step
 					stepCompleted = checkStepValidation(nextStep);
 					break;
 
@@ -263,7 +263,7 @@ public class AiPlanExecutor {
 
 		LOGGER.info("What would you like to do?");
 		LOGGER.info("  [E] Execute this step");
-		LOGGER.info("  [C] Check if this step is complete");
+		LOGGER.info("  [V] Verify that this step is complete");
 		LOGGER.info("  [M] Mark this step as complete");
 		LOGGER.info("  [X] Exit");
 		LOGGER.info("");
@@ -295,7 +295,7 @@ public class AiPlanExecutor {
 		if (testChoice != null) {
 			String choice = testChoice;
 			testChoice = null; // Clear after use
-			if ("C".equalsIgnoreCase(choice)) {
+			if ("V".equalsIgnoreCase(choice)) {
 				return checkStepValidation(step);
 			}
 			return "Y".equalsIgnoreCase(choice) || "M".equalsIgnoreCase(choice);
@@ -303,7 +303,7 @@ public class AiPlanExecutor {
 
 		LOGGER.info("Was this step successfully completed?");
 		LOGGER.info("  [Y/M] Mark this step as complete");
-		LOGGER.info("  [C] Check if this step is complete");
+		LOGGER.info("  [V] Verify that this step is complete");
 		LOGGER.info("  [N/X] Exit");
 		LOGGER.info("");
 
@@ -321,7 +321,7 @@ public class AiPlanExecutor {
 
 		if (response != null) {
 			String choice = response.trim();
-			if (choice.equalsIgnoreCase("C")) {
+			if (choice.equalsIgnoreCase("V")) {
 				return checkStepValidation(step);
 			}
 			return choice.equalsIgnoreCase("Y") || choice.equalsIgnoreCase("M");

@@ -212,7 +212,7 @@ class AiPlanExecutorTest {
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("C"); // User chooses to check validation
+		executor.setTestChoice("V"); // User chooses to Verify step
 		boolean result = executor.executeNextStep();
 
 		// Should execute and mark complete because validation passed
@@ -233,7 +233,7 @@ class AiPlanExecutorTest {
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("C"); // User chooses to check validation
+		executor.setTestChoice("V"); // User chooses to Verify step
 		boolean result = executor.executeNextStep();
 
 		// Should execute but remain in progress because validation failed
@@ -314,7 +314,7 @@ class AiPlanExecutorTest {
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("C"); // Check validation
+		executor.setTestChoice("V"); // Verify step
 		boolean result = executor.executeNextStep();
 
 		assertThat(result).isTrue();
@@ -333,7 +333,7 @@ class AiPlanExecutorTest {
 
 		writePlanFile(Arrays.asList(step));
 
-		executor.setTestChoice("C"); // Check validation
+		executor.setTestChoice("V"); // Verify step
 		boolean result = executor.executeNextStep();
 
 		assertThat(result).isTrue();
