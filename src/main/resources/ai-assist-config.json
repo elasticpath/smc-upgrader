@@ -38,7 +38,7 @@
       "validationCommand": "mvn clean install -Preset-db -f extensions/database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. Filter the build output using the following regular expression to periodically report on build progress: ^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n^\\[INFO\\]\\sBuilding\\s(?P<module>.+?)\\s+\\S+\\s+\\[(?P<module_num>\\d+)\\/(?P<module_total>\\d+)\\]\\r?\\n^\\[INFO\\]\\s+from\\s(?P<path>\\S+)\\s*$"
+      "prompt": "Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve all static analysis failures",
