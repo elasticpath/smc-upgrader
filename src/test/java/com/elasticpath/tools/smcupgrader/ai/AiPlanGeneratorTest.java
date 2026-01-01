@@ -25,12 +25,14 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 
 /**
@@ -59,7 +61,23 @@ class AiPlanGeneratorTest {
 		);
 		upgradePath = new UpgradePath(versions, "", "", steps);
 
-		generator = new AiPlanGenerator(upgradePath, upgradeController);
+		// Create generator that doesn't perform Git operations in tests
+		generator = new AiPlanGenerator(upgradePath, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				// Return null to prevent Git operations during tests
+				return null;
+			}
+		};
+	}
+
+	@AfterEach
+	void tearDown() {
+		// Clean up plan file after each test
+		File planFile = new File(tempDir, "smc-upgrader-plan.md");
+		if (planFile.exists()) {
+			planFile.delete();
+		}
 	}
 
 	@Test
@@ -183,6 +201,12 @@ class AiPlanGeneratorTest {
 			boolean promptForOverwrite(File file) throws IOException {
 				return false;
 			}
+
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				// Return null to prevent Git operations during tests
+				return null;
+			}
 		};
 
 		boolean result = testGenerator.generatePlan("8.6.x", tempDir);
@@ -207,6 +231,12 @@ class AiPlanGeneratorTest {
 			@Override
 			boolean promptForOverwrite(File file) throws IOException {
 				return true;
+			}
+
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				// Return null to prevent Git operations during tests
+				return null;
 			}
 		};
 

@@ -258,7 +258,7 @@ public class AiPlanGenerator {
 	 * @param workingDir the working directory
 	 * @return a GitClient, or null if not in a git repository
 	 */
-	private GitClient createGitClient(final File workingDir) {
+	protected GitClient createGitClient(final File workingDir) {
 		try {
 			FileRepositoryBuilder builder = new FileRepositoryBuilder();
 			Repository repository = builder
