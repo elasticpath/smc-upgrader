@@ -61,7 +61,13 @@ class AiPlanExecutorTest {
 		when(claudeInvoker.isClaudeCodeAvailable()).thenReturn(false);
 		when(claudeInvoker.invokeClaudeCode(anyString())).thenReturn(false);
 
-		executor = new AiPlanExecutor(tempDir, gitClient, claudeInvoker);
+		// Create executor with overridden createClaudeCodeInvoker to use mock
+		executor = new AiPlanExecutor(tempDir, gitClient) {
+			@Override
+			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
+				return claudeInvoker;
+			}
+		};
 	}
 
 	@Test

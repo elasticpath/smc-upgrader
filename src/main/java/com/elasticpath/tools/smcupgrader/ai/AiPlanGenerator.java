@@ -63,6 +63,20 @@ public class AiPlanGenerator {
 	 * @throws IOException if an error occurs
 	 */
 	public boolean generatePlan(final String targetVersion, final File workingDir) throws IOException {
+		return generatePlan(targetVersion, workingDir, false);
+	}
+
+	/**
+	 * Generate an upgrade plan.
+	 *
+	 * @param targetVersion   the target version to upgrade to
+	 * @param workingDir      the working directory
+	 * @param skipPermissions whether to skip permission prompts when invoking Claude
+	 * @return true if plan was generated, false if user cancelled
+	 * @throws IOException if an error occurs
+	 */
+	public boolean generatePlan(final String targetVersion, final File workingDir, final boolean skipPermissions)
+			throws IOException {
 		File planFile = new File(workingDir, PLAN_FILE_NAME);
 
 		// Determine current version first
@@ -102,7 +116,7 @@ public class AiPlanGenerator {
 		List<AiPlanStep> allSteps = expandStepsForVersions(versionSequence);
 
 		// Generate markdown
-		String markdown = MarkdownWriter.generateMarkdown(allSteps, currentVersion, targetVersion);
+		String markdown = MarkdownWriter.generateMarkdown(allSteps, currentVersion, targetVersion, skipPermissions);
 
 		// Write to file
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));

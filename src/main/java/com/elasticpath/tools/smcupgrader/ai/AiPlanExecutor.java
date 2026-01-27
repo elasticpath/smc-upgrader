@@ -43,9 +43,9 @@ public class AiPlanExecutor {
 	private static final String DEFAULT_UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
 
 	private final File workingDir;
-	private final ClaudeCodeInvoker claudeInvoker;
 	private final UpgradeController upgradeController;
 	private final GitClient gitClient;
+	private final boolean cliSkipPermissions;
 	private String testChoice; // For testing only - bypasses interactive prompt
 
 	/**
@@ -54,8 +54,18 @@ public class AiPlanExecutor {
 	 * @param workingDir the working directory
 	 */
 	public AiPlanExecutor(final File workingDir) {
+		this(workingDir, false);
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param workingDir         the working directory
+	 * @param cliSkipPermissions whether skip permissions was specified on command line
+	 */
+	public AiPlanExecutor(final File workingDir, final boolean cliSkipPermissions) {
 		this.workingDir = workingDir;
-		this.claudeInvoker = new ClaudeCodeInvoker(workingDir);
+		this.cliSkipPermissions = cliSkipPermissions;
 		this.upgradeController = new UpgradeController(workingDir, DEFAULT_UPSTREAM_REPO_URL);
 		this.gitClient = createGitClient(workingDir);
 	}
@@ -67,9 +77,9 @@ public class AiPlanExecutor {
 	 * @param gitClient      the git client (for testing)
 	 * @param claudeInvoker  the claude invoker (for testing)
 	 */
-	AiPlanExecutor(final File workingDir, final GitClient gitClient, final ClaudeCodeInvoker claudeInvoker) {
+	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
 		this.workingDir = workingDir;
-		this.claudeInvoker = claudeInvoker;
+		this.cliSkipPermissions = false;
 		this.upgradeController = new UpgradeController(workingDir, DEFAULT_UPSTREAM_REPO_URL);
 		this.gitClient = gitClient;
 	}
@@ -94,6 +104,9 @@ public class AiPlanExecutor {
 
 		// Parse the plan
 		PlanDocument plan = MarkdownParser.parsePlanFile(planFile);
+
+		// Determine if we should skip permissions (CLI flag OR plan file flag)
+		boolean skipPermissions = cliSkipPermissions || plan.isSkipPermissions();
 
 		// Show all steps with completion status
 		displayStepList(plan);
@@ -149,7 +162,7 @@ public class AiPlanExecutor {
 					if (nextStep.isSmcUpgraderStep()) {
 						stepCompleted = executeSmcUpgraderStep(nextStep);
 					} else if (nextStep.isClaudeStep()) {
-						stepCompleted = executeClaudeStep(nextStep);
+						stepCompleted = executeClaudeStep(nextStep, skipPermissions);
 					} else {
 						LOGGER.error("Unknown tool: {}", nextStep.getTool());
 						return false;
@@ -180,7 +193,7 @@ public class AiPlanExecutor {
 			if (nextStep.isSmcUpgraderStep()) {
 				stepCompleted = executeSmcUpgraderStep(nextStep);
 			} else if (nextStep.isClaudeStep()) {
-				stepCompleted = executeClaudeStep(nextStep);
+				stepCompleted = executeClaudeStep(nextStep, skipPermissions);
 			} else if (nextStep.isValidationOnlyStep()) {
 				stepCompleted = executeValidationOnlyStep(nextStep);
 			} else {
@@ -475,7 +488,7 @@ public class AiPlanExecutor {
 	 * @return false (Claude steps are never auto-completed, even on success)
 	 * @throws IOException if an error occurs
 	 */
-	private boolean executeClaudeStep(final AiPlanStep step) throws IOException {
+	private boolean executeClaudeStep(final AiPlanStep step, final boolean skipPermissions) throws IOException {
 		LOGGER.info("This step requires Claude Code assistance.");
 		LOGGER.info("");
 
@@ -487,6 +500,7 @@ public class AiPlanExecutor {
 				fullPrompt += "\n\nValidation command: " + step.getValidationCommand();
 			}
 
+			ClaudeCodeInvoker claudeInvoker = createClaudeCodeInvoker(skipPermissions);
 			boolean claudeSuccess = claudeInvoker.invokeClaudeCode(fullPrompt);
 
 			LOGGER.info("");
@@ -501,6 +515,16 @@ public class AiPlanExecutor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Create a ClaudeCodeInvoker with the appropriate settings.
+	 *
+	 * @param skipPermissions whether to skip permission prompts
+	 * @return the ClaudeCodeInvoker
+	 */
+	protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
+		return new ClaudeCodeInvoker(workingDir, skipPermissions);
 	}
 
 	/**

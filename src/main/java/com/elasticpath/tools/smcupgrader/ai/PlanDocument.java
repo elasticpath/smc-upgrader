@@ -24,6 +24,7 @@ import java.util.List;
 public class PlanDocument {
 	private String fromVersion;
 	private String toVersion;
+	private boolean skipPermissions;
 	private final List<AiPlanStep> steps;
 
 	/**
@@ -67,6 +68,24 @@ public class PlanDocument {
 	 */
 	public void setToVersion(final String toVersion) {
 		this.toVersion = toVersion;
+	}
+
+	/**
+	 * Check if skip permissions is enabled.
+	 *
+	 * @return true if skip permissions is enabled
+	 */
+	public boolean isSkipPermissions() {
+		return skipPermissions;
+	}
+
+	/**
+	 * Set whether to skip permissions.
+	 *
+	 * @param skipPermissions true to skip permissions
+	 */
+	public void setSkipPermissions(final boolean skipPermissions) {
+		this.skipPermissions = skipPermissions;
 	}
 
 	/**

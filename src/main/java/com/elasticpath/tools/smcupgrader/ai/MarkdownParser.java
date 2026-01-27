@@ -38,6 +38,7 @@ public final class MarkdownParser {
 	private static final Parser PARSER = Parser.builder().build();
 	private static final Pattern FROM_VERSION_PATTERN = Pattern.compile("Upgrade from:\\s*(.+)");
 	private static final Pattern TO_VERSION_PATTERN = Pattern.compile("Upgrade to:\\s*(.+)");
+	private static final Pattern SKIP_PERMISSIONS_PATTERN = Pattern.compile("Skip permissions:\\s*(.+)");
 	private static final Pattern TOOL_PATTERN = Pattern.compile("Tool:\\s*(.+)");
 	private static final Pattern VERSION_PATTERN = Pattern.compile("Version:\\s*(.+)");
 	private static final Pattern VALIDATION_PATTERN = Pattern.compile("Validation command:\\s*(.+)");
@@ -156,6 +157,12 @@ public final class MarkdownParser {
 		matcher = TO_VERSION_PATTERN.matcher(text);
 		if (matcher.find()) {
 			plan.setToVersion(matcher.group(1).trim());
+			foundMetadata = true;
+		}
+
+		matcher = SKIP_PERMISSIONS_PATTERN.matcher(text);
+		if (matcher.find()) {
+			plan.setSkipPermissions(Boolean.parseBoolean(matcher.group(1).trim()));
 			foundMetadata = true;
 		}
 

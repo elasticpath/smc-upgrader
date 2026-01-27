@@ -35,12 +35,30 @@ public final class MarkdownWriter {
 	 * @return the markdown content as a string
 	 */
 	public static String generateMarkdown(final List<AiPlanStep> steps, final String fromVersion, final String toVersion) {
+		return generateMarkdown(steps, fromVersion, toVersion, false);
+	}
+
+	/**
+	 * Generate markdown content for an upgrade plan.
+	 *
+	 * @param steps           the list of plan steps
+	 * @param fromVersion     the starting version
+	 * @param toVersion       the target version
+	 * @param skipPermissions whether to skip permission prompts
+	 * @return the markdown content as a string
+	 */
+	public static String generateMarkdown(final List<AiPlanStep> steps, final String fromVersion, final String toVersion,
+										  final boolean skipPermissions) {
 		StringBuilder markdown = new StringBuilder();
 
 		// Header
 		markdown.append("# SMC Upgrader - AI Assist Plan\n\n");
 		markdown.append("Upgrade from: ").append(fromVersion).append("\n");
-		markdown.append("Upgrade to: ").append(toVersion).append("\n\n");
+		markdown.append("Upgrade to: ").append(toVersion).append("\n");
+		if (skipPermissions) {
+			markdown.append("Skip permissions: true\n");
+		}
+		markdown.append("\n");
 		markdown.append("---\n\n");
 
 		// Steps

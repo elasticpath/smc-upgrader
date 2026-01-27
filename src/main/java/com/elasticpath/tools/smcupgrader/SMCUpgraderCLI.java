@@ -102,6 +102,10 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			description = "Continue AI-assisted upgrade from saved plan.")
 	private boolean aiContinue;
 
+	@CommandLine.Option(names = { "--ai:skip-permissions" },
+			description = "Skip permission prompts when invoking Claude Code (passes --dangerously-skip-permissions).")
+	private boolean aiSkipPermissions;
+
 	@Override
 	public Integer call() {
 		try {
@@ -152,7 +156,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 		UpgradePath upgradePath = UpgradePath.loadFromResource();
 		AiPlanGenerator generator = new AiPlanGenerator(upgradePath, upgradeController);
 
-		boolean generated = generator.generatePlan(version, workingDir);
+		boolean generated = generator.generatePlan(version, workingDir, aiSkipPermissions);
 		return generated ? 0 : 1;
 	}
 
@@ -163,7 +167,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	 */
 	private Integer handleAiContinue() {
 		try {
-			AiPlanExecutor executor = new AiPlanExecutor(workingDir);
+			AiPlanExecutor executor = new AiPlanExecutor(workingDir, aiSkipPermissions);
 			boolean stepExecuted = executor.executeNextStep();
 			return stepExecuted ? 0 : 1;
 		} catch (IOException e) {
