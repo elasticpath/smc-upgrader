@@ -75,7 +75,6 @@ public class AiPlanExecutor {
 	 *
 	 * @param workingDir     the working directory
 	 * @param gitClient      the git client (for testing)
-	 * @param claudeInvoker  the claude invoker (for testing)
 	 */
 	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
 		this.workingDir = workingDir;
@@ -485,6 +484,7 @@ public class AiPlanExecutor {
 	 * Execute a Claude step.
 	 *
 	 * @param step the step to execute
+	 * @param skipPermissions indicates if Claude should be executed with the skip permissions parameter
 	 * @return false (Claude steps are never auto-completed, even on success)
 	 * @throws IOException if an error occurs
 	 */
