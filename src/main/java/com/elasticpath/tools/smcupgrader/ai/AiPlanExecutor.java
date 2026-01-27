@@ -169,8 +169,11 @@ public class AiPlanExecutor {
 					break;
 
 				case "V":
-					// Verify step
+					// Verify step - if validation fails, exit immediately
 					stepCompleted = checkStepValidation(nextStep);
+					if (!stepCompleted) {
+						return true; // Exit without showing another prompt
+					}
 					break;
 
 				case "M":
