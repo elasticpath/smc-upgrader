@@ -43,18 +43,18 @@
     {
       "title": "Resolve all compilation issues",
       "tool": "claude",
-      "validationCommand": "mvn clean install -DskipAllTests",
+      "validationCommand": "mvn clean install -DskipAllTests -P\\!build-common-test-database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below and help to fix any compilation issues. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. The validation command is expected to take around 10 minutes to execute. After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time. Filter the build output using the following regular expression to periodically report on build progress: ^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n^\\[INFO\\]\\sBuilding\\s(?P<module>.+?)\\s+\\S+\\s+\\[(?P<module_num>\\d+)\\/(?P<module_total>\\d+)\\]\\r?\\n^\\[INFO\\]\\s+from\\s(?P<path>\\S+)\\s*$"
     },
     {
-      "title": "Resolve local database reset failures",
+      "title": "Resolve data population failures",
       "tool": "claude",
-      "validationCommand": "mvn clean install -Preset-db -f extensions/database",
+      "validationCommand": "mvn clean install -f extensions/common-resources/common-test-database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below to reset the local database and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
+      "prompt": "Run the validation command below to run data population and help to fix any failures. The upgrade notes at https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/upgrade-notes.html, https://documentation.elasticpath.com/commerce/docs/{TO_VERSION}/release-notes.html#upgrade-notes, or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404) may be helpful. If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch."
     },
     {
       "title": "Resolve all static analysis failures",
