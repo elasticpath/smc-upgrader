@@ -122,7 +122,7 @@ public class AiPlanExecutor {
 			nextStep.setStatus("in progress");
 
 			// Save the plan and commit
-			savePlan(planFile, plan, "Mark step as in progress: " + nextStep.getTitle());
+			savePlan(planFile, plan, nextStep, false);
 
 			// Execute directly without showing the menu
 			showMenu = false;
@@ -196,10 +196,12 @@ public class AiPlanExecutor {
 		// Save updated plan if step was marked complete
 		if (stepCompleted) {
 			// Commit all changes
-			commitAllChanges(nextStep.getTitle());
+			if (nextStep.isCommitAllChangesOnCompletion()) {
+				commitAllChanges(nextStep.getTitle());
+			}
 
 			nextStep.setStatus("complete");
-			savePlan(planFile, plan, nextStep);
+			savePlan(planFile, plan, nextStep, true);
 			LOGGER.info("");
 			LOGGER.info("Step marked as complete.");
 		}
@@ -507,16 +509,19 @@ public class AiPlanExecutor {
 	 *
 	 * @param planFile      the plan file
 	 * @param plan          the plan document
-	 * @param completedStep the step that was just completed
+	 * @param step          the step being updated
+	 * @param shouldCommit  whether to commit the plan file
 	 * @throws IOException if an error occurs
 	 */
-	private void savePlan(final File planFile, final PlanDocument plan, final AiPlanStep completedStep) throws IOException {
+	private void savePlan(final File planFile, final PlanDocument plan, final AiPlanStep step, final boolean shouldCommit)
+			throws IOException {
 		String markdown = MarkdownWriter.generateMarkdown(plan.getSteps(), plan.getFromVersion(), plan.getToVersion());
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
 
-		// Commit to git if configured to do so
-		if (completedStep.isCommitPlanOnCompletion()) {
-			commitPlanFile("Mark step complete: " + completedStep.getTitle());
+		// Commit to git if configured to do so and shouldCommit is true
+		if (shouldCommit && step.isCommitPlanOnCompletion()) {
+			String status = "complete".equals(step.getStatus()) ? "complete" : "in progress";
+			commitPlanFile("Mark step as " + status + ": " + step.getTitle());
 		}
 	}
 
