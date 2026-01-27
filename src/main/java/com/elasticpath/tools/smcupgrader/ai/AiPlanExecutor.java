@@ -181,6 +181,8 @@ public class AiPlanExecutor {
 				stepCompleted = executeSmcUpgraderStep(nextStep);
 			} else if (nextStep.isClaudeStep()) {
 				stepCompleted = executeClaudeStep(nextStep);
+			} else if (nextStep.isValidationOnlyStep()) {
+				stepCompleted = executeValidationOnlyStep(nextStep);
 			} else {
 				LOGGER.error("Unknown tool: {}", nextStep.getTool());
 				return false;
@@ -435,6 +437,34 @@ public class AiPlanExecutor {
 				LOGGER.warn("Please complete this step manually and mark it as complete in the plan file.");
 				return false;
 			}
+		}
+	}
+
+	/**
+	 * Execute a validation-only step. This simply runs the validation command without invoking Claude.
+	 *
+	 * @param step the step to execute
+	 * @return true if validation passes, false otherwise
+	 * @throws IOException if an error occurs
+	 */
+	private boolean executeValidationOnlyStep(final AiPlanStep step) throws IOException {
+		LOGGER.info("Executing validation-only step: {}", step.getTitle());
+
+		if (!step.hasValidationCommand()) {
+			LOGGER.error("Validation-only step requires a validation command.");
+			return false;
+		}
+
+		LOGGER.info("Running validation command: {}", step.getValidationCommand());
+		boolean validationPassed = runValidationCommand(step.getValidationCommand());
+
+		if (validationPassed) {
+			LOGGER.info("Validation passed.");
+			return true;
+		} else {
+			LOGGER.warn("Validation failed. Step not marked as complete.");
+			LOGGER.warn("Please resolve the issue and run 'smc-upgrader --ai:continue' again.");
+			return false;
 		}
 	}
 

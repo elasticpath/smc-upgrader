@@ -402,6 +402,41 @@ class AiPlanExecutorTest {
 		// For now, we verify that the step completes successfully without errors.
 	}
 
+	@Test
+	void testExecuteNextStep_validationOnlyStep_success() throws IOException {
+		// Create plan with validation-only step
+		AiPlanStep step = createStep("Step 1", "validation-only", "not started");
+		step.setValidationCommand("exit 0"); // Validation will succeed
+
+		writePlanFile(Arrays.asList(step));
+
+		boolean result = executor.executeNextStep();
+
+		assertThat(result).isTrue();
+
+		// Verify step was marked as complete
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+	}
+
+	@Test
+	void testExecuteNextStep_validationOnlyStep_failure() throws IOException {
+		// Create plan with validation-only step that will fail
+		AiPlanStep step = createStep("Step 1", "validation-only", "not started");
+		step.setValidationCommand("exit 1"); // Validation will fail
+		step.setCommitAllChangesOnCompletion(false); // Avoid completion prompt
+
+		writePlanFile(Arrays.asList(step));
+
+		boolean result = executor.executeNextStep();
+
+		assertThat(result).isTrue(); // Method returns true even when step doesn't complete
+
+		// Verify step was NOT marked as complete
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+	}
+
 	/**
 	 * Helper to create a test step.
 	 */

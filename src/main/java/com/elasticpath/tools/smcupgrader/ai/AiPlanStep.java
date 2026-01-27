@@ -234,6 +234,15 @@ public class AiPlanStep {
 	}
 
 	/**
+	 * Check if this is a validation-only tool step.
+	 *
+	 * @return true if tool is "validation-only"
+	 */
+	public boolean isValidationOnlyStep() {
+		return "validation-only".equals(tool);
+	}
+
+	/**
 	 * Check if this step is complete.
 	 *
 	 * @return true if status is "complete"
