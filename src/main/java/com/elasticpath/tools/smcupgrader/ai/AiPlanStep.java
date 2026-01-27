@@ -22,6 +22,7 @@ public class AiPlanStep {
 	private String title;
 	private String tool;
 	private String version;
+	private String versionFilter;
 	private String validationCommand;
 	private String status;
 	private String prompt;
@@ -104,6 +105,24 @@ public class AiPlanStep {
 	 */
 	public void setVersion(final String version) {
 		this.version = version;
+	}
+
+	/**
+	 * Get the version filter. If set, this step is only included in plans targeting this version.
+	 *
+	 * @return the version filter, or null if not filtered
+	 */
+	public String getVersionFilter() {
+		return versionFilter;
+	}
+
+	/**
+	 * Set the version filter. If set, this step is only included in plans targeting this version.
+	 *
+	 * @param versionFilter the version filter
+	 */
+	public void setVersionFilter(final String versionFilter) {
+		this.versionFilter = versionFilter;
 	}
 
 	/**

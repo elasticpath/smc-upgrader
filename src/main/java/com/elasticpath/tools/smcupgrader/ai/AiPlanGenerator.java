@@ -210,6 +210,11 @@ public class AiPlanGenerator {
 
 			// Create steps for this transition (use the same steps for both upgrades and patch consumption)
 			for (AiPlanStep template : upgradePath.getSteps()) {
+				// Skip steps that have a version filter that doesn't match the target version
+				if (template.getVersionFilter() != null && !template.getVersionFilter().equals(toVersion)) {
+					continue;
+				}
+
 				AiPlanStep step = new AiPlanStep();
 				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion));
 				step.setTool(template.getTool());

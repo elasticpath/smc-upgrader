@@ -169,6 +169,40 @@ class AiPlanGeneratorTest {
 	}
 
 	@Test
+	void testExpandStepsForVersions_withVersionFilter() {
+		// Create upgrade path with a step that has versionFilter set to "8.7.x"
+		List<String> versions = Arrays.asList("8.5.x", "8.6.x", "8.7.x");
+		AiPlanStep filteredStep = createStep("Jakarta Migration for {TO_VERSION}", "claude", null);
+		filteredStep.setVersionFilter("8.7.x");
+
+		List<AiPlanStep> stepsWithFilter = Arrays.asList(
+				createStep("Git merge from {FROM_VERSION} to {TO_VERSION}", "smc-upgrader", null),
+				filteredStep
+		);
+		UpgradePath upgradePathWithFilter = new UpgradePath(versions, "", "", stepsWithFilter);
+		AiPlanGenerator generatorWithFilter = new AiPlanGenerator(upgradePathWithFilter, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				return null;
+			}
+		};
+
+		List<AiPlanStep> steps = generatorWithFilter.expandStepsForVersions(versions);
+
+		// Should have:
+		// - 8.5.x -> 8.6.x: 1 step (Git merge only, filtered step excluded because toVersion is 8.6.x)
+		// - 8.6.x -> 8.7.x: 2 steps (Git merge + Jakarta Migration because toVersion is 8.7.x)
+		assertThat(steps).hasSize(3);
+
+		// Check first transition (8.5.x -> 8.6.x) - only merge step
+		assertThat(steps.get(0).getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
+
+		// Check second transition (8.6.x -> 8.7.x) - both steps included
+		assertThat(steps.get(1).getTitle()).isEqualTo("Git merge from 8.6.x to 8.7.x");
+		assertThat(steps.get(2).getTitle()).isEqualTo("Jakarta Migration for 8.7.x");
+	}
+
+	@Test
 	void testSubstituteVariables() {
 		String template = "Upgrade from {FROM_VERSION} to {TO_VERSION}";
 
