@@ -162,6 +162,8 @@ public class AiPlanExecutor {
 						stepCompleted = executeSmcUpgraderStep(nextStep);
 					} else if (nextStep.isClaudeStep()) {
 						stepCompleted = executeClaudeStep(nextStep, skipPermissions);
+					} else if (nextStep.isValidationOnlyStep()) {
+						stepCompleted = executeValidationOnlyStep(nextStep);
 					} else {
 						LOGGER.error("Unknown tool: {}", nextStep.getTool());
 						return false;
