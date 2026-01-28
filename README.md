@@ -100,7 +100,7 @@ The following section describes the different usage and examples for `smc-upgrad
 ## Command Line Options
 
 ```text
-Usage: smc-upgrader [-dhmprvV] [--[no-]clean-working-directory-check]
+Usage: smc-upgrader [-dfhmprvV] [--[no-]clean-working-directory-check]
                     [-C=<workingDir>] [-u=<upstreamRemoteRepositoryUrl>]
                     <version>
 Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
@@ -110,18 +110,20 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
                                be upgraded. Defaults to the current working
                                directory.
       --[no-]clean-working-directory-check
-                             Toggles whether to do a clean working directory
+                             Indicates whether to do a clean working directory
                                check. Enabled by default.
-  -d, --[no-]resolve-diffs   Toggles whether to reconcile diffs between the
+  -d, --[no-]resolve-diffs   Indicates whether to reconcile diffs between the
                                merged branch and the upstream contents. Enabled
                                by default.
+  -f, --[no-]fetch           Indicates whether to fetch the latest updates from
+                               the remote. Enabled by default.
   -h, --help                 Show this help message and exit.
-  -m, --[no-]merge           Toggles whether to perform a merge. Enabled by
+  -m, --[no-]merge           Indicates whether to perform a merge. Enabled by
                                default.
-  -p, --[no-]revert-patches  Toggles whether to revert patches before merging.
-                               Enabled by default.
+  -p, --[no-]revert-patches  Indicates whether to revert patches before
+                               merging. Enabled by default.
   -r, --[no-]resolve-conflicts
-                             Toggles whether to resolve merge conflicts.
+                             Indicates whether to resolve merge conflicts.
                                Enabled by default.
   -u, --upstream-repository-url=<upstreamRemoteRepositoryUrl>
                              The URL of the upstream repository containing
@@ -140,19 +142,14 @@ Before running the application for the first time, ensure the Elastic Path Self-
 git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 ```
 
-For best results, update the local git repository with the latest changes from the upstream repository before each time the application is run:
-
-```
-git fetch smc-upgrades
-```
-
 ### Upgrading
 
 The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified release version by executing these steps:
 
-1. Merge step: Merges the `release/<version>` branch from `code.elasticpath.com` into the current branch.
-2. Resolve conflicts step: Iterates across each file with conflicts, checking to see if the file contents of the latest commit matches a commit in a `code.elasticpath.com` branch. If it does, resolves the conflict using the `code.elasticpath.com` version of the file.
-3. Resolve diffs step: Iterates across each file in the repo, checking to see if the file contents of the latest commit matches a commit in a `code.elasticpath.com` branch. If it does, overwrites the file contents with the `code.elasticpath.com` file contents.
+1. Fetch step: Fetches the latest updates from the `release/<version>` branch of the `code.elasticpath.com` repository.
+2. Merge step: Merges the `release/<version>` branch of the `code.elasticpath.com` repository into the current branch.
+3. Resolve conflicts step: Iterates across each file with conflicts, checking to see if the file contents of the latest commit matches a commit in a `code.elasticpath.com` branch. If it does, resolves the conflict using the `code.elasticpath.com` version of the file.
+4. Resolve diffs step: Iterates across each file in the repo, checking to see if the file contents of the latest commit matches a commit in a `code.elasticpath.com` branch. If it does, overwrites the file contents with the `code.elasticpath.com` file contents.
 
 This can be started by running:
 

@@ -44,7 +44,10 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -97,6 +100,28 @@ public class GitClientImpl implements GitClient {
 			remoteAddCommand.setUri(new URIish(url));
 			remoteAddCommand.call();
 		} catch (final URISyntaxException | GitAPIException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void fetch(final String remoteName) {
+		SshSessionFactory sshSessionFactory = new SshdSessionFactoryBuilder()
+				.setPreferredAuthentications("publickey")
+				.setHomeDirectory(new File(System.getProperty("user.home")))
+				.setSshDirectory(new File(System.getProperty("user.home"), ".ssh"))
+				.build(null);
+
+		try (Git git = new Git(repository)) {
+			git.fetch()
+					.setRemote(remoteName)
+					.setTransportConfigCallback(transport -> {
+						if (transport instanceof SshTransport) {
+							((SshTransport) transport).setSshSessionFactory(sshSessionFactory);
+						}
+					})
+					.call();
+		} catch (final GitAPIException e) {
 			throw new RuntimeException(e);
 		}
 	}

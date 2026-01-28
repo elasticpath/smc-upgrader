@@ -54,31 +54,36 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	private boolean debugLogging;
 
 	@CommandLine.Option(names = { "--clean-working-directory-check" },
-			description = "Toggles whether to do a clean working directory check. Enabled by default.",
+			description = "Indicates whether to do a clean working directory check. Enabled by default.",
 			negatable = true,
 			defaultValue = "true")
 	private boolean doCleanWorkingDirectoryCheck;
 
+	@CommandLine.Option(names = { "-f", "--fetch" },
+			description = "Indicates whether to fetch the latest updates from the remote. Enabled by default.",
+			negatable = true, defaultValue = "true")
+	private boolean doFetch;
+
 	@CommandLine.Option(names = { "-p", "--revert-patches" },
-			description = "Toggles whether to revert patches before merging. Enabled by default.",
+			description = "Indicates whether to revert patches before merging. Enabled by default.",
 			negatable = true,
 			defaultValue = "true")
 	private boolean doRevertPatches;
 
 	@CommandLine.Option(names = { "-m", "--merge" },
-			description = "Toggles whether to perform a merge. Enabled by default.",
+			description = "Indicates whether to perform a merge. Enabled by default.",
 			negatable = true,
 			defaultValue = "true")
 	private boolean doMerge;
 
 	@CommandLine.Option(names = { "-r", "--resolve-conflicts" },
-			description = "Toggles whether to resolve merge conflicts. Enabled by default.",
+			description = "Indicates whether to resolve merge conflicts. Enabled by default.",
 			negatable = true,
 			defaultValue = "true")
 	private boolean doConflictResolution;
 
 	@CommandLine.Option(names = { "-d", "--resolve-diffs" },
-			description = "Toggles whether to reconcile diffs between the merged branch and the upstream contents. Enabled by default.",
+			description = "Indicates whether to reconcile diffs between the merged branch and the upstream contents. Enabled by default.",
 			negatable = true, defaultValue = "true")
 	private boolean doDiffResolution;
 
@@ -92,8 +97,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 
 			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
 
-			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doRevertPatches, doMerge, doConflictResolution,
-					doDiffResolution);
+			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
+					doConflictResolution, doDiffResolution);
 
 			return 0;
 		} catch (RuntimeException e) {

@@ -37,6 +37,13 @@ public interface GitClient {
 	void addUpstreamRemote(String name, String url);
 
 	/**
+	 * Fetches the latest updates from the specified remote repository.
+	 *
+	 * @param remoteName the name of the remote to fetch from
+	 */
+	void fetch(String remoteName);
+
+	/**
 	 * Returns the branch containing the release code corresponding to the given version.
 	 *
 	 * @param upstreamRemoteName the name of the upstream remote
