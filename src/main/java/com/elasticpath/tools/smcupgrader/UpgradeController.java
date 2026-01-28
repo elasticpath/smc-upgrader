@@ -81,6 +81,7 @@ public class UpgradeController {
 	 *
 	 * @param version                      the target version to upgrade to
 	 * @param doCleanWorkingDirectoryCheck perform a clean working directory check
+	 * @param doFetch                      fetch the latest updates from the remote
 	 * @param doRevertPatches              revert any patches
 	 * @param doMerge                      perform the code merge
 	 * @param doConflictResolution         perform conflict resolution
@@ -88,6 +89,7 @@ public class UpgradeController {
 	 */
 	public void performUpgrade(final String version,
 							   final boolean doCleanWorkingDirectoryCheck,
+							   final boolean doFetch,
 							   final boolean doRevertPatches,
 							   final boolean doMerge,
 							   final boolean doConflictResolution,
@@ -97,8 +99,12 @@ public class UpgradeController {
 
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
 
-		LOGGER.info("Fetching latest updates from remote '{}'", upstreamRemoteName);
-		gitClient.fetch(upstreamRemoteName);
+		if (doFetch) {
+			LOGGER.info("Fetching latest updates from remote '{}'", upstreamRemoteName);
+			gitClient.fetch(upstreamRemoteName);
+		} else {
+			LOGGER.info("Skipping fetch.");
+		}
 
 		if (doRevertPatches) {
 			if (!currentVersion.equals(version)) {
