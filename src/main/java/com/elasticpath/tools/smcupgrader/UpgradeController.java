@@ -47,6 +47,8 @@ public class UpgradeController {
 
 	private final DiffConflictResolver diffConflictResolver;
 
+	private final GitClient gitClient;
+
 	/**
 	 * Constructor.
 	 *
@@ -61,7 +63,7 @@ public class UpgradeController {
 					.readEnvironment() // scan environment GIT_* variables
 					.build();
 
-			final GitClient gitClient = new GitClientImpl(repository);
+			gitClient = new GitClientImpl(repository);
 			upstreamRemoteManager = new UpstreamRemoteManager(gitClient, upstreamRemoteRepositoryUrl);
 			patchReverter = new PatchReverter(gitClient);
 			merger = new Merger(gitClient);
@@ -94,7 +96,9 @@ public class UpgradeController {
 		LOGGER.info("Detected current version {}.", currentVersion);
 
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
-		LOGGER.debug("Upgrading from remote repository '{}'", upstreamRemoteName);
+
+		LOGGER.info("Fetching latest updates from remote '{}'", upstreamRemoteName);
+		gitClient.fetch(upstreamRemoteName);
 
 		if (doRevertPatches) {
 			if (!currentVersion.equals(version)) {

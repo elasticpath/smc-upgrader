@@ -46,8 +46,7 @@ public class UpstreamRemoteManager {
 		}
 
 		throw new LoggableException("No upstream repository found in git configuration. Please add the remote via the following commands:\n\n"
-				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + upstreamRemoteRepositoryUrl + "\n"
-				+ "git fetch --all");
+				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + upstreamRemoteRepositoryUrl);
 	}
 
 	/**
