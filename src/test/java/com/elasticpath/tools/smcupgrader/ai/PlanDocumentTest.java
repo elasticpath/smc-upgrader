@@ -131,7 +131,7 @@ class PlanDocumentTest {
 	private AiPlanStep createStep(String title, String status) {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
-		step.setTool("smc-upgrader");
+		step.setTool(ToolTypeEnum.SMC_UPGRADER);
 		step.setStatus(status);
 		return step;
 	}

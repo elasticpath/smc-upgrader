@@ -158,16 +158,7 @@ public class AiPlanExecutor {
 			switch (choice.toUpperCase()) {
 				case "E":
 					// Execute the step
-					if (nextStep.isSmcUpgraderStep()) {
-						stepCompleted = executeSmcUpgraderStep(nextStep);
-					} else if (nextStep.isClaudeStep()) {
-						stepCompleted = executeClaudeStep(nextStep, skipPermissions);
-					} else if (nextStep.isValidationOnlyStep()) {
-						stepCompleted = executeValidationOnlyStep(nextStep);
-					} else {
-						LOGGER.error("Unknown tool: {}", nextStep.getTool());
-						return false;
-					}
+					stepCompleted = executeStepByToolType(nextStep, skipPermissions);
 					break;
 
 				case "V":
@@ -194,16 +185,7 @@ public class AiPlanExecutor {
 			}
 		} else {
 			// Execute directly without menu
-			if (nextStep.isSmcUpgraderStep()) {
-				stepCompleted = executeSmcUpgraderStep(nextStep);
-			} else if (nextStep.isClaudeStep()) {
-				stepCompleted = executeClaudeStep(nextStep, skipPermissions);
-			} else if (nextStep.isValidationOnlyStep()) {
-				stepCompleted = executeValidationOnlyStep(nextStep);
-			} else {
-				LOGGER.error("Unknown tool: {}", nextStep.getTool());
-				return false;
-			}
+			stepCompleted = executeStepByToolType(nextStep, skipPermissions);
 		}
 
 		// If step didn't auto-complete and commitAllChanges is true, ask the user
@@ -377,6 +359,34 @@ public class AiPlanExecutor {
 			LOGGER.warn("Validation failed. Step remains incomplete.");
 			LOGGER.warn("Review the output above and run 'smc-upgrader --ai:continue' to try again.");
 			return false;
+		}
+	}
+
+	/**
+	 * Execute a step based on its tool type.
+	 *
+	 * @param step            the step to execute
+	 * @param skipPermissions whether to skip permission prompts for Claude
+	 * @return true if the step was completed successfully
+	 * @throws IOException if an error occurs
+	 */
+	private boolean executeStepByToolType(final AiPlanStep step, final boolean skipPermissions) throws IOException {
+		ToolTypeEnum toolType = step.getTool();
+		if (toolType == null) {
+			LOGGER.error("No tool specified for step: {}", step.getTitle());
+			return false;
+		}
+
+		switch (toolType) {
+			case SMC_UPGRADER:
+				return executeSmcUpgraderStep(step);
+			case CLAUDE:
+				return executeClaudeStep(step, skipPermissions);
+			case VALIDATION_ONLY:
+				return executeValidationOnlyStep(step);
+			default:
+				LOGGER.error("Unknown tool: {}", toolType);
+				return false;
 		}
 	}
 

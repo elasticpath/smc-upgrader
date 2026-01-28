@@ -60,7 +60,7 @@ class MarkdownParserTest {
 		assertThat(plan.getSteps()).hasSize(1);
 		AiPlanStep step = plan.getSteps().get(0);
 		assertThat(step.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
-		assertThat(step.getTool()).isEqualTo("smc-upgrader");
+		assertThat(step.getTool()).isEqualTo(ToolTypeEnum.SMC_UPGRADER);
 		assertThat(step.getStatus()).isEqualTo("not started");
 		assertThat(step.getValidationCommand()).isNull();
 	}
@@ -96,7 +96,7 @@ class MarkdownParserTest {
 		assertThat(plan.getSteps()).hasSize(1);
 		AiPlanStep step = plan.getSteps().get(0);
 		assertThat(step.getTitle()).isEqualTo("Resolve merge conflicts");
-		assertThat(step.getTool()).isEqualTo("claude");
+		assertThat(step.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
 		assertThat(step.getPrompt()).contains("Please resolve all merge conflicts");
 		assertThat(step.getPrompt()).contains("Focus on maintaining compatibility");
 	}
@@ -173,12 +173,12 @@ class MarkdownParserTest {
 		// Generate a plan, write it to markdown, then parse it back
 		AiPlanStep step1 = new AiPlanStep();
 		step1.setTitle("Git merge from 8.5.x to 8.6.x");
-		step1.setTool("smc-upgrader");
+		step1.setTool(ToolTypeEnum.SMC_UPGRADER);
 		step1.setStatus("not started");
 
 		AiPlanStep step2 = new AiPlanStep();
 		step2.setTitle("Resolve conflicts");
-		step2.setTool("claude");
+		step2.setTool(ToolTypeEnum.CLAUDE);
 		step2.setValidationCommand("git diff --check");
 		step2.setStatus("not started");
 		step2.setPrompt("Please resolve merge conflicts");
@@ -195,12 +195,12 @@ class MarkdownParserTest {
 
 		AiPlanStep parsedStep1 = plan.getSteps().get(0);
 		assertThat(parsedStep1.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
-		assertThat(parsedStep1.getTool()).isEqualTo("smc-upgrader");
+		assertThat(parsedStep1.getTool()).isEqualTo(ToolTypeEnum.SMC_UPGRADER);
 		assertThat(parsedStep1.getStatus()).isEqualTo("not started");
 
 		AiPlanStep parsedStep2 = plan.getSteps().get(1);
 		assertThat(parsedStep2.getTitle()).isEqualTo("Resolve conflicts");
-		assertThat(parsedStep2.getTool()).isEqualTo("claude");
+		assertThat(parsedStep2.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
 		assertThat(parsedStep2.getValidationCommand()).isEqualTo("git diff --check");
 		assertThat(parsedStep2.getStatus()).isEqualTo("not started");
 		assertThat(parsedStep2.getPrompt()).isEqualTo("Please resolve merge conflicts");

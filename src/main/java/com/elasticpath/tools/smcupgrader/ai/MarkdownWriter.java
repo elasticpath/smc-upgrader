@@ -87,7 +87,7 @@ public final class MarkdownWriter {
 		markdown.append("## ").append(step.getTitle()).append("\n\n");
 
 		// Metadata
-		markdown.append("Tool: ").append(step.getTool()).append("\n");
+		markdown.append("Tool: ").append(step.getTool() != null ? step.getTool().getValue() : "").append("\n");
 
 		if (step.getVersion() != null && !step.getVersion().trim().isEmpty()) {
 			markdown.append("Version: ").append(step.getVersion()).append("\n");
@@ -102,7 +102,7 @@ public final class MarkdownWriter {
 		markdown.append("Status: ").append(step.getStatus()).append("\n\n");
 
 		// Prompt for claude steps
-		if (step.isClaudeStep() && step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {
+		if (step.getTool() == ToolTypeEnum.CLAUDE && step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {
 			markdown.append(step.getPrompt()).append("\n\n");
 		}
 	}

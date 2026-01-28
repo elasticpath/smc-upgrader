@@ -289,7 +289,7 @@ class AiPlanGeneratorTest {
 	private AiPlanStep createStep(String title, String tool, String validationCommand) {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
-		step.setTool(tool);
+		step.setTool(ToolTypeEnum.fromString(tool));
 		step.setStatus("not started");
 		step.setValidationCommand(validationCommand);
 		if ("claude".equals(tool)) {

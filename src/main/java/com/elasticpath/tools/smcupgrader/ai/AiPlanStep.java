@@ -20,7 +20,7 @@ package com.elasticpath.tools.smcupgrader.ai;
  */
 public class AiPlanStep {
 	private String title;
-	private String tool;
+	private ToolTypeEnum tool;
 	private String version;
 	private String versionFilter;
 	private String validationCommand;
@@ -39,12 +39,12 @@ public class AiPlanStep {
 	 * Constructor for creating a plan step.
 	 *
 	 * @param title             the step title
-	 * @param tool              the tool to use (smc-upgrader or claude)
+	 * @param tool              the tool to use
 	 * @param validationCommand optional validation command
 	 * @param status            the step status (not started, in progress, or complete)
 	 * @param prompt            optional prompt for claude steps
 	 */
-	public AiPlanStep(final String title, final String tool,
+	public AiPlanStep(final String title, final ToolTypeEnum tool,
 					  final String validationCommand, final String status, final String prompt) {
 		this.title = title;
 		this.tool = tool;
@@ -72,20 +72,20 @@ public class AiPlanStep {
 	}
 
 	/**
-	 * Get the tool name.
+	 * Get the tool type.
 	 *
-	 * @return the tool (smc-upgrader or claude)
+	 * @return the tool type
 	 */
-	public String getTool() {
+	public ToolTypeEnum getTool() {
 		return tool;
 	}
 
 	/**
-	 * Set the tool name.
+	 * Set the tool type.
 	 *
-	 * @param tool the tool (smc-upgrader or claude)
+	 * @param tool the tool type
 	 */
-	public void setTool(final String tool) {
+	public void setTool(final ToolTypeEnum tool) {
 		this.tool = tool;
 	}
 
@@ -213,33 +213,6 @@ public class AiPlanStep {
 	 */
 	public void setCommitPlanOnCompletion(final boolean commitPlanOnCompletion) {
 		this.commitPlanOnCompletion = commitPlanOnCompletion;
-	}
-
-	/**
-	 * Check if this is a claude tool step.
-	 *
-	 * @return true if tool is "claude"
-	 */
-	public boolean isClaudeStep() {
-		return "claude".equals(tool);
-	}
-
-	/**
-	 * Check if this is an smc-upgrader tool step.
-	 *
-	 * @return true if tool is "smc-upgrader"
-	 */
-	public boolean isSmcUpgraderStep() {
-		return "smc-upgrader".equals(tool);
-	}
-
-	/**
-	 * Check if this is a validation-only tool step.
-	 *
-	 * @return true if tool is "validation-only"
-	 */
-	public boolean isValidationOnlyStep() {
-		return "validation-only".equals(tool);
 	}
 
 	/**

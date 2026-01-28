@@ -449,7 +449,7 @@ class AiPlanExecutorTest {
 	private AiPlanStep createStep(String title, String tool, String status) {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
-		step.setTool(tool);
+		step.setTool(ToolTypeEnum.fromString(tool));
 		step.setStatus(status);
 		step.setCommitAllChangesOnCompletion(true);
 		step.setCommitPlanOnCompletion(true);

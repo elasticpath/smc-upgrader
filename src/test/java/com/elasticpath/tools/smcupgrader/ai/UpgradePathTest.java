@@ -153,8 +153,8 @@ class UpgradePathTest {
 		List<AiPlanStep> steps = upgradePath.getSteps();
 
 		assertThat(steps).isNotEmpty();
-		assertThat(steps).anyMatch(step -> "smc-upgrader".equals(step.getTool()));
-		assertThat(steps).anyMatch(step -> "claude".equals(step.getTool()));
+		assertThat(steps).anyMatch(step -> ToolTypeEnum.SMC_UPGRADER.equals(step.getTool()));
+		assertThat(steps).anyMatch(step -> ToolTypeEnum.CLAUDE.equals(step.getTool()));
 	}
 
 	/**

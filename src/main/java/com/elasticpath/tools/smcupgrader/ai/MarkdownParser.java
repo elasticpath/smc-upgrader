@@ -182,7 +182,7 @@ public final class MarkdownParser {
 		for (String line : lines) {
 			matcher = TOOL_PATTERN.matcher(line);
 			if (matcher.find()) {
-				currentStep.setTool(matcher.group(1).trim());
+				currentStep.setTool(ToolTypeEnum.fromString(matcher.group(1).trim()));
 				foundMetadata = true;
 				continue;
 			}
