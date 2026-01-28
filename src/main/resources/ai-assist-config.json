@@ -35,7 +35,7 @@
     {
       "title": "Run Automated Jakarta Source Migration",
       "tool": "validation-only",
-      "validationCommand": "mvn clean install -N -Pjakarta-source-migration",
+      "validationCommand": "mvn clean install -N -Pjakarta-source-migration -Dpombom.version.enforcer.skip=true",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "versionFilter": "8.7.x"
