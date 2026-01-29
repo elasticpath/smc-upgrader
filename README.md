@@ -252,14 +252,6 @@ smc-upgrader --ai:start <version>
 
 Where `<version>` represents your current version, such as `8.5.x`.
 
-To start an AI assisted upgrade, run:
-
-```shell
-smc-upgrader --ai:start <version>
-```
-
-Where `<version>` represents the version you want to upgrade to, such as `8.7.x`.
-
 This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
 
 We recommend that you review the upgrade plan before continuing. You can add or remove steps, change prompts, or make any other required changes to the plan, which will be read by the tool for all subsequent operations.
