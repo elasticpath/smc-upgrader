@@ -29,6 +29,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
@@ -38,7 +39,6 @@ import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
  */
 public class AiPlanGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AiPlanGenerator.class);
-	private static final String PLAN_FILE_NAME = "smc-upgrader-plan.md";
 
 	private final UpgradePath upgradePath;
 	private final UpgradeController upgradeController;
@@ -77,7 +77,7 @@ public class AiPlanGenerator {
 	 */
 	public boolean generatePlan(final String targetVersion, final File workingDir, final boolean skipPermissions)
 			throws IOException {
-		File planFile = new File(workingDir, PLAN_FILE_NAME);
+		File planFile = new File(workingDir, Constants.PLAN_FILE_NAME);
 
 		// Determine current version first
 		String currentVersion = upgradeController.convertVersionToReleaseFormat(
@@ -301,7 +301,7 @@ public class AiPlanGenerator {
 	 */
 	private void commitPlanFile(final GitClient gitClient, final String message) {
 		// Stage the plan file
-		gitClient.stage(PLAN_FILE_NAME);
+		gitClient.stage(Constants.PLAN_FILE_NAME);
 
 		// Commit the plan file
 		gitClient.commit(message);

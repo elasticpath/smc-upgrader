@@ -30,6 +30,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
@@ -39,8 +40,6 @@ import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
  */
 public class AiPlanExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AiPlanExecutor.class);
-	private static final String PLAN_FILE_NAME = "smc-upgrader-plan.md";
-	private static final String DEFAULT_UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
 
 	private final File workingDir;
 	private final UpgradeController upgradeController;
@@ -66,7 +65,7 @@ public class AiPlanExecutor {
 	public AiPlanExecutor(final File workingDir, final boolean cliSkipPermissions) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = cliSkipPermissions;
-		this.upgradeController = new UpgradeController(workingDir, DEFAULT_UPSTREAM_REPO_URL);
+		this.upgradeController = new UpgradeController(workingDir, Constants.DEFAULT_UPSTREAM_REPO_URL);
 		this.gitClient = createGitClient(workingDir);
 	}
 
@@ -79,7 +78,7 @@ public class AiPlanExecutor {
 	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = false;
-		this.upgradeController = new UpgradeController(workingDir, DEFAULT_UPSTREAM_REPO_URL);
+		this.upgradeController = new UpgradeController(workingDir, Constants.DEFAULT_UPSTREAM_REPO_URL);
 		this.gitClient = gitClient;
 	}
 
@@ -90,7 +89,7 @@ public class AiPlanExecutor {
 	 * @throws IOException if an error occurs
 	 */
 	public boolean executeNextStep() throws IOException {
-		File planFile = new File(workingDir, PLAN_FILE_NAME);
+		File planFile = new File(workingDir, Constants.PLAN_FILE_NAME);
 
 		if (!planFile.exists()) {
 			LOGGER.error("No upgrade plan found at: {}", planFile.getAbsolutePath());
@@ -641,7 +640,7 @@ public class AiPlanExecutor {
 		LOGGER.info("Committing plan file...");
 
 		// Stage the plan file
-		gitClient.stage(PLAN_FILE_NAME);
+		gitClient.stage(Constants.PLAN_FILE_NAME);
 
 		// Commit the plan file
 		gitClient.commit(message);
@@ -661,7 +660,7 @@ public class AiPlanExecutor {
 		gitClient.stageAll();
 
 		// Unstage the plan file - it should be committed separately
-		gitClient.unstage(PLAN_FILE_NAME);
+		gitClient.unstage(Constants.PLAN_FILE_NAME);
 
 		// Commit all changes
 		gitClient.commit(message);

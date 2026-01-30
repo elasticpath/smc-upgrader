@@ -37,7 +37,6 @@ import com.elasticpath.tools.smcupgrader.ai.UpgradePath;
 @CommandLine.Command(name = "smc-upgrader", mixinStandardHelpOptions = true, version = "smc-upgrader 1.0",
 		description = "Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.")
 public class SMCUpgraderCLI implements Callable<Integer> {
-	private static final String DEFAULT_UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
 
 	@CommandLine.Parameters(index = "0", arity = "0..1",
 			description = "The version of Elastic Path Self-Managed Commerce to upgrade to. "
@@ -52,7 +51,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 
 	@CommandLine.Option(names = { "-u", "--upstream-repository-url" },
 			description = "The URL of the upstream repository containing upgrade commits.",
-			defaultValue = DEFAULT_UPSTREAM_REPO_URL)
+			defaultValue = Constants.DEFAULT_UPSTREAM_REPO_URL)
 	private String upstreamRemoteRepositoryUrl;
 
 	@CommandLine.Option(names = { "-v", "--verbose" },
