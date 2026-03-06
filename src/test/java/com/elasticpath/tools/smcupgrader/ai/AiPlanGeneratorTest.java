@@ -201,7 +201,7 @@ class AiPlanGeneratorTest {
 			}
 		};
 
-		List<AiPlanStep> steps = generatorWithFilter.expandStepsForVersions(versions);
+		List<AiPlanStep> steps = generatorWithFilter.expandStepsForVersions(Arrays.asList("8.5.x", "8.6.x", "8.7.x"));
 
 		// Should have:
 		// - 8.5.x -> 8.6.x: 1 step (Git merge only, filtered step excluded because toVersion is 8.6.x)

@@ -13,7 +13,7 @@
 	limitations under the License.
 */
 
-package com.elasticpath.tools.smcupgrader.ai;
+package com.elasticpath.tools.smcupgrader.ai.config;
 
 /**
  * Represents a version entry in the upgrade path configuration.

@@ -242,7 +242,8 @@ public class AiPlanGenerator {
 				step.setVersion(toVersion);
 
 				if (template.getValidationCommand() != null) {
-					step.setValidationCommand(substituteVariables(template.getValidationCommand(), fromVersion, toVersion, upgradeNotesUrl));
+					step.setValidationCommand(substituteVariables(template.getValidationCommand(), fromVersion, toVersion,
+							upgradeNotesUrl));
 				}
 
 				if (template.getPrompt() != null) {

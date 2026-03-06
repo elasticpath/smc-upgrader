@@ -13,7 +13,7 @@
 	limitations under the License.
 */
 
-package com.elasticpath.tools.smcupgrader.ai;
+package com.elasticpath.tools.smcupgrader.ai.config;
 
 /**
  * Model class representing a single step in an AI-assisted upgrade plan.

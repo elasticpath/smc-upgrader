@@ -13,7 +13,7 @@
 	limitations under the License.
 */
 
-package com.elasticpath.tools.smcupgrader.ai;
+package com.elasticpath.tools.smcupgrader.ai.config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,14 +21,15 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
 /**
- * Model for upgrade path configuration, including valid versions and default step templates.
+ * Model for the ai-assist-config.json configuration, including valid versions and default step templates.
  */
-public class UpgradePath {
-	private List<String> versions;
+public class AiAssistConfigModel {
+	private List<VersionEntry> versions;
 	private String upgradePromptPrefix;
 	private String patchConsumptionPromptPrefix;
 	private List<AiPlanStep> steps;
@@ -36,18 +37,18 @@ public class UpgradePath {
 	/**
 	 * Default constructor for JSON deserialization.
 	 */
-	public UpgradePath() {
+	public AiAssistConfigModel() {
 	}
 
 	/**
 	 * Constructor.
 	 *
-	 * @param versions                      list of valid version strings
+	 * @param versions                      list of valid version entries
 	 * @param upgradePromptPrefix           prompt prefix for upgrade steps
 	 * @param patchConsumptionPromptPrefix  prompt prefix for patch consumption steps
 	 * @param steps                         list of step templates
 	 */
-	public UpgradePath(final List<String> versions, final String upgradePromptPrefix, final String patchConsumptionPromptPrefix,
+	public AiAssistConfigModel(final List<VersionEntry> versions, final String upgradePromptPrefix, final String patchConsumptionPromptPrefix,
 			final List<AiPlanStep> steps) {
 		this.versions = versions;
 		this.upgradePromptPrefix = upgradePromptPrefix;
@@ -56,20 +57,20 @@ public class UpgradePath {
 	}
 
 	/**
-	 * Load the upgrade path configuration from the classpath resource.
+	 * Load the AI assist configuration from the classpath resource.
 	 *
-	 * @return the loaded UpgradePath
+	 * @return the loaded AiAssistConfigModel
 	 * @throws IOException if the configuration file cannot be loaded
 	 */
-	public static UpgradePath loadFromResource() throws IOException {
-		try (InputStream inputStream = UpgradePath.class.getResourceAsStream("/ai-assist-config.json")) {
+	public static AiAssistConfigModel loadFromResource() throws IOException {
+		try (InputStream inputStream = AiAssistConfigModel.class.getResourceAsStream("/ai-assist-config.json")) {
 			if (inputStream == null) {
 				throw new IOException("Could not find ai-assist-config.json in classpath");
 			}
 
 			try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
 				Gson gson = new Gson();
-				return gson.fromJson(reader, UpgradePath.class);
+				return gson.fromJson(reader, AiAssistConfigModel.class);
 			}
 		}
 	}
@@ -83,8 +84,9 @@ public class UpgradePath {
 	 * @throws IllegalArgumentException if versions are invalid or not in sequence
 	 */
 	public List<String> getIntermediateVersions(final String fromVersion, final String toVersion) {
-		int fromIndex = versions.indexOf(fromVersion);
-		int toIndex = versions.indexOf(toVersion);
+		List<String> versionStrings = getVersionStrings();
+		int fromIndex = versionStrings.indexOf(fromVersion);
+		int toIndex = versionStrings.indexOf(toVersion);
 
 		if (fromIndex == -1) {
 			throw new IllegalArgumentException("Invalid from version: " + fromVersion);
@@ -107,7 +109,7 @@ public class UpgradePath {
 		}
 
 		// Return all versions from fromIndex to toIndex (inclusive)
-		return new ArrayList<>(versions.subList(fromIndex, toIndex + 1));
+		return new ArrayList<>(versionStrings.subList(fromIndex, toIndex + 1));
 	}
 
 	/**
@@ -127,21 +129,45 @@ public class UpgradePath {
 	}
 
 	/**
-	 * Get the list of valid versions.
+	 * Get the list of valid version strings.
 	 *
-	 * @return the versions list
+	 * @return the version strings
 	 */
 	public List<String> getVersions() {
-		return versions;
+		return getVersionStrings();
 	}
 
 	/**
-	 * Set the list of valid versions.
+	 * Set the list of valid version entries.
 	 *
-	 * @param versions the versions list
+	 * @param versions the version entries
 	 */
-	public void setVersions(final List<String> versions) {
+	public void setVersions(final List<VersionEntry> versions) {
 		this.versions = versions;
+	}
+
+	/**
+	 * Get the upgrade notes URL for a given version.
+	 *
+	 * @param version the version string
+	 * @return the upgrade notes URL, or empty string if not set
+	 */
+	public String getUpgradeNotesUrl(final String version) {
+		if (versions == null) {
+			return "";
+		}
+		return versions.stream()
+				.filter(entry -> version.equals(entry.getVersion()))
+				.map(VersionEntry::getUpgradeNotesUrl)
+				.findFirst()
+				.orElse("");
+	}
+
+	private List<String> getVersionStrings() {
+		if (versions == null) {
+			return new ArrayList<>();
+		}
+		return versions.stream().map(VersionEntry::getVersion).collect(Collectors.toList());
 	}
 
 	/**
@@ -169,7 +195,7 @@ public class UpgradePath {
 	 * @return true if the version is valid
 	 */
 	public boolean isValidVersion(final String version) {
-		return versions != null && versions.contains(version);
+		return versions != null && getVersionStrings().contains(version);
 	}
 
 	/**

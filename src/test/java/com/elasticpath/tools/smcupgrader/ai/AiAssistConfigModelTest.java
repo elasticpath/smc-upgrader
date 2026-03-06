@@ -22,16 +22,21 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
+import com.elasticpath.tools.smcupgrader.ai.config.VersionEntry;
+
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link UpgradePath}.
+ * Tests for {@link AiAssistConfigModel}.
  */
-class UpgradePathTest {
+class AiAssistConfigModelTest {
 
 	@Test
 	void testLoadFromResource() throws IOException {
-		UpgradePath upgradePath = UpgradePath.loadFromResource();
+		AiAssistConfigModel upgradePath = AiAssistConfigModel.loadFromResource();
 
 		assertThat(upgradePath).isNotNull();
 		assertThat(upgradePath.getVersions()).isNotEmpty();
@@ -40,7 +45,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_singleStep() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		List<String> intermediates = upgradePath.getIntermediateVersions("8.5.x", "8.6.x");
 
@@ -49,7 +54,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_multipleSteps() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		List<String> intermediates = upgradePath.getIntermediateVersions("8.5.x", "8.8.x");
 
@@ -58,7 +63,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_allVersions() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		List<String> intermediates = upgradePath.getIntermediateVersions("8.3.x", "8.8.x");
 
@@ -67,7 +72,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_invalidFromVersion() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		assertThatThrownBy(() -> upgradePath.getIntermediateVersions("9.0.x", "8.6.x"))
 				.isInstanceOf(IllegalArgumentException.class)
@@ -76,7 +81,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_invalidToVersion() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		assertThatThrownBy(() -> upgradePath.getIntermediateVersions("8.5.x", "9.0.x"))
 				.isInstanceOf(IllegalArgumentException.class)
@@ -85,7 +90,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_fromGreaterThanTo() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		assertThatThrownBy(() -> upgradePath.getIntermediateVersions("8.7.x", "8.5.x"))
 				.isInstanceOf(IllegalArgumentException.class)
@@ -94,7 +99,7 @@ class UpgradePathTest {
 
 	@Test
 	void testGetIntermediateVersions_fromEqualsTo() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		List<String> intermediates = upgradePath.getIntermediateVersions("8.6.x", "8.6.x");
 
@@ -104,7 +109,7 @@ class UpgradePathTest {
 
 	@Test
 	void testValidateVersionPath_validPath() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		boolean isValid = upgradePath.validateVersionPath("8.5.x", "8.7.x");
 
@@ -113,7 +118,7 @@ class UpgradePathTest {
 
 	@Test
 	void testValidateVersionPath_invalidPath() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		boolean isValid = upgradePath.validateVersionPath("8.7.x", "8.5.x");
 
@@ -122,7 +127,7 @@ class UpgradePathTest {
 
 	@Test
 	void testValidateVersionPath_invalidVersion() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		boolean isValid = upgradePath.validateVersionPath("9.0.x", "9.1.x");
 
@@ -131,7 +136,7 @@ class UpgradePathTest {
 
 	@Test
 	void testIsValidVersion_validVersion() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		assertThat(upgradePath.isValidVersion("8.5.x")).isTrue();
 		assertThat(upgradePath.isValidVersion("8.6.x")).isTrue();
@@ -140,7 +145,7 @@ class UpgradePathTest {
 
 	@Test
 	void testIsValidVersion_invalidVersion() {
-		UpgradePath upgradePath = createTestUpgradePath();
+		AiAssistConfigModel upgradePath = createTestAiAssistConfigModel();
 
 		assertThat(upgradePath.isValidVersion("9.0.x")).isFalse();
 		assertThat(upgradePath.isValidVersion("7.0.x")).isFalse();
@@ -148,7 +153,7 @@ class UpgradePathTest {
 
 	@Test
 	void testStepsLoaded() throws IOException {
-		UpgradePath upgradePath = UpgradePath.loadFromResource();
+		AiAssistConfigModel upgradePath = AiAssistConfigModel.loadFromResource();
 
 		List<AiPlanStep> steps = upgradePath.getSteps();
 
@@ -158,12 +163,19 @@ class UpgradePathTest {
 	}
 
 	/**
-	 * Create a test UpgradePath with predefined versions.
+	 * Create a test AiAssistConfigModel with predefined versions.
 	 *
-	 * @return the test UpgradePath
+	 * @return the test AiAssistConfigModel
 	 */
-	private UpgradePath createTestUpgradePath() {
-		List<String> versions = Arrays.asList("8.3.x", "8.4.x", "8.5.x", "8.6.x", "8.7.x", "8.8.x");
-		return new UpgradePath(versions, "", "", null);
+	private AiAssistConfigModel createTestAiAssistConfigModel() {
+		List<VersionEntry> versions = Arrays.asList(
+				new VersionEntry("8.3.x", ""),
+				new VersionEntry("8.4.x", ""),
+				new VersionEntry("8.5.x", ""),
+				new VersionEntry("8.6.x", ""),
+				new VersionEntry("8.7.x", ""),
+				new VersionEntry("8.8.x", "")
+		);
+		return new AiAssistConfigModel(versions, "", "", null);
 	}
 }
