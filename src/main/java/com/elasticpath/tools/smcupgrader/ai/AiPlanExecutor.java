@@ -413,7 +413,7 @@ public class AiPlanExecutor {
 				upgradeController.performUpgrade(
 						targetVersion,
 						false,  // doCleanWorkingDirectoryCheck
-						true,  // doRevertPatches
+						false,  // doRevertPatches
 						true,  // doMerge
 						true,  // doConflictResolution
 						true   // doDiffResolution
