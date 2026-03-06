@@ -25,6 +25,9 @@ import java.nio.file.Files;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
+
 /**
  * Tests for {@link MarkdownParser}.
  */

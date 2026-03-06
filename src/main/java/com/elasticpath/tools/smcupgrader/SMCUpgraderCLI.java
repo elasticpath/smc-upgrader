@@ -29,7 +29,7 @@ import picocli.CommandLine;
 
 import com.elasticpath.tools.smcupgrader.ai.AiPlanGenerator;
 import com.elasticpath.tools.smcupgrader.ai.AiPlanExecutor;
-import com.elasticpath.tools.smcupgrader.ai.UpgradePath;
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 
 /**
  * The main SMC Upgrader class.
@@ -152,7 +152,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	 * @throws IOException if an error occurs
 	 */
 	private Integer handleAiStart(final UpgradeController upgradeController) throws IOException {
-		UpgradePath upgradePath = UpgradePath.loadFromResource();
+		AiAssistConfigModel upgradePath = AiAssistConfigModel.loadFromResource();
 		AiPlanGenerator generator = new AiPlanGenerator(upgradePath, upgradeController);
 
 		boolean generated = generator.generatePlan(version, workingDir, aiSkipPermissions);

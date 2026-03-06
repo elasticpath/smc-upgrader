@@ -34,13 +34,16 @@ import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+
 /**
  * Generates AI-assisted upgrade plans.
  */
 public class AiPlanGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AiPlanGenerator.class);
 
-	private final UpgradePath upgradePath;
+	private final AiAssistConfigModel upgradePath;
 	private final UpgradeController upgradeController;
 
 	/**
@@ -49,7 +52,7 @@ public class AiPlanGenerator {
 	 * @param upgradePath        the upgrade path configuration
 	 * @param upgradeController  the upgrade controller for version detection
 	 */
-	public AiPlanGenerator(final UpgradePath upgradePath, final UpgradeController upgradeController) {
+	public AiPlanGenerator(final AiAssistConfigModel upgradePath, final UpgradeController upgradeController) {
 		this.upgradePath = upgradePath;
 		this.upgradeController = upgradeController;
 	}
@@ -212,6 +215,7 @@ public class AiPlanGenerator {
 		for (int i = 0; i < versionSequence.size() - 1; i++) {
 			String fromVersion = versionSequence.get(i);
 			String toVersion = versionSequence.get(i + 1);
+			String upgradeNotesUrl = upgradePath.getUpgradeNotesUrl(toVersion);
 
 			// Determine which prompt prefix to use based on whether this is an upgrade or patch consumption
 			boolean isPatchConsumption = fromVersion.equals(toVersion);
@@ -219,7 +223,7 @@ public class AiPlanGenerator {
 					? upgradePath.getPatchConsumptionPromptPrefix()
 					: upgradePath.getUpgradePromptPrefix();
 			String promptPrefix = (promptPrefixTemplate != null && !promptPrefixTemplate.isEmpty())
-					? substituteVariables(promptPrefixTemplate, fromVersion, toVersion)
+					? substituteVariables(promptPrefixTemplate, fromVersion, toVersion, upgradeNotesUrl)
 					: null;
 
 			// Create steps for this transition (use the same steps for both upgrades and patch consumption)
@@ -230,7 +234,7 @@ public class AiPlanGenerator {
 				}
 
 				AiPlanStep step = new AiPlanStep();
-				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion));
+				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion, upgradeNotesUrl));
 				step.setTool(template.getTool());
 				step.setStatus(template.getStatus() != null ? template.getStatus() : "not started");
 				step.setCommitPlanOnCompletion(template.isCommitPlanOnCompletion());
@@ -238,11 +242,11 @@ public class AiPlanGenerator {
 				step.setVersion(toVersion);
 
 				if (template.getValidationCommand() != null) {
-					step.setValidationCommand(substituteVariables(template.getValidationCommand(), fromVersion, toVersion));
+					step.setValidationCommand(substituteVariables(template.getValidationCommand(), fromVersion, toVersion, upgradeNotesUrl));
 				}
 
 				if (template.getPrompt() != null) {
-					String prompt = substituteVariables(template.getPrompt(), fromVersion, toVersion);
+					String prompt = substituteVariables(template.getPrompt(), fromVersion, toVersion, upgradeNotesUrl);
 					// Prepend the prefix if it's not null or empty
 					if (promptPrefix != null && !promptPrefix.isEmpty()) {
 						prompt = promptPrefix + prompt;
@@ -260,15 +264,18 @@ public class AiPlanGenerator {
 	/**
 	 * Substitute version variables in a template string.
 	 *
-	 * @param template    the template string
-	 * @param fromVersion the from version
-	 * @param toVersion   the to version
+	 * @param template        the template string
+	 * @param fromVersion     the from version
+	 * @param toVersion       the to version
+	 * @param upgradeNotesUrl the upgrade notes URL for the to version
 	 * @return the string with variables substituted
 	 */
-	String substituteVariables(final String template, final String fromVersion, final String toVersion) {
+	String substituteVariables(final String template, final String fromVersion, final String toVersion,
+			final String upgradeNotesUrl) {
 		return template
 				.replace("{FROM_VERSION}", fromVersion)
-				.replace("{TO_VERSION}", toVersion);
+				.replace("{TO_VERSION}", toVersion)
+				.replace("{UPGRADE_NOTES_URL}", upgradeNotesUrl != null ? upgradeNotesUrl : "");
 	}
 
 	/**

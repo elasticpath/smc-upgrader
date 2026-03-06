@@ -18,6 +18,8 @@ package com.elasticpath.tools.smcupgrader.ai;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+
 /**
  * Represents a parsed upgrade plan document.
  */

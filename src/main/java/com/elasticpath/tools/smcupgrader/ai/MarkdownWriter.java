@@ -17,6 +17,9 @@ package com.elasticpath.tools.smcupgrader.ai;
 
 import java.util.List;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
+
 /**
  * Utility class for writing upgrade plan steps to markdown format.
  */

@@ -35,6 +35,9 @@ import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
+
 /**
  * Executes upgrade plan steps.
  */

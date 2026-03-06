@@ -35,6 +35,11 @@ import org.mockito.MockitoAnnotations;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
+import com.elasticpath.tools.smcupgrader.ai.config.VersionEntry;
+
 /**
  * Tests for {@link AiPlanGenerator}.
  */
@@ -46,7 +51,7 @@ class AiPlanGeneratorTest {
 	@Mock
 	private UpgradeController upgradeController;
 
-	private UpgradePath upgradePath;
+	private AiAssistConfigModel upgradePath;
 	private AiPlanGenerator generator;
 
 	@BeforeEach
@@ -54,12 +59,17 @@ class AiPlanGeneratorTest {
 		MockitoAnnotations.openMocks(this);
 
 		// Create test upgrade path
-		List<String> versions = Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x");
+		List<VersionEntry> versions = Arrays.asList(
+				new VersionEntry("8.5.x", ""),
+				new VersionEntry("8.6.x", ""),
+				new VersionEntry("8.7.x", ""),
+				new VersionEntry("8.8.x", "")
+		);
 		List<AiPlanStep> steps = Arrays.asList(
 				createStep("Git merge from {FROM_VERSION} to {TO_VERSION}", "smc-upgrader", null),
 				createStep("Resolve {TO_VERSION} merge conflicts", "claude", "git diff --check")
 		);
-		upgradePath = new UpgradePath(versions, "", "", steps);
+		upgradePath = new AiAssistConfigModel(versions, "", "", steps);
 
 		// Create generator that doesn't perform Git operations in tests
 		generator = new AiPlanGenerator(upgradePath, upgradeController) {
@@ -171,7 +181,11 @@ class AiPlanGeneratorTest {
 	@Test
 	void testExpandStepsForVersions_withVersionFilter() {
 		// Create upgrade path with a step that has versionFilter set to "8.7.x"
-		List<String> versions = Arrays.asList("8.5.x", "8.6.x", "8.7.x");
+		List<VersionEntry> versions = Arrays.asList(
+				new VersionEntry("8.5.x", ""),
+				new VersionEntry("8.6.x", ""),
+				new VersionEntry("8.7.x", "")
+		);
 		AiPlanStep filteredStep = createStep("Jakarta Migration for {TO_VERSION}", "claude", null);
 		filteredStep.setVersionFilter("8.7.x");
 
@@ -179,7 +193,7 @@ class AiPlanGeneratorTest {
 				createStep("Git merge from {FROM_VERSION} to {TO_VERSION}", "smc-upgrader", null),
 				filteredStep
 		);
-		UpgradePath upgradePathWithFilter = new UpgradePath(versions, "", "", stepsWithFilter);
+		AiAssistConfigModel upgradePathWithFilter = new AiAssistConfigModel(versions, "", "", stepsWithFilter);
 		AiPlanGenerator generatorWithFilter = new AiPlanGenerator(upgradePathWithFilter, upgradeController) {
 			@Override
 			protected GitClient createGitClient(final File workingDir) {
@@ -206,7 +220,7 @@ class AiPlanGeneratorTest {
 	void testSubstituteVariables() {
 		String template = "Upgrade from {FROM_VERSION} to {TO_VERSION}";
 
-		String result = generator.substituteVariables(template, "8.5.x", "8.6.x");
+		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "");
 
 		assertThat(result).isEqualTo("Upgrade from 8.5.x to 8.6.x");
 	}
@@ -215,9 +229,18 @@ class AiPlanGeneratorTest {
 	void testSubstituteVariables_multipleOccurrences() {
 		String template = "{FROM_VERSION} and {TO_VERSION} and {FROM_VERSION} again";
 
-		String result = generator.substituteVariables(template, "8.5.x", "8.6.x");
+		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "");
 
 		assertThat(result).isEqualTo("8.5.x and 8.6.x and 8.5.x again");
+	}
+
+	@Test
+	void testSubstituteVariables_upgradeNotesUrl() {
+		String template = "See upgrade notes at {UPGRADE_NOTES_URL} for details.";
+
+		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "https://example.com/notes");
+
+		assertThat(result).isEqualTo("See upgrade notes at https://example.com/notes for details.");
 	}
 
 	@Test

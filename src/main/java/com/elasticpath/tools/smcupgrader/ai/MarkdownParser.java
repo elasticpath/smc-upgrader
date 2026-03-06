@@ -30,6 +30,9 @@ import org.commonmark.node.SoftLineBreak;
 import org.commonmark.node.Text;
 import org.commonmark.parser.Parser;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
+
 /**
  * Parser for upgrade plan markdown files.
  */
