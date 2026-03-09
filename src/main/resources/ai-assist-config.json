@@ -7,7 +7,6 @@
     { "version": "8.4.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.4.x/release-notes.html#upgrade-notes" },
     { "version": "8.5.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.5.x/release-notes.html#upgrade-notes" },
     { "version": "8.6.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.6.x/release-notes.html#upgrade-notes" },
-    { "version": "8.7.x-pre-jakarta", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.7.x/upgrade-notes.html" },
     { "version": "8.7.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.7.x/upgrade-notes.html" }
   ],
   "upgradePromptPrefix": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. These upgrade notes may be helpful: {UPGRADE_NOTES_URL} or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404). ",
