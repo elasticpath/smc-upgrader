@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.eclipse.jgit.lib.Repository;
@@ -264,6 +265,8 @@ public class AiPlanGenerator {
 
 	/**
 	 * Substitute version variables in a template string.
+	 * Template variables defined in the "templates" config node are expanded first,
+	 * allowing them to contain system placeholders like {FROM_VERSION}.
 	 *
 	 * @param template        the template string
 	 * @param fromVersion     the from version
@@ -273,10 +276,26 @@ public class AiPlanGenerator {
 	 */
 	String substituteVariables(final String template, final String fromVersion, final String toVersion,
 			final String upgradeNotesUrl) {
-		return template
+		String safeUpgradeNotesUrl = upgradeNotesUrl != null ? upgradeNotesUrl : "";
+		String result = template;
+
+		// Expand template variables first; their values may contain system placeholders
+		Map<String, String> templates = upgradePath.getTemplates();
+		if (templates != null) {
+			for (Map.Entry<String, String> entry : templates.entrySet()) {
+				String expandedValue = entry.getValue()
+						.replace("{FROM_VERSION}", fromVersion)
+						.replace("{TO_VERSION}", toVersion)
+						.replace("{UPGRADE_NOTES_URL}", safeUpgradeNotesUrl);
+				result = result.replace("{" + entry.getKey() + "}", expandedValue);
+			}
+		}
+
+		// Expand system placeholders
+		return result
 				.replace("{FROM_VERSION}", fromVersion)
 				.replace("{TO_VERSION}", toVersion)
-				.replace("{UPGRADE_NOTES_URL}", upgradeNotesUrl != null ? upgradeNotesUrl : "");
+				.replace("{UPGRADE_NOTES_URL}", safeUpgradeNotesUrl);
 	}
 
 	/**

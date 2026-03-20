@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -29,6 +30,7 @@ import com.google.gson.Gson;
  * Model for the ai-assist-config.json configuration, including valid versions and default step templates.
  */
 public class AiAssistConfigModel {
+	private Map<String, String> templates;
 	private List<VersionEntry> versions;
 	private String upgradePromptPrefix;
 	private String patchConsumptionPromptPrefix;
@@ -232,5 +234,23 @@ public class AiAssistConfigModel {
 	 */
 	public void setPatchConsumptionPromptPrefix(final String patchConsumptionPromptPrefix) {
 		this.patchConsumptionPromptPrefix = patchConsumptionPromptPrefix;
+	}
+
+	/**
+	 * Get the templates map for placeholder variable substitution.
+	 *
+	 * @return the templates map, or null if not set
+	 */
+	public Map<String, String> getTemplates() {
+		return templates;
+	}
+
+	/**
+	 * Set the templates map for placeholder variable substitution.
+	 *
+	 * @param templates the templates map
+	 */
+	public void setTemplates(final Map<String, String> templates) {
+		this.templates = templates;
 	}
 }

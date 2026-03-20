@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -241,6 +243,45 @@ class AiPlanGeneratorTest {
 		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "https://example.com/notes");
 
 		assertThat(result).isEqualTo("See upgrade notes at https://example.com/notes for details.");
+	}
+
+	@Test
+	void testSubstituteVariables_templateVariable() {
+		Map<String, String> templates = new HashMap<>();
+		templates.put("ACCELERATOR_NAME", "my-accelerator");
+		upgradePath.setTemplates(templates);
+
+		String template = "See the accelerator at https://example.com/{ACCELERATOR_NAME}/README.";
+
+		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "");
+
+		assertThat(result).isEqualTo("See the accelerator at https://example.com/my-accelerator/README.");
+	}
+
+	@Test
+	void testSubstituteVariables_templateValueContainsSystemPlaceholders() {
+		Map<String, String> templates = new HashMap<>();
+		templates.put("ACCELERATOR_LINK", "https://example.com/accelerators/{TO_VERSION}");
+		upgradePath.setTemplates(templates);
+
+		String template = "See {ACCELERATOR_LINK} for details.";
+
+		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "");
+
+		assertThat(result).isEqualTo("See https://example.com/accelerators/8.6.x for details.");
+	}
+
+	@Test
+	void testSubstituteVariables_templateAndSystemPlaceholders() {
+		Map<String, String> templates = new HashMap<>();
+		templates.put("CUSTOM_NAME", "my-project");
+		upgradePath.setTemplates(templates);
+
+		String template = "Upgrading {CUSTOM_NAME} from {FROM_VERSION} to {TO_VERSION}.";
+
+		String result = generator.substituteVariables(template, "8.5.x", "8.6.x", "");
+
+		assertThat(result).isEqualTo("Upgrading my-project from 8.5.x to 8.6.x.");
 	}
 
 	@Test
