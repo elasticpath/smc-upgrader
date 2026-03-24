@@ -230,7 +230,7 @@ public class AiPlanGenerator {
 			// Create steps for this transition (use the same steps for both upgrades and patch consumption)
 			for (AiPlanStep template : upgradePath.getSteps()) {
 				// Skip steps that have a version filter that doesn't match the target version
-				if (template.getVersionFilter() != null && !template.getVersionFilter().equals(toVersion)) {
+				if (template.getVersionFilter() != null && !versionMatchesFilter(toVersion, template.getVersionFilter())) {
 					continue;
 				}
 
@@ -261,6 +261,58 @@ public class AiPlanGenerator {
 		}
 
 		return allSteps;
+	}
+
+	/**
+	 * Check if a version matches a version filter expression.
+	 * Supported filter formats:
+	 * - "8.7.x" (exact match)
+	 * - "&gt;8.7.x" (later than 8.7.x in the configured version sequence)
+	 * - "&lt;8.7.x" (earlier than 8.7.x in the configured version sequence)
+	 * - "&gt;=8.7.x" (8.7.x or later)
+	 * - "&lt;=8.7.x" (8.7.x or earlier)
+	 *
+	 * @param toVersion     the version being tested
+	 * @param versionFilter the filter expression
+	 * @return true if the version matches the filter
+	 */
+	private boolean versionMatchesFilter(final String toVersion, final String versionFilter) {
+		final String operator;
+		final String filterVersion;
+		if (versionFilter.startsWith(">=")) {
+			operator = ">=";
+			filterVersion = versionFilter.substring(2);
+		} else if (versionFilter.startsWith("<=")) {
+			operator = "<=";
+			filterVersion = versionFilter.substring(2);
+		} else if (versionFilter.startsWith(">")) {
+			operator = ">";
+			filterVersion = versionFilter.substring(1);
+		} else if (versionFilter.startsWith("<")) {
+			operator = "<";
+			filterVersion = versionFilter.substring(1);
+		} else {
+			return versionFilter.equals(toVersion);
+		}
+
+		List<String> allVersions = upgradePath.getVersions();
+		int toIndex = allVersions.indexOf(toVersion);
+		int filterIndex = allVersions.indexOf(filterVersion);
+
+		if (toIndex == -1) {
+			throw new IllegalArgumentException("Unknown version: " + toVersion);
+		}
+		if (filterIndex == -1) {
+			throw new IllegalArgumentException("Unknown version in versionFilter: " + filterVersion);
+		}
+
+		switch (operator) {
+			case ">": return toIndex > filterIndex;
+			case "<": return toIndex < filterIndex;
+			case ">=": return toIndex >= filterIndex;
+			case "<=": return toIndex <= filterIndex;
+			default: return false;
+		}
 	}
 
 	/**

@@ -219,6 +219,133 @@ class AiPlanGeneratorTest {
 	}
 
 	@Test
+	void testExpandStepsForVersions_withVersionFilter_greaterThan() {
+		// filter ">8.6.x" should include steps for 8.7.x and 8.8.x transitions, but not 8.6.x
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		filteredStep.setVersionFilter(">8.6.x");
+
+		AiAssistConfigModel config = new AiAssistConfigModel(
+				Arrays.asList(
+						new VersionEntry("8.5.x", ""),
+						new VersionEntry("8.6.x", ""),
+						new VersionEntry("8.7.x", ""),
+						new VersionEntry("8.8.x", "")),
+				"", "",
+				Arrays.asList(createStep("Git merge to {TO_VERSION}", "smc-upgrader", null), filteredStep));
+		AiPlanGenerator gen = new AiPlanGenerator(config, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				return null;
+			}
+		};
+
+		List<AiPlanStep> steps = gen.expandStepsForVersions(Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x"));
+
+		// 8.5->8.6: 1 step (merge only); 8.6->8.7: 2 steps; 8.7->8.8: 2 steps
+		assertThat(steps).hasSize(5);
+		assertThat(steps.get(0).getTitle()).isEqualTo("Git merge to 8.6.x");
+		assertThat(steps.get(1).getTitle()).isEqualTo("Git merge to 8.7.x");
+		assertThat(steps.get(2).getTitle()).isEqualTo("Special step for 8.7.x");
+		assertThat(steps.get(3).getTitle()).isEqualTo("Git merge to 8.8.x");
+		assertThat(steps.get(4).getTitle()).isEqualTo("Special step for 8.8.x");
+	}
+
+	@Test
+	void testExpandStepsForVersions_withVersionFilter_lessThan() {
+		// filter "<8.7.x" should include steps for 8.6.x transition only
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		filteredStep.setVersionFilter("<8.7.x");
+
+		AiAssistConfigModel config = new AiAssistConfigModel(
+				Arrays.asList(
+						new VersionEntry("8.5.x", ""),
+						new VersionEntry("8.6.x", ""),
+						new VersionEntry("8.7.x", ""),
+						new VersionEntry("8.8.x", "")),
+				"", "",
+				Arrays.asList(createStep("Git merge to {TO_VERSION}", "smc-upgrader", null), filteredStep));
+		AiPlanGenerator gen = new AiPlanGenerator(config, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				return null;
+			}
+		};
+
+		List<AiPlanStep> steps = gen.expandStepsForVersions(Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x"));
+
+		// 8.5->8.6: 2 steps; 8.6->8.7: 1 step (merge only); 8.7->8.8: 1 step (merge only)
+		assertThat(steps).hasSize(4);
+		assertThat(steps.get(0).getTitle()).isEqualTo("Git merge to 8.6.x");
+		assertThat(steps.get(1).getTitle()).isEqualTo("Special step for 8.6.x");
+		assertThat(steps.get(2).getTitle()).isEqualTo("Git merge to 8.7.x");
+		assertThat(steps.get(3).getTitle()).isEqualTo("Git merge to 8.8.x");
+	}
+
+	@Test
+	void testExpandStepsForVersions_withVersionFilter_greaterThanOrEqual() {
+		// filter ">=8.7.x" should include steps for 8.7.x and 8.8.x transitions, but not 8.6.x
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		filteredStep.setVersionFilter(">=8.7.x");
+
+		AiAssistConfigModel config = new AiAssistConfigModel(
+				Arrays.asList(
+						new VersionEntry("8.5.x", ""),
+						new VersionEntry("8.6.x", ""),
+						new VersionEntry("8.7.x", ""),
+						new VersionEntry("8.8.x", "")),
+				"", "",
+				Arrays.asList(createStep("Git merge to {TO_VERSION}", "smc-upgrader", null), filteredStep));
+		AiPlanGenerator gen = new AiPlanGenerator(config, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				return null;
+			}
+		};
+
+		List<AiPlanStep> steps = gen.expandStepsForVersions(Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x"));
+
+		// 8.5->8.6: 1 step (merge only); 8.6->8.7: 2 steps; 8.7->8.8: 2 steps
+		assertThat(steps).hasSize(5);
+		assertThat(steps.get(0).getTitle()).isEqualTo("Git merge to 8.6.x");
+		assertThat(steps.get(1).getTitle()).isEqualTo("Git merge to 8.7.x");
+		assertThat(steps.get(2).getTitle()).isEqualTo("Special step for 8.7.x");
+		assertThat(steps.get(3).getTitle()).isEqualTo("Git merge to 8.8.x");
+		assertThat(steps.get(4).getTitle()).isEqualTo("Special step for 8.8.x");
+	}
+
+	@Test
+	void testExpandStepsForVersions_withVersionFilter_lessThanOrEqual() {
+		// filter "<=8.7.x" should include steps for 8.6.x and 8.7.x transitions, but not 8.8.x
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		filteredStep.setVersionFilter("<=8.7.x");
+
+		AiAssistConfigModel config = new AiAssistConfigModel(
+				Arrays.asList(
+						new VersionEntry("8.5.x", ""),
+						new VersionEntry("8.6.x", ""),
+						new VersionEntry("8.7.x", ""),
+						new VersionEntry("8.8.x", "")),
+				"", "",
+				Arrays.asList(createStep("Git merge to {TO_VERSION}", "smc-upgrader", null), filteredStep));
+		AiPlanGenerator gen = new AiPlanGenerator(config, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				return null;
+			}
+		};
+
+		List<AiPlanStep> steps = gen.expandStepsForVersions(Arrays.asList("8.5.x", "8.6.x", "8.7.x", "8.8.x"));
+
+		// 8.5->8.6: 2 steps; 8.6->8.7: 2 steps; 8.7->8.8: 1 step (merge only)
+		assertThat(steps).hasSize(5);
+		assertThat(steps.get(0).getTitle()).isEqualTo("Git merge to 8.6.x");
+		assertThat(steps.get(1).getTitle()).isEqualTo("Special step for 8.6.x");
+		assertThat(steps.get(2).getTitle()).isEqualTo("Git merge to 8.7.x");
+		assertThat(steps.get(3).getTitle()).isEqualTo("Special step for 8.7.x");
+		assertThat(steps.get(4).getTitle()).isEqualTo("Git merge to 8.8.x");
+	}
+
+	@Test
 	void testSubstituteVariables() {
 		String template = "Upgrade from {FROM_VERSION} to {TO_VERSION}";
 

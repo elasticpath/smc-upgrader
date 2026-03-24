@@ -19,6 +19,7 @@
     "REPORT_PROGRESS": "Filter the build output using the following regular expression to periodically report on build progress: \"^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n^\\[INFO\\]\\sBuilding\\s(?P<module>.+?)\\s+\\S+\\s+\\[(?P<module_num>\\d+)\\/(?P<module_total>\\d+)\\]\\r?\\n^\\[INFO\\]\\s+from\\s(?P<path>\\S+)\\s*$\"",
     "AVOID_REMOVING_CUSTOMIZATIONS": "Avoid removing intentional customizations in the customer's source code that affect functionality.",
     "START_ACTIVEMQ": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\".",
+    "START_ACTIVEMQ_PRE_87": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean tomcat8:run-war -f extensions/activemq-broker\".",
     "NO_VALIDATION": "Do not run any Maven commands to build the source - this will be done in later steps.",
     "SKIP_SMC_UPGRADER_RESPONSIBILITIES": "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git."
   },
@@ -99,7 +100,17 @@
       "validationCommand": "mvn clean package cargo:run -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Integration Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -f extensions/integration/ext-integration-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
     },
     {
       "title": "Resolve Batch Server startup issues",
@@ -107,7 +118,17 @@
       "validationCommand": "mvn clean package cargo:run -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Batch Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -f extensions/batch/ext-batch-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
     },
     {
       "title": "Resolve Search Server startup issues",
@@ -115,7 +136,17 @@
       "validationCommand": "mvn clean package cargo:run -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Search Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -f extensions/search/ext-search-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
     },
     {
       "title": "Resolve Cortex startup issues",
@@ -123,7 +154,17 @@
       "validationCommand": "mvn clean package cargo:run -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Cortex startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -f extensions/cortex/ext-cortex-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
     },
     {
       "title": "Resolve Commerce Manager startup issues",
@@ -131,7 +172,17 @@
       "validationCommand": "mvn clean package cargo:run -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Commerce Manager startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -f extensions/cm/ext-cm-modules/ext-cm-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
     },
     {
       "title": "Resolve webapp smoke test failures",
