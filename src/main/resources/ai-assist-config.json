@@ -99,7 +99,7 @@
       "validationCommand": "mvn clean package cargo:run -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} The validation command is expected to take around 60 minutes to execute. {RESUME_BUILD} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve Batch Server startup issues",
