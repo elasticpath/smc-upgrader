@@ -95,9 +95,17 @@
       "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 60 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
+      "title": "Resolve initialize local database issues",
+      "tool": "claude",
+      "validationCommand": "mvn install -Preset-db -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/database/pom.xml",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below to initialize the local database and help to fix any issues. {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+    },
+    {
       "title": "Resolve Integration Server startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/integration/ext-integration-webapp",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -106,7 +114,7 @@
     {
       "title": "Resolve Integration Server startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean tomcat8:run-war -f extensions/integration/ext-integration-webapp",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -115,7 +123,7 @@
     {
       "title": "Resolve Batch Server startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/batch/ext-batch-webapp",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -124,7 +132,7 @@
     {
       "title": "Resolve Batch Server startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean tomcat8:run-war -f extensions/batch/ext-batch-webapp",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -133,7 +141,7 @@
     {
       "title": "Resolve Search Server startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/search/ext-search-webapp",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -142,7 +150,7 @@
     {
       "title": "Resolve Search Server startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean tomcat8:run-war -f extensions/search/ext-search-webapp",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -151,7 +159,7 @@
     {
       "title": "Resolve Cortex startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/cortex/ext-cortex-webapp",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -160,7 +168,7 @@
     {
       "title": "Resolve Cortex startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean tomcat8:run-war -f extensions/cortex/ext-cortex-webapp",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -169,7 +177,7 @@
     {
       "title": "Resolve Commerce Manager startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean package cargo:run -f extensions/cm/ext-cm-modules/ext-cm-webapp",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
@@ -178,7 +186,7 @@
     {
       "title": "Resolve Commerce Manager startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean tomcat8:run-war -f extensions/cm/ext-cm-modules/ext-cm-webapp",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",

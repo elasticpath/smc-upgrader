@@ -338,6 +338,7 @@ public class AiPlanGenerator {
 				String expandedValue = entry.getValue()
 						.replace("{FROM_VERSION}", fromVersion)
 						.replace("{TO_VERSION}", toVersion)
+						.replace("{TO_VERSION_SCHEMA}", toVersion.replace(".", ""))
 						.replace("{UPGRADE_NOTES_URL}", safeUpgradeNotesUrl);
 				result = result.replace("{" + entry.getKey() + "}", expandedValue);
 			}
@@ -347,6 +348,7 @@ public class AiPlanGenerator {
 		return result
 				.replace("{FROM_VERSION}", fromVersion)
 				.replace("{TO_VERSION}", toVersion)
+				.replace("{TO_VERSION_SCHEMA}", toVersion.replace(".", ""))
 				.replace("{UPGRADE_NOTES_URL}", safeUpgradeNotesUrl);
 	}
 
