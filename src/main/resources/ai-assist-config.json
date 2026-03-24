@@ -16,6 +16,7 @@
     "ACCELERATORS": "If you run into issues related to accelerators (usually in the extensions/accelerators folder), clone the git@code.elasticpath.com:accelerators/accelerator-test.git repo that shows the standard way to wire in the accelerator. Checkout one of these branches corresponding to the accelerator that is wired in: batch-add-to-cart/{TO_VERSION}, bloomreach/{TO_VERSION}, cortex-trusted-header-mode/{TO_VERSION}, inventory-update-notification/{TO_VERSION}, self-service-returns/{TO_VERSION}, service-provider-pricing/{TO_VERSION}, shipping-notification/{TO_VERSION}, shopper-impersonation/{TO_VERSION}, tokenized-password-reset/{TO_VERSION}.",
     "CODING_BEST_PRACTICES": "Make sure to follow coding best practices: https://documentation.elasticpath.com/commerce/docs/core/development/code-best-practices.html.",
     "RESUME_BUILD": "After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time.",
+    "REBUILD_AFTER_FIX": "If you make changes to the source to fix an issue, rebuild with \"mvn clean install -DskipAllTests\" before starting the service again.",
     "REPORT_PROGRESS": "Filter the build output using the following regular expression to periodically report on build progress: \"^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n^\\[INFO\\]\\sBuilding\\s(?P<module>.+?)\\s+\\S+\\s+\\[(?P<module_num>\\d+)\\/(?P<module_total>\\d+)\\]\\r?\\n^\\[INFO\\]\\s+from\\s(?P<path>\\S+)\\s*$\"",
     "AVOID_REMOVING_CUSTOMIZATIONS": "Avoid removing intentional customizations in the customer's source code that affect functionality.",
     "START_ACTIVEMQ": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\".",
@@ -108,7 +109,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
     {
@@ -117,7 +118,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
     {
@@ -126,7 +127,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
     {
@@ -135,7 +136,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
     {
@@ -144,7 +145,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
     {
@@ -153,7 +154,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
     {
@@ -162,7 +163,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
     {
@@ -171,7 +172,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
     {
@@ -180,7 +181,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
     {
@@ -189,7 +190,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {REBUILD_AFTER_FIX} {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
     {
