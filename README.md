@@ -178,50 +178,6 @@ If you prefer to start the merge manually, and then only have `smc-upgrader` att
 smc-upgrader --no-merge 8.5.x
 ```
 
-## Troubleshooting
-
-### Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.
-
-If `smc-upgrader` shows this error, it usually means that your Git repository was initialized using a snapshot of the source code, rather than by cloning from `code.elasticpath.com`. This will be the case if your project team started with SMC 7.0.1 or earlier, before the `code.elasticpath.com` public repository was available.
-
-Follow these steps to create a common ancestor in your Git repository:
-
-1. Browse to the [`code.elasticpath.com` repository](https://code.elasticpath.com/ep-commerce/ep-commerce/-/commits/main/?ref_type=HEADS) and make note of the SHA of the commit representing your current version of Self-Managed Commerce. For example, the SHA for SMC 8.5 is `08d434d4b7bc577c0b15f3b600dba4e6dc4a63fd`.
-2. Ensure that you have followed the [Setup](#setup) steps and have a terminal window open in your source code folder.
-3. Create a temporary branch containing the `code.elasticpath.com` release source code. Replace `${SHA}` with the SHA that you identified in step 1.
-
-```shell
-git checkout -b temp-branch ${SHA}
-```
-
-4. Switch back to your `main` or `develop` branch:
-
-```shell
-git checkout main
-```
-
-5. Create a feature branch for the upgrade:
-
-```shell
-git checkout -b smc-upgrade
-```
-
-6. Merge from the `temp-branch`, but throw away all the changes:
-
-```shell
-git merge --allow-unrelated-histories -s ours temp-branch
-```
-
-7. Delete the `temp-branch`:
-
-```shell
-git branch -D temp-branch
-```
-
-8. Follow the [upgrading](#upgrading) steps normally.
-
-You should only have to do this once; future uses of the tool should work without issue.
-
 ## Demonstration
 
 ![SMC Upgrader standard mode demonstration](smc-upgrader.gif)
@@ -250,7 +206,7 @@ To start AI assisted patch consumption, run:
 smc-upgrader --ai:start <version>
 ```
 
-Where `<version>` represents your current version, such as `8.5.x`.
+Where `<version>` represents the target version that you want to upgrade to, such as `8.7.x`.
 
 This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
 
@@ -306,3 +262,47 @@ If you choose `C`, then the validation command will be executed (this may take a
 If you choose `N` or `X`, the tool will just exit without doing anything else.
 
 You can then run `smc-upgrader --ai:continue` again to continue the current step or move on to the next step. Keep running this command until all steps are completed.
+
+## Troubleshooting
+
+### Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.
+
+If `smc-upgrader` shows this error, it usually means that your Git repository was initialized using a snapshot of the source code, rather than by cloning from `code.elasticpath.com`. This will be the case if your project team started with SMC 7.0.1 or earlier, before the `code.elasticpath.com` public repository was available.
+
+Follow these steps to create a common ancestor in your Git repository:
+
+1. Browse to the [`code.elasticpath.com` repository](https://code.elasticpath.com/ep-commerce/ep-commerce/-/commits/main/?ref_type=HEADS) and make note of the SHA of the commit representing your current version of Self-Managed Commerce. For example, the SHA for SMC 8.5 is `08d434d4b7bc577c0b15f3b600dba4e6dc4a63fd`.
+2. Ensure that you have followed the [Setup](#setup) steps and have a terminal window open in your source code folder.
+3. Create a temporary branch containing the `code.elasticpath.com` release source code. Replace `${SHA}` with the SHA that you identified in step 1.
+
+```shell
+git checkout -b temp-branch ${SHA}
+```
+
+4. Switch back to your `main` or `develop` branch:
+
+```shell
+git checkout main
+```
+
+5. Create a feature branch for the upgrade:
+
+```shell
+git checkout -b smc-upgrade
+```
+
+6. Merge from the `temp-branch`, but throw away all the changes:
+
+```shell
+git merge --allow-unrelated-histories -s ours temp-branch
+```
+
+7. Delete the `temp-branch`:
+
+```shell
+git branch -D temp-branch
+```
+
+8. Follow the [upgrading](#upgrading) steps normally.
+
+You should only have to do this once; future uses of the tool should work without issue.
