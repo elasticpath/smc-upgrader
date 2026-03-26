@@ -39,6 +39,7 @@ import com.elasticpath.tools.smcupgrader.UpgradeController;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.VersionEntry;
 
@@ -481,7 +482,7 @@ class AiPlanGeneratorTest {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
 		step.setTool(ToolTypeEnum.fromString(tool));
-		step.setStatus("not started");
+		step.setStatus(StatusEnum.NOT_STARTED);
 		step.setValidationCommand(validationCommand);
 		if ("claude".equals(tool)) {
 			step.setPrompt("Test prompt for {FROM_VERSION} to {TO_VERSION}");

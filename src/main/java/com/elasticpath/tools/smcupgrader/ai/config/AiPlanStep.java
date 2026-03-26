@@ -24,7 +24,7 @@ public class AiPlanStep {
 	private String version;
 	private String versionFilter;
 	private String validationCommand;
-	private String status;
+	private StatusEnum status;
 	private String prompt;
 	private boolean commitAllChangesOnCompletion;
 	private boolean commitPlanOnCompletion;
@@ -45,7 +45,7 @@ public class AiPlanStep {
 	 * @param prompt            optional prompt for claude steps
 	 */
 	public AiPlanStep(final String title, final ToolTypeEnum tool,
-					  final String validationCommand, final String status, final String prompt) {
+					  final String validationCommand, final StatusEnum status, final String prompt) {
 		this.title = title;
 		this.tool = tool;
 		this.validationCommand = validationCommand;
@@ -148,7 +148,7 @@ public class AiPlanStep {
 	 *
 	 * @return the status (not started, in progress, or complete)
 	 */
-	public String getStatus() {
+	public StatusEnum getStatus() {
 		return status;
 	}
 
@@ -157,7 +157,7 @@ public class AiPlanStep {
 	 *
 	 * @param status the status (not started, in progress, or complete)
 	 */
-	public void setStatus(final String status) {
+	public void setStatus(final StatusEnum status) {
 		this.status = status;
 	}
 
@@ -221,7 +221,7 @@ public class AiPlanStep {
 	 * @return true if status is "complete"
 	 */
 	public boolean isComplete() {
-		return "complete".equals(status);
+		return StatusEnum.COMPLETE.equals(status);
 	}
 
 	/**
@@ -230,7 +230,7 @@ public class AiPlanStep {
 	 * @return true if status is "in progress"
 	 */
 	public boolean isInProgress() {
-		return "in progress".equals(status);
+		return StatusEnum.IN_PROGRESS.equals(status);
 	}
 
 	/**

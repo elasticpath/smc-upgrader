@@ -35,6 +35,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.elasticpath.tools.smcupgrader.GitClient;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 
 /**
@@ -109,7 +110,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked as in progress (since it didn't complete)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -128,7 +129,7 @@ class AiPlanExecutorTest {
 
 		// Verify plan was updated
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test
@@ -148,7 +149,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked as in progress (validation failed, so didn't complete)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -168,7 +169,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked as in progress (Claude steps are never auto-completed)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -188,7 +189,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked as complete
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test
@@ -208,7 +209,7 @@ class AiPlanExecutorTest {
 
 		// Verify step stays in progress
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -229,7 +230,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked as complete
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test
@@ -250,7 +251,7 @@ class AiPlanExecutorTest {
 
 		// Verify step stays in progress
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -270,9 +271,9 @@ class AiPlanExecutorTest {
 
 		// Verify step 2 was completed, step 3 remains incomplete
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
-		assertThat(plan.getSteps().get(1).getStatus()).isEqualTo("complete");
-		assertThat(plan.getSteps().get(2).getStatus()).isEqualTo("not started");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+		assertThat(plan.getSteps().get(1).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+		assertThat(plan.getSteps().get(2).getStatus()).isEqualTo(StatusEnum.NOT_STARTED);
 	}
 
 	@Test
@@ -330,7 +331,7 @@ class AiPlanExecutorTest {
 
 		// Verify plan was updated (validation passed)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test
@@ -349,7 +350,7 @@ class AiPlanExecutorTest {
 
 		// Verify plan was NOT updated (validation failed, stays in progress)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -366,7 +367,7 @@ class AiPlanExecutorTest {
 
 		// Verify plan was updated
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test
@@ -384,7 +385,7 @@ class AiPlanExecutorTest {
 
 		// Verify plan was NOT updated (stays in progress)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
@@ -402,7 +403,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked complete
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 
 		// Verify that gitClient.commit was only called once for the plan file,
 		// not twice (once for plan file and once for source changes).
@@ -425,7 +426,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was marked as complete
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test
@@ -443,7 +444,7 @@ class AiPlanExecutorTest {
 
 		// Verify step was NOT marked as complete
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("in progress");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	/**
@@ -453,7 +454,7 @@ class AiPlanExecutorTest {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
 		step.setTool(ToolTypeEnum.fromString(tool));
-		step.setStatus(status);
+		step.setStatus(StatusEnum.fromString(status));
 		step.setCommitAllChangesOnCompletion(true);
 		step.setCommitPlanOnCompletion(true);
 		return step;

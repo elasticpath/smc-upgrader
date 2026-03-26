@@ -97,14 +97,17 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 # Command Line Options
 
 ```text
-Usage: smc-upgrader [-dfhmprvV] [--ai:continue] [--ai:start]
-                    [--[no-]clean-working-directory-check] [-C=<workingDir>]
-                    [-u=<upstreamRemoteRepositoryUrl>] [<version>]
+Usage: smc-upgrader [-dfhmprvV] [--ai:continue] [--ai:skip-permissions] [--ai:
+                    start] [--[no-]clean-working-directory-check]
+                    [-C=<workingDir>] [-u=<upstreamRemoteRepositoryUrl>]
+                    [<version>]
 Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
       [<version>]            The version of Elastic Path Self-Managed Commerce
                                to upgrade to. Optional when using --ai:start or
                                --ai:continue.
       --ai:continue          Continue AI-assisted upgrade from saved plan.
+      --ai:skip-permissions  Skip permission prompts when invoking Claude Code
+                               (passes --dangerously-skip-permissions).
       --ai:start             Start AI-assisted upgrade mode and generate
                                upgrade plan. Requires version parameter.
   -C=<workingDir>            The working directory containing the git repo to

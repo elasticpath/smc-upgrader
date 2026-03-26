@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 
 /**
@@ -64,7 +65,7 @@ class MarkdownParserTest {
 		AiPlanStep step = plan.getSteps().get(0);
 		assertThat(step.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
 		assertThat(step.getTool()).isEqualTo(ToolTypeEnum.SMC_UPGRADER);
-		assertThat(step.getStatus()).isEqualTo("not started");
+		assertThat(step.getStatus()).isEqualTo(StatusEnum.NOT_STARTED);
 		assertThat(step.getValidationCommand()).isNull();
 	}
 
@@ -128,7 +129,7 @@ class MarkdownParserTest {
 
 		assertThat(plan.getSteps()).hasSize(3);
 		assertThat(plan.getSteps().get(0).getTitle()).isEqualTo("Step 1");
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo("complete");
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 		assertThat(plan.getSteps().get(1).getTitle()).isEqualTo("Step 2");
 		assertThat(plan.getSteps().get(1).getPrompt()).isEqualTo("Prompt for step 2");
 		assertThat(plan.getSteps().get(2).getTitle()).isEqualTo("Step 3");
@@ -177,13 +178,13 @@ class MarkdownParserTest {
 		AiPlanStep step1 = new AiPlanStep();
 		step1.setTitle("Git merge from 8.5.x to 8.6.x");
 		step1.setTool(ToolTypeEnum.SMC_UPGRADER);
-		step1.setStatus("not started");
+		step1.setStatus(StatusEnum.NOT_STARTED);
 
 		AiPlanStep step2 = new AiPlanStep();
 		step2.setTitle("Resolve conflicts");
 		step2.setTool(ToolTypeEnum.CLAUDE);
 		step2.setValidationCommand("git diff --check");
-		step2.setStatus("not started");
+		step2.setStatus(StatusEnum.NOT_STARTED);
 		step2.setPrompt("Please resolve merge conflicts");
 
 		java.util.List<AiPlanStep> steps = java.util.Arrays.asList(step1, step2);
@@ -199,13 +200,13 @@ class MarkdownParserTest {
 		AiPlanStep parsedStep1 = plan.getSteps().get(0);
 		assertThat(parsedStep1.getTitle()).isEqualTo("Git merge from 8.5.x to 8.6.x");
 		assertThat(parsedStep1.getTool()).isEqualTo(ToolTypeEnum.SMC_UPGRADER);
-		assertThat(parsedStep1.getStatus()).isEqualTo("not started");
+		assertThat(parsedStep1.getStatus()).isEqualTo(StatusEnum.NOT_STARTED);
 
 		AiPlanStep parsedStep2 = plan.getSteps().get(1);
 		assertThat(parsedStep2.getTitle()).isEqualTo("Resolve conflicts");
 		assertThat(parsedStep2.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
 		assertThat(parsedStep2.getValidationCommand()).isEqualTo("git diff --check");
-		assertThat(parsedStep2.getStatus()).isEqualTo("not started");
+		assertThat(parsedStep2.getStatus()).isEqualTo(StatusEnum.NOT_STARTED);
 		assertThat(parsedStep2.getPrompt()).isEqualTo("Please resolve merge conflicts");
 	}
 }

@@ -31,6 +31,7 @@ import org.commonmark.node.Text;
 import org.commonmark.parser.Parser;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 
 /**
@@ -220,7 +221,7 @@ public final class MarkdownParser {
 
 			matcher = STATUS_PATTERN.matcher(line);
 			if (matcher.find()) {
-				currentStep.setStatus(matcher.group(1).trim());
+				currentStep.setStatus(StatusEnum.fromString(matcher.group(1).trim()));
 				foundMetadata = true;
 			}
 		}

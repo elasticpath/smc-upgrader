@@ -37,6 +37,7 @@ import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 
 /**
  * Generates AI-assisted upgrade plans.
@@ -237,7 +238,7 @@ public class AiPlanGenerator {
 				AiPlanStep step = new AiPlanStep();
 				step.setTitle(substituteVariables(template.getTitle(), fromVersion, toVersion, upgradeNotesUrl));
 				step.setTool(template.getTool());
-				step.setStatus(template.getStatus() != null ? template.getStatus() : "not started");
+				step.setStatus(template.getStatus() != null ? template.getStatus() : StatusEnum.NOT_STARTED);
 				step.setCommitPlanOnCompletion(template.isCommitPlanOnCompletion());
 				step.setCommitAllChangesOnCompletion(template.isCommitAllChangesOnCompletion());
 				step.setVersion(toVersion);

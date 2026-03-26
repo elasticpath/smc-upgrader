@@ -36,6 +36,7 @@ import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 
 /**
@@ -133,7 +134,7 @@ public class AiPlanExecutor {
 			}
 
 			// Mark it as in progress
-			nextStep.setStatus("in progress");
+			nextStep.setStatus(StatusEnum.IN_PROGRESS);
 
 			// Save the plan and commit
 			savePlan(planFile, plan, nextStep, false);
@@ -203,7 +204,7 @@ public class AiPlanExecutor {
 				commitAllChanges(nextStep.getTitle());
 			}
 
-			nextStep.setStatus("complete");
+			nextStep.setStatus(StatusEnum.COMPLETE);
 			savePlan(planFile, plan, nextStep, true);
 			LOGGER.info("");
 			LOGGER.info("Step marked as complete.");
@@ -240,7 +241,7 @@ public class AiPlanExecutor {
 			String stepNumber = (i + 1) + ". ";
 			String title = step.getTitle();
 
-			if ("complete".equals(step.getStatus())) {
+			if (StatusEnum.COMPLETE.equals(step.getStatus())) {
 				// Use ANSI strikethrough for completed steps
 				LOGGER.info("{}\u001B[9m{}\u001B[0m", stepNumber, title);
 			} else {
@@ -413,6 +414,7 @@ public class AiPlanExecutor {
 				upgradeController.performUpgrade(
 						targetVersion,
 						false,  // doCleanWorkingDirectoryCheck
+						true,   // doFetch
 						false,  // doRevertPatches
 						true,  // doMerge
 						true,  // doConflictResolution
@@ -591,8 +593,7 @@ public class AiPlanExecutor {
 
 		// Commit to git if configured to do so and shouldCommit is true
 		if (shouldCommit && step.isCommitPlanOnCompletion()) {
-			String status = "complete".equals(step.getStatus()) ? "complete" : "in progress";
-			commitPlanFile("Mark step as " + status + ": " + step.getTitle());
+			commitPlanFile("Mark step as " + step.getStatus().getValue() + ": " + step.getTitle());
 		}
 	}
 

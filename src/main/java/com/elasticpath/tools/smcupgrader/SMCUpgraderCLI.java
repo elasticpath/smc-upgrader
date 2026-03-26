@@ -130,8 +130,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			} else if (aiContinue) {
 				return handleAiContinue();
 			} else {
-				upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doRevertPatches, doMerge, doConflictResolution,
-					doConflictResolution, doDiffResolution);
+				upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
+						doConflictResolution, doDiffResolution);
 			}
 
 			return 0;

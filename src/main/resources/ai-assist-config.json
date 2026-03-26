@@ -44,7 +44,7 @@
       "validationCommand": "mvn validate -DskipAllTests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background and help to fix any Maven pom structure issues. {PLATFORM_ACCESS} The validation command is expected to take around 10 seconds to execute. {NO_VALIDATION} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below and help to fix any Maven pom structure issues. {PLATFORM_ACCESS} The validation command is expected to take around 10 seconds to execute. {NO_VALIDATION} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Run Automated Jakarta Source Migration",
@@ -100,7 +100,7 @@
       "validationCommand": "mvn install -Preset-db -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/database/pom.xml",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below to initialize the local database and help to fix any issues. {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "prompt": "Run the validation command below to initialize the local database and help to fix any issues. {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve Integration Server startup issues",

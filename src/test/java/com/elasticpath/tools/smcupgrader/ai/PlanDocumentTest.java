@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 
 /**
@@ -135,7 +136,7 @@ class PlanDocumentTest {
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle(title);
 		step.setTool(ToolTypeEnum.SMC_UPGRADER);
-		step.setStatus(status);
+		step.setStatus(StatusEnum.fromString(status));
 		return step;
 	}
 }

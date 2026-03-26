@@ -102,7 +102,7 @@ public final class MarkdownWriter {
 
 		markdown.append("Commit all changes on completion: ").append(step.isCommitAllChangesOnCompletion()).append("\n");
 		markdown.append("Commit plan on completion: ").append(step.isCommitPlanOnCompletion()).append("\n");
-		markdown.append("Status: ").append(step.getStatus()).append("\n\n");
+		markdown.append("Status: ").append(step.getStatus() != null ? step.getStatus().getValue() : "").append("\n\n");
 
 		// Prompt for claude steps
 		if (step.getTool() == ToolTypeEnum.CLAUDE && step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {

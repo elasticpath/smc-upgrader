@@ -15,32 +15,27 @@
 
 package com.elasticpath.tools.smcupgrader.ai.config;
 
-import com.google.gson.annotations.SerializedName;
-
 /**
- * Enum representing the tool types available for upgrade plan steps.
+ * Enum representing the possible statuses of an upgrade plan step.
  */
-public enum ToolTypeEnum {
-	/** Step executed by the smc-upgrader tool itself. */
-	@SerializedName("smc-upgrader")
-	SMC_UPGRADER("smc-upgrader"),
+public enum StatusEnum {
+	/** Step has not been started yet. */
+	NOT_STARTED("not started"),
 
-	/** Step executed by Claude Code CLI. */
-	@SerializedName("claude")
-	CLAUDE("claude"),
+	/** Step is currently being executed. */
+	IN_PROGRESS("in progress"),
 
-	/** Step that only runs a validation command. */
-	@SerializedName("validation-only")
-	VALIDATION_ONLY("validation-only");
+	/** Step has been completed. */
+	COMPLETE("complete");
 
 	private final String value;
 
-	ToolTypeEnum(final String value) {
+	StatusEnum(final String value) {
 		this.value = value;
 	}
 
 	/**
-	 * Get the string value of this tool type.
+	 * Get the string value of this status.
 	 *
 	 * @return the string value
 	 */
@@ -49,18 +44,18 @@ public enum ToolTypeEnum {
 	}
 
 	/**
-	 * Parse a string value into a ToolTypeEnum.
+	 * Parse a string value into a StatusEnum (case-insensitive).
 	 *
 	 * @param value the string value
 	 * @return the corresponding enum, or null if not recognized
 	 */
-	public static ToolTypeEnum fromString(final String value) {
+	public static StatusEnum fromString(final String value) {
 		if (value == null) {
 			return null;
 		}
-		for (ToolTypeEnum type : values()) {
-			if (type.value.equalsIgnoreCase(value)) {
-				return type;
+		for (StatusEnum status : values()) {
+			if (status.value.equalsIgnoreCase(value)) {
+				return status;
 			}
 		}
 		return null;
