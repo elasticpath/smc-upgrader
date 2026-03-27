@@ -208,6 +208,14 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Final check for unit test and static analysis failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background and help to fix any test or static analysis failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     }
   ]
 }
