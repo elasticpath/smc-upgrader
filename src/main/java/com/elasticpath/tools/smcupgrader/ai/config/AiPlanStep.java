@@ -28,6 +28,7 @@ public class AiPlanStep {
 	private String prompt;
 	private boolean commitAllChangesOnCompletion;
 	private boolean commitPlanOnCompletion;
+	private boolean allowManualValidation = true;
 
 	/**
 	 * Default constructor for JSON deserialization.
@@ -213,6 +214,25 @@ public class AiPlanStep {
 	 */
 	public void setCommitPlanOnCompletion(final boolean commitPlanOnCompletion) {
 		this.commitPlanOnCompletion = commitPlanOnCompletion;
+	}
+
+	/**
+	 * Check if manual validation is allowed for this step.
+	 * When false, the "Verify that this step is complete" option is not presented to the user.
+	 *
+	 * @return true if manual validation is allowed (default), false otherwise
+	 */
+	public boolean isAllowManualValidation() {
+		return allowManualValidation;
+	}
+
+	/**
+	 * Set whether manual validation is allowed for this step.
+	 *
+	 * @param allowManualValidation false to hide the "Verify that this step is complete" option
+	 */
+	public void setAllowManualValidation(final boolean allowManualValidation) {
+		this.allowManualValidation = allowManualValidation;
 	}
 
 	/**

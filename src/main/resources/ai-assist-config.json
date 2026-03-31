@@ -93,6 +93,7 @@
       "validationCommand": "mvn clean install -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 60 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
@@ -109,6 +110,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
@@ -118,6 +120,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
@@ -127,6 +130,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
@@ -136,6 +140,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
@@ -145,6 +150,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
@@ -154,6 +160,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
@@ -163,6 +170,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
@@ -172,6 +180,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
@@ -181,6 +190,7 @@
       "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": ">=8.7.x"
     },
@@ -190,6 +200,7 @@
       "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp-runner",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
       "versionFilter": "<8.7.x"
     },
@@ -199,6 +210,7 @@
       "validationCommand": "mvn clean install -pl :webapp-smoketests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 10 minutes to execute. {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
@@ -207,6 +219,7 @@
       "validationCommand": "mvn verify -pl :cortex-cucumber-tests,:cortex-cucumber-oidc-tests,:http-mock-server-system-tests-cucumber,:integration-cucumber-tests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
       "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {

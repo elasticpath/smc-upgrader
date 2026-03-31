@@ -156,7 +156,7 @@ public class AiPlanExecutor {
 
 		if (showMenu) {
 			// Show menu and get user choice
-			String choice = promptUserChoice();
+			String choice = promptUserChoice(nextStep);
 
 			switch (choice.toUpperCase()) {
 				case "E":
@@ -165,6 +165,10 @@ public class AiPlanExecutor {
 					break;
 
 				case "V":
+					if (!nextStep.isAllowManualValidation()) {
+						LOGGER.error("Manual validation is not available for this step.");
+						return false;
+					}
 					// Verify step - if validation fails, exit immediately
 					stepCompleted = checkStepValidation(nextStep);
 					if (!stepCompleted) {
@@ -257,9 +261,10 @@ public class AiPlanExecutor {
 	/**
 	 * Prompt the user for their choice.
 	 *
-	 * @return the user's choice (E, C, M, or X)
+	 * @param step the current step
+	 * @return the user's choice (E, V, M, or X)
 	 */
-	private String promptUserChoice() {
+	private String promptUserChoice(final AiPlanStep step) {
 		// If test choice is set, use it instead of prompting
 		if (testChoice != null) {
 			String choice = testChoice;
@@ -269,7 +274,9 @@ public class AiPlanExecutor {
 
 		LOGGER.info("What would you like to do?");
 		LOGGER.info("  [E] Execute this step");
-		LOGGER.info("  [V] Verify that this step is complete");
+		if (step.isAllowManualValidation()) {
+			LOGGER.info("  [V] Verify that this step is complete");
+		}
 		LOGGER.info("  [M] Mark this step as complete");
 		LOGGER.info("  [X] Exit");
 		LOGGER.info("");
@@ -309,7 +316,9 @@ public class AiPlanExecutor {
 
 		LOGGER.info("Was this step successfully completed?");
 		LOGGER.info("  [Y/M] Mark this step as complete");
-		LOGGER.info("  [V] Verify that this step is complete");
+		if (step.isAllowManualValidation()) {
+			LOGGER.info("  [V] Verify that this step is complete");
+		}
 		LOGGER.info("  [N/X] Exit");
 		LOGGER.info("");
 
@@ -328,6 +337,10 @@ public class AiPlanExecutor {
 		if (response != null) {
 			String choice = response.trim();
 			if (choice.equalsIgnoreCase("V")) {
+				if (!step.isAllowManualValidation()) {
+					LOGGER.error("Manual validation is not available for this step.");
+					return false;
+				}
 				return checkStepValidation(step);
 			}
 			return choice.equalsIgnoreCase("Y") || choice.equalsIgnoreCase("M");
