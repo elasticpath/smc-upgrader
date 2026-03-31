@@ -187,7 +187,7 @@
     {
       "title": "Resolve Commerce Manager startup issues",
       "tool": "claude",
-      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp-runner",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
