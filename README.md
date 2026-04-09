@@ -309,3 +309,23 @@ git branch -D temp-branch
 8. Follow the [upgrading](#upgrading) steps normally.
 
 You should only have to do this once; future uses of the tool should work without issue.
+
+### SSH authentication fails during fetch with "No keys found in identity" or "Cannot log in"
+
+`smc-upgrader` uses JGit for Git operations. JGit's built-in SSH client (Apache MINA SSHD) has the following limitations:
+
+* SSH keys **must not** have a passphrase - JGit cannot decrypt protected keys.
+
+If you encounter this error, generate an SSH key without a passphrase:
+
+```shell
+ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa_smc
+```
+
+Add the public key to your GitLab account at `code.elasticpath.com`, and configure SSH to use it for that host by adding the following to `~/.ssh/config`:
+
+```
+Host code.elasticpath.com
+    IdentityFile ~/.ssh/id_rsa_smc
+    IdentitiesOnly yes
+```
