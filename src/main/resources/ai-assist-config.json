@@ -20,7 +20,7 @@
     "AVOID_REMOVING_CUSTOMIZATIONS": "Avoid removing intentional customizations in the customer's source code that affect functionality.",
     "START_ACTIVEMQ": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\".",
     "START_ACTIVEMQ_PRE_87": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean tomcat8:run-war -f extensions/activemq-broker\".",
-    "REBUILD_SKIP_TESTS": "When running Maven builds to verify changes, always add -DskipAllTests to skip tests and static analysis.",
+    "REBUILD_SKIP_TESTS": "When rebuilding modules after making code changes, always include -DskipAllTests to reduce build times.",
     "NO_VALIDATION": "Do not run any Maven commands to build the source - this will be done in later steps.",
     "SKIP_SMC_UPGRADER_RESPONSIBILITIES": "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git."
   },
@@ -220,7 +220,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Final check for unit test and static analysis failures",
