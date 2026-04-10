@@ -64,10 +64,13 @@ import com.elasticpath.tools.smcupgrader.RemoteRepository;
  */
 public class GitClientImpl implements GitClient {
 
-	private final Repository repository;
+	private static final String NO_COMMON_ANCESTOR = "Git merge failed. This usually means that Git could not find a "
+			+ "common ancestor commit between your branch and the Self Managed Commerce release branch. See https://github"
+			+ ".com/elasticpath/smc-upgrader#git-merge-failed-usually-this-means-that-git-could-not-find-a-common-ancestor-commit"
+			+ "-between-your-branch-and-the-self-managed-commerce-release-branch for details.";
+	private static final String BRANCH_NAME_PREFIX = "release/";
 
-	private static final String NO_COMMON_ANCESTOR = "Git merge failed. Usually this means that Git could not find a "
-			+ "common ancestor commit between your branch and the Self Managed Commerce release branch.";
+	private final Repository repository;
 
 	/**
 	 * Constructor.
@@ -128,7 +131,7 @@ public class GitClientImpl implements GitClient {
 
 	@Override
 	public Ref getReleaseBranch(final String upstreamRemoteName, final String version) {
-		final String branchName = "release/" + version;
+		final String branchName = BRANCH_NAME_PREFIX + version;
 
 		try (Git git = new Git(repository)) {
 			final Optional<Ref> releaseBranch = git.branchList()
@@ -336,9 +339,30 @@ public class GitClientImpl implements GitClient {
 	}
 
 	@Override
+	public void stageAll() {
+		try (Git git = new Git(repository)) {
+			// Stage all modified and new files
+			git.add().addFilepattern(".").call();
+			// Stage deletions
+			git.add().addFilepattern(".").setUpdate(true).call();
+		} catch (final GitAPIException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public void unstage(final String path) {
 		try (Git git = new Git(repository)) {
 			git.reset().addPath(path).call();
+		} catch (final GitAPIException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void commit(final String message) {
+		try (Git git = new Git(repository)) {
+			git.commit().setMessage(message).setSign(false).call();
 		} catch (final GitAPIException e) {
 			throw new RuntimeException(e);
 		}

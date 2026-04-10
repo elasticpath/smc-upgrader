@@ -18,12 +18,18 @@ package com.elasticpath.tools.smcupgrader;
 import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+
+import com.elasticpath.tools.smcupgrader.ai.AiPlanGenerator;
+import com.elasticpath.tools.smcupgrader.ai.AiPlanExecutor;
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 
 /**
  * The main SMC Upgrader class.
@@ -31,10 +37,10 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "smc-upgrader", mixinStandardHelpOptions = true, version = "smc-upgrader 1.0",
 		description = "Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.")
 public class SMCUpgraderCLI implements Callable<Integer> {
-	private static final String DEFAULT_UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
 
-	@CommandLine.Parameters(index = "0",
-			description = "The version of Elastic Path Self-Managed Commerce to upgrade to.")
+	@CommandLine.Parameters(index = "0", arity = "0..1",
+			description = "The version of Elastic Path Self-Managed Commerce to upgrade to. "
+					+ "Optional when using --ai:start or --ai:continue.")
 	private String version;
 
 	@CommandLine.Option(names = { "-C" },
@@ -45,7 +51,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 
 	@CommandLine.Option(names = { "-u", "--upstream-repository-url" },
 			description = "The URL of the upstream repository containing upgrade commits.",
-			defaultValue = DEFAULT_UPSTREAM_REPO_URL)
+			defaultValue = Constants.DEFAULT_UPSTREAM_REPO_URL)
 	private String upstreamRemoteRepositoryUrl;
 
 	@CommandLine.Option(names = { "-v", "--verbose" },
@@ -87,6 +93,18 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			negatable = true, defaultValue = "true")
 	private boolean doDiffResolution;
 
+	@CommandLine.Option(names = { "--ai:start" },
+			description = "Start AI-assisted upgrade mode and generate upgrade plan. Requires version parameter.")
+	private boolean aiStart;
+
+	@CommandLine.Option(names = { "--ai:continue" },
+			description = "Continue AI-assisted upgrade from saved plan.")
+	private boolean aiContinue;
+
+	@CommandLine.Option(names = { "--ai:skip-permissions" },
+			description = "Skip permission prompts when invoking Claude Code (passes --dangerously-skip-permissions).")
+	private boolean aiSkipPermissions;
+
 	@Override
 	public Integer call() {
 		try {
@@ -95,17 +113,66 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 				rootLogger.setLevel(Level.DEBUG);
 			}
 
+			// Standard upgrade mode - version is required
+			if (!aiContinue && StringUtils.isEmptyOrNull(version)) {
+				LOGGER.error("Version parameter is required for standard upgrade mode.");
+				LOGGER.error("Usage: smc-upgrader <version>");
+				LOGGER.error("   or: smc-upgrader --ai:start <version>");
+				LOGGER.error("   or: smc-upgrader --ai:continue");
+				return 1;
+			}
+
 			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
 
-			upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
-					doConflictResolution, doDiffResolution);
+			// Handle AI assist modes
+			if (aiStart) {
+				return handleAiStart(upgradeController);
+			} else if (aiContinue) {
+				return handleAiContinue();
+			} else {
+				upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
+						doConflictResolution, doDiffResolution);
+			}
 
 			return 0;
 		} catch (RuntimeException e) {
 			LOGGER.error("Unexpected error encountered while upgrading", e);
+		} catch (IOException e) {
+			LOGGER.error("IO error encountered", e);
 		}
 
 		return 1;
+	}
+
+	/**
+	 * Handle AI assist start mode.
+	 *
+	 * @param upgradeController the upgrade controller
+	 * @return exit code
+	 * @throws IOException if an error occurs
+	 */
+	private Integer handleAiStart(final UpgradeController upgradeController) throws IOException {
+		AiAssistConfigModel upgradePath = AiAssistConfigModel.loadFromResource();
+		AiPlanGenerator generator = new AiPlanGenerator(upgradePath, upgradeController);
+
+		boolean generated = generator.generatePlan(version, workingDir, aiSkipPermissions);
+		return generated ? 0 : 1;
+	}
+
+	/**
+	 * Handle AI assist continue mode.
+	 *
+	 * @return exit code
+	 */
+	private Integer handleAiContinue() {
+		try {
+			AiPlanExecutor executor = new AiPlanExecutor(workingDir, aiSkipPermissions);
+			boolean stepExecuted = executor.executeNextStep();
+			return stepExecuted ? 0 : 1;
+		} catch (IOException e) {
+			LOGGER.error("Error executing plan", e);
+			return 1;
+		}
 	}
 
 	/**

@@ -1,0 +1,234 @@
+{
+  "versions": [
+    { "version": "8.0.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.0.x/release-notes.html#upgrade-notes" },
+    { "version": "8.1.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.1.x/release-notes.html#upgrade-notes" },
+    { "version": "8.2.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.2.x/release-notes.html#upgrade-notes" },
+    { "version": "8.3.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.3.x/release-notes.html#upgrade-notes" },
+    { "version": "8.4.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.4.x/release-notes.html#upgrade-notes" },
+    { "version": "8.5.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.5.x/release-notes.html#upgrade-notes" },
+    { "version": "8.6.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.6.x/release-notes.html#upgrade-notes" },
+    { "version": "8.7.x", "upgradeNotesUrl": "https://documentation.elasticpath.com/commerce/docs/8.7.x/upgrade-notes.html" }
+  ],
+  "upgradePromptPrefix": "We are in the process of doing an upgrade of the Self-Managed Commerce code base from version {FROM_VERSION} to version {TO_VERSION}. These upgrade notes may be helpful: {UPGRADE_NOTES_URL} or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html (use the first URL that doesn't return 404). ",
+  "patchConsumptionPromptPrefix": "We are in the process of consuming the latest patches from the Self-Managed Commerce code base version {TO_VERSION}. ",
+  "templates": {
+    "PLATFORM_ACCESS": "If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/{TO_VERSION} branch. Before inspecting local build artifacts or .m2 jars, always check the platform version of any relevant file from the smc-upgrades remote in release/{TO_VERSION}. Use that as your primary reference for what changed.",
+    "ACCELERATORS": "If you run into issues related to accelerators (usually in the extensions/accelerators folder), clone the git@code.elasticpath.com:accelerators/accelerator-test.git repo that shows the standard way to wire in the accelerator. Checkout one of these branches corresponding to the accelerator that is wired in: batch-add-to-cart/{TO_VERSION}, bloomreach/{TO_VERSION}, cortex-trusted-header-mode/{TO_VERSION}, inventory-update-notification/{TO_VERSION}, self-service-returns/{TO_VERSION}, service-provider-pricing/{TO_VERSION}, shipping-notification/{TO_VERSION}, shopper-impersonation/{TO_VERSION}, tokenized-password-reset/{TO_VERSION}.",
+    "CODING_BEST_PRACTICES": "Make sure to follow coding best practices: https://documentation.elasticpath.com/commerce/docs/core/development/code-best-practices.html.",
+    "RESUME_BUILD": "After fixing issues in a module, use the -rf Maven option to continue the build from the failed module to save time.",
+    "REPORT_PROGRESS": "Filter the build output using the following regular expression to periodically report on build progress: \"^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n^\\[INFO\\]\\sBuilding\\s(?P<module>.+?)\\s+\\S+\\s+\\[(?P<module_num>\\d+)\\/(?P<module_total>\\d+)\\]\\r?\\n^\\[INFO\\]\\s+from\\s(?P<path>\\S+)\\s*$\"",
+    "AVOID_REMOVING_CUSTOMIZATIONS": "Avoid removing intentional customizations in the customer's source code that affect functionality.",
+    "START_ACTIVEMQ": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean package cargo:run -f extensions/activemq-broker\".",
+    "START_ACTIVEMQ_PRE_87": "You will need to have ActiveMQ running at the same time. It can be started using \"mvn clean tomcat8:run-war -f extensions/activemq-broker\".",
+    "REBUILD_SKIP_TESTS": "When rebuilding modules after making code changes, always include -DskipAllTests to reduce build times.",
+    "NO_VALIDATION": "Do not run any Maven commands to build the source - this will be done in later steps.",
+    "SKIP_SMC_UPGRADER_RESPONSIBILITIES": "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git."
+  },
+  "steps": [
+    {
+      "title": "Git merge from {FROM_VERSION} to {TO_VERSION}",
+      "tool": "smc-upgrader",
+      "commitAllChangesOnCompletion": false,
+      "commitPlanOnCompletion": false
+    },
+    {
+      "title": "Resolve Git merge conflicts after merge from {FROM_VERSION} to {TO_VERSION}",
+      "tool": "claude",
+      "validationCommand": "git diff --check",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. {NO_VALIDATION} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve Maven pom structure issues",
+      "tool": "claude",
+      "validationCommand": "mvn validate -DskipAllTests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below and help to fix any Maven pom structure issues. {PLATFORM_ACCESS} The validation command is expected to take around 10 seconds to execute. {NO_VALIDATION} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Run Automated Jakarta Source Migration",
+      "tool": "validation-only",
+      "validationCommand": "mvn clean install -N -Pjakarta-source-migration -Dpombom.version.enforcer.skip=true",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "versionFilter": "8.7.x"
+    },
+    {
+      "title": "Resolve all compilation issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipAllTests -pl '!:ext-common-test-database,!:smoketest-h2-database'",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background and help to fix any compilation issues. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 10 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve data population failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipAllTests -pl :smoketest-h2-database -am",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background to run data population and help to fix any Liquibase changeset failures. If you encounter a Liquibase failure in the smoketest-h2-database module, check the logs at extensions/system-tests/smoketest-h2-database/target/ext-data-population-cli-0.0.0-SNAPSHOT/logs/data-population.log for additional details. {PLATFORM_ACCESS} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 5 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve all static analysis failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background and help to fix any static analysis failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 15 minutes to execute. {RESUME_BUILD} If you encounter these errors, use @SuppressWarnings to ignore, but fix all other errors: PMD.ConsecutiveLiteralAppends, PMD.TooManyFields, PMD.GodClass, PMD.ExcessiveParameterList, PMD.ExcessiveMethodLength, PMD.ExcessiveClassLength, PMD.ExcessiveImports, PMD.NPathComplexity. {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve all unit test failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip -pl '!:webapp-smoketests'",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve all integration test failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 60 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve initialize local database issues",
+      "tool": "claude",
+      "validationCommand": "mvn install -Preset-db -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/database/pom.xml",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below to initialize the local database and help to fix any issues. {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve Integration Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Integration Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/integration/ext-integration-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start the Integration Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
+    },
+    {
+      "title": "Resolve Batch Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Batch Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/batch/ext-batch-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start the Batch Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
+    },
+    {
+      "title": "Resolve Search Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Search Server startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/search/ext-search-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start the Search Server and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
+    },
+    {
+      "title": "Resolve Cortex startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Cortex startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cortex/ext-cortex-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start Cortex and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
+    },
+    {
+      "title": "Resolve Commerce Manager startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean package cargo:run -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": ">=8.7.x"
+    },
+    {
+      "title": "Resolve Commerce Manager startup issues",
+      "tool": "claude",
+      "validationCommand": "mvn clean tomcat8:run-war -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/cm/ext-cm-modules/ext-cm-webapp-runner",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background to start Commerce Manager and help to fix any startup issues. {START_ACTIVEMQ_PRE_87} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}",
+      "versionFilter": "<8.7.x"
+    },
+    {
+      "title": "Resolve webapp smoke test failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -pl :webapp-smoketests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 10 minutes to execute. {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve Cucumber test failures",
+      "tool": "claude",
+      "validationCommand": "mvn verify -pl :cortex-cucumber-tests,:cortex-cucumber-oidc-tests,:http-mock-server-system-tests-cucumber,:integration-cucumber-tests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Final check for unit test and static analysis failures",
+      "tool": "claude",
+      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "prompt": "Run the validation command below in the background and help to fix any test or static analysis failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    }
+  ]
+}
