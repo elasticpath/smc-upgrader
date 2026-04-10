@@ -209,4 +209,63 @@ class MarkdownParserTest {
 		assertThat(parsedStep2.getStatus()).isEqualTo(StatusEnum.NOT_STARTED);
 		assertThat(parsedStep2.getPrompt()).isEqualTo("Please resolve merge conflicts");
 	}
+
+	@Test
+	void testParsePlan_roundTripWithRealLengthPrompt() {
+		// The existing round-trip test uses a very short prompt. This test uses a long, realistic
+		// prompt similar to what the actual ai-assist-config.json generates, including special
+		// characters (regex patterns, URLs, markdown-sensitive chars like [, ], >) that could
+		// potentially affect parsing.
+		String longPrompt = "We are in the process of doing an upgrade of the Self-Managed Commerce code base "
+				+ "from version 8.5.x to version 8.6.x. "
+				+ "These upgrade notes may be helpful: "
+				+ "https://documentation.elasticpath.com/commerce/docs/8.6.x/release-notes.html#upgrade-notes "
+				+ "or https://documentation.elasticpath.com/commerce/docs/upgrade-notes.html "
+				+ "(use the first URL that doesn't return 404). "
+				+ "Run the validation command below in the background and help to fix any test or static analysis failures. "
+				+ "If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote "
+				+ "in the release/8.6.x branch. Before inspecting local build artifacts or .m2 jars, always check the "
+				+ "platform version of any relevant file from the smc-upgrades remote in release/8.6.x. "
+				+ "Use that as your primary reference for what changed. "
+				+ "Make sure to follow coding best practices: "
+				+ "https://documentation.elasticpath.com/commerce/docs/core/development/code-best-practices.html. "
+				+ "Avoid removing intentional customizations in the customer's source code that affect functionality. "
+				+ "The validation command is expected to take around 20 minutes to execute. "
+				+ "When running Maven builds to verify changes, always add -DskipAllTests to skip tests and static analysis. "
+				+ "Filter the build output using the following regular expression to periodically report on build progress: "
+				+ "\"^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n"
+				+ "^\\[INFO\\]\\sBuilding\\s(?P<module>.+?)\\s+\\S+\\s+"
+				+ "\\[(?P<module_num>\\d+)\\/(?P<module_total>\\d+)\\]\\r?\\n"
+				+ "^\\[INFO\\]\\s+from\\s(?P<path>\\S+)\\s*$\" "
+				+ "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git.";
+
+		AiPlanStep step1 = new AiPlanStep();
+		step1.setTitle("Git merge from 8.5.x to 8.6.x");
+		step1.setTool(ToolTypeEnum.SMC_UPGRADER);
+		step1.setVersion("8.6.x");
+		step1.setStatus(StatusEnum.NOT_STARTED);
+		step1.setCommitAllChangesOnCompletion(false);
+		step1.setCommitPlanOnCompletion(false);
+
+		AiPlanStep step2 = new AiPlanStep();
+		step2.setTitle("Final check for unit test and static analysis failures");
+		step2.setTool(ToolTypeEnum.CLAUDE);
+		step2.setVersion("8.6.x");
+		step2.setValidationCommand("mvn clean install -DskipITests -DskipCucumberTests");
+		step2.setStatus(StatusEnum.NOT_STARTED);
+		step2.setCommitAllChangesOnCompletion(true);
+		step2.setCommitPlanOnCompletion(true);
+		step2.setPrompt(longPrompt);
+
+		java.util.List<AiPlanStep> steps = java.util.Arrays.asList(step1, step2);
+		String markdown = MarkdownWriter.generateMarkdown(steps, "8.5.x", "8.6.x");
+
+		PlanDocument plan = MarkdownParser.parsePlan(markdown);
+
+		assertThat(plan.getSteps()).hasSize(2);
+		AiPlanStep parsedLastStep = plan.getSteps().get(1);
+		assertThat(parsedLastStep.getTitle()).isEqualTo("Final check for unit test and static analysis failures");
+		assertThat(parsedLastStep.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
+		assertThat(parsedLastStep.getPrompt()).isEqualTo(longPrompt);
+	}
 }

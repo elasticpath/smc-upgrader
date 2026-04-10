@@ -277,6 +277,39 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
+	void testExecuteNextStep_preservesLastClaudeStepPromptAfterSave() throws IOException {
+		// When an earlier step completes, savePlan re-serializes the full plan from the parsed
+		// in-memory state. This test verifies the last Claude step's prompt is not lost during
+		// that round-trip (parse -> modify status -> save -> parse).
+		AiPlanStep step1 = createStep("Git merge step", "smc-upgrader", "not started");
+		step1.setValidationCommand("exit 0"); // Auto-completes
+		step1.setCommitAllChangesOnCompletion(false);
+
+		AiPlanStep step2 = createStep("Final check", "claude", "not started");
+		String longPrompt = "We are in the process of doing an upgrade of the Self-Managed Commerce code base "
+				+ "from version 8.5.x to version 8.6.x. "
+				+ "Run the validation command below in the background and help to fix any test or static analysis failures. "
+				+ "If you need access to the platform version of a file, you can retrieve it from the smc-upgrades remote "
+				+ "in the release/8.6.x branch. "
+				+ "Filter the build output using the following regular expression: "
+				+ "\"^\\[INFO\\]\\s-+<\\s(?P<coords>[^>]+)\\s>-+\\r?\\n^\\[INFO\\]\\sBuilding\" "
+				+ "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git.";
+		step2.setPrompt(longPrompt);
+		step2.setCommitAllChangesOnCompletion(false);
+
+		writePlanFile(java.util.Arrays.asList(step1, step2));
+
+		boolean result = executor.executeNextStep();
+
+		assertThat(result).isTrue();
+
+		// After step1 completes, the plan is saved. Verify step2's prompt survived the round-trip.
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+		assertThat(plan.getSteps().get(1).getPrompt()).isEqualTo(longPrompt);
+	}
+
+	@Test
 	void testRunValidationCommand_success() throws IOException {
 		boolean result = executor.runValidationCommand("exit 0");
 

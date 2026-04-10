@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +28,9 @@ import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
 import org.commonmark.node.Paragraph;
 import org.commonmark.node.SoftLineBreak;
+import org.commonmark.node.SourceSpan;
 import org.commonmark.node.Text;
+import org.commonmark.parser.IncludeSourceSpans;
 import org.commonmark.parser.Parser;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
@@ -39,7 +42,7 @@ import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
  */
 public final class MarkdownParser {
 
-	private static final Parser PARSER = Parser.builder().build();
+	private static final Parser PARSER = Parser.builder().includeSourceSpans(IncludeSourceSpans.BLOCKS).build();
 	private static final Pattern FROM_VERSION_PATTERN = Pattern.compile("Upgrade from:\\s*(.+)");
 	private static final Pattern TO_VERSION_PATTERN = Pattern.compile("Upgrade to:\\s*(.+)");
 	private static final Pattern SKIP_PERMISSIONS_PATTERN = Pattern.compile("Skip permissions:\\s*(.+)");
@@ -75,9 +78,12 @@ public final class MarkdownParser {
 	 */
 	public static PlanDocument parsePlan(final String markdown) {
 		PlanDocument plan = new PlanDocument();
-		Node document = PARSER.parse(markdown);
+		// Normalize line endings so source span line indices align with the split lines array
+		String normalized = markdown.replace("\r\n", "\n").replace("\r", "\n");
+		Node document = PARSER.parse(normalized);
+		String[] sourceLines = normalized.split("\n", -1);
 
-		parseDocument(document, plan);
+		parseDocument(document, plan, sourceLines);
 
 		return plan;
 	}
@@ -85,10 +91,11 @@ public final class MarkdownParser {
 	/**
 	 * Parse the document tree.
 	 *
-	 * @param document the document node
-	 * @param plan     the plan to populate
+	 * @param document    the document node
+	 * @param plan        the plan to populate
+	 * @param sourceLines the original markdown split into lines, used for raw text extraction
 	 */
-	private static void parseDocument(final Node document, final PlanDocument plan) {
+	private static void parseDocument(final Node document, final PlanDocument plan, final String[] sourceLines) {
 		Node child = document.getFirstChild();
 		AiPlanStep currentStep = null;
 		StringBuilder promptBuilder = null;
@@ -116,7 +123,9 @@ public final class MarkdownParser {
 					}
 				}
 			} else if (child instanceof Paragraph) {
-				String paragraphText = extractText(child);
+				// Use raw source text to preserve backslash escapes and HTML-like tokens (e.g. <coords>)
+				// that CommonMark's inline parser would otherwise corrupt or strip.
+				String paragraphText = extractRawText(child, sourceLines);
 
 				// Try to parse metadata
 				if (!parseMetadata(paragraphText, currentStep, plan)) {
@@ -239,6 +248,34 @@ public final class MarkdownParser {
 		StringBuilder text = new StringBuilder();
 		extractTextRecursive(node, text);
 		return text.toString();
+	}
+
+	/**
+	 * Extract the raw source text for a node using its source spans.
+	 * This preserves characters that CommonMark's inline parser would otherwise modify,
+	 * such as backslash-escaped brackets (\[) and HTML-like tokens (&lt;coords&gt;).
+	 * Falls back to {@link #extractText(Node)} if no source spans are available.
+	 *
+	 * @param node        the node
+	 * @param sourceLines the original markdown split into lines
+	 * @return the raw source text
+	 */
+	private static String extractRawText(final Node node, final String[] sourceLines) {
+		List<SourceSpan> spans = node.getSourceSpans();
+		if (spans == null || spans.isEmpty()) {
+			return extractText(node);
+		}
+		StringBuilder raw = new StringBuilder();
+		for (SourceSpan span : spans) {
+			if (raw.length() > 0) {
+				raw.append("\n");
+			}
+			String line = sourceLines[span.getLineIndex()];
+			int col = span.getColumnIndex();
+			int end = col + span.getLength();
+			raw.append(line, col, Math.min(end, line.length()));
+		}
+		return raw.toString();
 	}
 
 	/**
