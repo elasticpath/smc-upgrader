@@ -476,9 +476,11 @@ class AiPlanExecutorTest {
 
 	@Test
 	void testExecuteNextStep_astGrepStep_sgNotAvailable() throws IOException {
-		// ast-grep step without sg on PATH should skip gracefully
+		// ast-grep step without sg on PATH should NOT auto-complete -
+		// stays in progress so user can install sg and re-run, or [M]ark complete to skip.
 		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
 		step.setVersion("8.7.x");
+		step.setCommitAllChangesOnCompletion(false); // avoid the completion prompt
 
 		writePlanFile(Collections.singletonList(step));
 
@@ -486,9 +488,9 @@ class AiPlanExecutorTest {
 
 		assertThat(result).isTrue();
 
-		// Step should be marked complete (graceful no-op when sg not available)
+		// Step should remain in progress (sg not available → user must decide)
 		PlanDocument plan = readPlanFile();
-		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
