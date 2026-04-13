@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
+import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
@@ -400,6 +401,8 @@ public class AiPlanExecutor {
 				return executeClaudeStep(step, skipPermissions);
 			case VALIDATION_ONLY:
 				return executeValidationOnlyStep(step);
+			case AST_GREP:
+				return executeAstGrepStep(step);
 			default:
 				LOGGER.error("Unknown tool: {}", toolType);
 				return false;
@@ -510,6 +513,32 @@ public class AiPlanExecutor {
 			LOGGER.warn("Please resolve the issue and run 'smc-upgrader --ai:continue' again.");
 			return false;
 		}
+	}
+
+	/**
+	 * Execute an ast-grep recipe step. Delegates to {@link AstGrepExecutor}.
+	 *
+	 * @param step the step to execute
+	 * @return true if recipes ran successfully (or no recipes found), false on failure
+	 * @throws IOException if an error occurs
+	 */
+	private boolean executeAstGrepStep(final AiPlanStep step) throws IOException {
+		String version = step.getVersion();
+		if (version == null || version.trim().isEmpty()) {
+			LOGGER.warn("No version specified for ast-grep step.");
+			return false;
+		}
+
+		return createAstGrepExecutor().run(version);
+	}
+
+	/**
+	 * Create an AstGrepExecutor instance. Overridable for testing.
+	 *
+	 * @return the AstGrepExecutor
+	 */
+	protected AstGrepExecutor createAstGrepExecutor() {
+		return new AstGrepExecutor(workingDir);
 	}
 
 	/**

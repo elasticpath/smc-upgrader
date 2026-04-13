@@ -40,6 +40,12 @@
       "prompt": "Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. {NO_VALIDATION} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
+      "title": "Run automated upgrade recipes for {TO_VERSION}",
+      "tool": "ast-grep",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true
+    },
+    {
       "title": "Resolve Maven pom structure issues",
       "tool": "claude",
       "validationCommand": "mvn validate -DskipAllTests",
