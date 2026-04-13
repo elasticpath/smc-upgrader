@@ -19,6 +19,7 @@
 
 	<scm>
 		<developerConnection>${developer.connection}</developerConnection>
+		<!-- Keep HEAD on the development branch; the Maven Release Plugin rewrites this to the concrete release tag during release:prepare. -->
 		<tag>HEAD</tag>
 	</scm>
 
