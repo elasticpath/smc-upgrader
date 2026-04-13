@@ -39,14 +39,14 @@ public class AstGrepExecutor {
 	 * @throws IOException if an I/O error occurs
 	 */
 	public boolean run(final String version) throws IOException {
-		if (isSgAvailable()) {
+		if (!isSgAvailable()) {
 			LOGGER.warn("ast-grep (sg) is not available on PATH.");
 			LOGGER.warn("Automated upgrade recipes for XML/Java will be skipped.");
 			LOGGER.warn("");
 			LOGGER.warn("To install ast-grep, see: https://ast-grep.github.io/guide/quick-start.html");
 			LOGGER.warn("");
 			LOGGER.warn("After installation, re-run 'smc-upgrader --ai:continue' to apply recipes.");
-			LOGGER.warn("To skip anyway, choose [M] Mark complete when prompted.");
+			LOGGER.warn("To skip this step anyway, choose [Y/M] below.");
 			return false;
 		}
 
