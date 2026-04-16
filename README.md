@@ -6,8 +6,9 @@ It has the following benefits:
 
 * Ensures the upgrade is performed via the approach recommended by Elastic Path.
 * Can upgrade from and to any version of Elastic Path Self-Managed Commerce.
+* Supports consuming all latest patches for your current version without performing a full version upgrade.
 * Reconciles conflicts caused by the presence of Elastic Path post-release patches.
-* Supports optional AI Assist Mode which can take care of most of the conflict resolution steps automatically.
+* AI Assist Mode uses Claude Code to guide you through virtually the entire upgrade process -- from merging and conflict resolution to compilation failures, test failures, schema updates, and more.
 
 # Installation
 
@@ -43,7 +44,7 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 1. Extract the downloaded file:
 
     ```
-    unzip smc-upgrader-1.0.0.zip
+    unzip smc-upgrader-2.0.0.zip
     ```
 
 1. Set up alias/shortcut:
@@ -52,14 +53,14 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
     **Note**: This can also be made for permanent use, by adding it to your `~/.bash_profile`.
 
     ```
-    alias smc-upgrader='java -jar ~/tools/smc-upgrader/smc-upgrader-1.0.0-SNAPSHOT-jar-with-dependencies.jar'
+    alias smc-upgrader='java -jar ~/tools/smc-upgrader/smc-upgrader-2.0.0-jar-with-dependencies.jar'
     ```
 
     1. On Windows you will likely want to create a `smc-upgrader.cmd` file on your PATH that looks like this:
 
     ```
     @echo off
-    set SMC_UPGRADER_JAR=C:\path\to\smc-upgrader\smc-upgrader-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+    set SMC_UPGRADER_JAR=C:\path\to\smc-upgrader\smc-upgrader-2.0.0-jar-with-dependencies.jar
     java -jar "%SMC_UPGRADER_JAR%" %*
     ```
 
@@ -82,13 +83,13 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
    **Note**: This can also be made for permanent use, by adding it to your `~/.bash_profile`.
 
     ```
-    alias smc-upgrader='java -jar ~/git/smc-upgrader/target/smc-upgrader-1.0.0-SNAPSHOT-jar-with-dependencies.jar'
+    alias smc-upgrader='java -jar ~/git/smc-upgrader/target/smc-upgrader-2.0.0-SNAPSHOT-jar-with-dependencies.jar'
     ```
 
     2. On Windows you will likely want to create a `smc-upgrader.cmd` file on your PATH that looks like this:
     ```
     @echo off
-    set SMC_UPGRADER_JAR=C:\path\to\git\smc-upgrader\target\smc-upgrader-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+    set SMC_UPGRADER_JAR=C:\path\to\git\smc-upgrader\target\smc-upgrader-2.0.0-SNAPSHOT-jar-with-dependencies.jar
     java -jar "%SMC_UPGRADER_JAR%" %*
     ```
 
@@ -197,19 +198,33 @@ Before running the application for the first time, ensure the Elastic Path Self-
 git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 ```
 
-You will also need to [install Claude Code](https://code.claude.com/docs/en/quickstart). Make sure to sign up for a [non-free plan](https://claude.com/pricing). 
+> **Requirement:** AI Assist Mode requires [Claude Code](https://code.claude.com/docs/en/quickstart) to be installed and a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding.
 
 ## AI Assist Start
 
-AI Assist Mode can be used to help with version upgrades or to consume all the latest patches for your current version.
+AI Assist Mode can be used to help with version upgrades or to consume all the latest patches for your current version. The tool generates a plan containing all required steps, which are executed one at a time. Steps cover the full upgrade workflow, including:
 
-To start AI assisted patch consumption, run:
+* Merging the upgraded platform codebase into your branch
+* Resolving Git merge conflicts
+* Fixing Maven validation and compilation failures
+* Resolving unit test and integration test failures
+* Handling schema update issues
+* Resolving Cucumber test failures
+* Fixing server startup problems
+
+To start an AI-assisted upgrade, run:
 
 ```shell
 smc-upgrader --ai:start <version>
 ```
 
-Where `<version>` represents the target version that you want to upgrade to, such as `8.7.x`.
+Where `<version>` is the **target** version you want to upgrade to, such as `8.7.x`.
+
+To consume all latest patches on your **current** version without performing a full version upgrade, pass your current version instead:
+
+```shell
+smc-upgrader --ai:start <current-version>
+```
 
 This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
 
@@ -261,7 +276,7 @@ INFO :
 ```
 
 If you choose `Y` or `M`, the step will be marked as `complete`, and the tool will exit.
-If you choose `C`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
+If you choose `V`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
 If you choose `N` or `X`, the tool will just exit without doing anything else.
 
 You can then run `smc-upgrader --ai:continue` again to continue the current step or move on to the next step. Keep running this command until all steps are completed.
