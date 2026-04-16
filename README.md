@@ -190,6 +190,12 @@ smc-upgrader --no-merge 8.5.x
 
 The following sections describe how to use `smc-upgrader` in AI assist mode (with the `--ai` flags).
 
+> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide Claude Code throughout the upgrade and carefully review all changes it makes. Claude can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
+>
+> AI Assist Mode works best when the codebase has extensive automated regression tests that cover all custom functionality. These tests are the primary mechanism for detecting mistakes. If comprehensive test coverage is not present, AI Assist Mode may not be able to complete the upgrade successfully, and manual review effort will increase significantly.
+>
+> **Note on usage fees:** Claude Code usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant Claude API charges. Review [Anthropic's pricing](https://www.anthropic.com/pricing) before proceeding.
+
 ## Setup
 
 Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository as a remote:
