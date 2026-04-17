@@ -208,8 +208,7 @@ git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 
 ### Optional: ast-grep
 
-AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before Claude tackles compilation errors. 
-This significantly reduces the number of issues Claude has to resolve, saving time and tokens.
+AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before Claude resolves compilation errors. This significantly reduces the number of issues Claude needs to address.
 
 To install, see the [ast-grep installation guide](https://ast-grep.github.io/guide/quick-start.html).
 
