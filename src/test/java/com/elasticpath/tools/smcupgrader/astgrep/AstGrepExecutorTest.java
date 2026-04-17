@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.io.TempDir;
  * Tests for {@link AstGrepExecutor}.
  */
 class AstGrepExecutorTest {
+
+	private static final List<String> VERSIONS = Arrays.asList("8.5.x", "8.6.x", "8.7.x");
 
 	@TempDir
 	File tempDir;
@@ -26,7 +29,7 @@ class AstGrepExecutorTest {
 		writeRecipe(recipesDir, "8.6.x", "b.yml");
 		writeRecipe(recipesDir, "8.7.x", "c.yml");
 
-		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, VersionBucket.parse("8.6.x"));
+		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, "8.6.x");
 
 		assertThat(recipes).extracting(p -> p.getFileName().toString())
 				.containsExactly("b.yml", "c.yml");
@@ -40,7 +43,7 @@ class AstGrepExecutorTest {
 		writeRecipe(recipesDir, "8.6.x", "m.yml");
 		writeRecipe(recipesDir, "8.6.x", "b.yml");
 
-		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, VersionBucket.parse("8.6.x"));
+		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, "8.6.x");
 
 		assertThat(recipes).extracting(p -> p.getFileName().toString())
 				.containsExactly("b.yml", "m.yml", "a.yml", "z.yml");
@@ -53,7 +56,7 @@ class AstGrepExecutorTest {
 		writeRecipe(recipesDir, "README", "ignored.yml");
 		writeRecipe(recipesDir, "shared", "ignored.yml");
 
-		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, VersionBucket.parse("8.6.x"));
+		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, "8.6.x");
 
 		assertThat(recipes).extracting(p -> p.getFileName().toString())
 				.containsExactly("valid.yml");
@@ -66,7 +69,7 @@ class AstGrepExecutorTest {
 		writeRecipe(recipesDir, "8.7.x", "notes.txt");
 		writeRecipe(recipesDir, "8.7.x", "data.yaml");
 
-		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, VersionBucket.parse("8.7.x"));
+		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, "8.7.x");
 
 		assertThat(recipes).extracting(p -> p.getFileName().toString())
 				.containsExactly("recipe.yml");
@@ -77,13 +80,23 @@ class AstGrepExecutorTest {
 		Path recipesDir = tempDir.toPath();
 		writeRecipe(recipesDir, "8.5.x", "old.yml");
 
-		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, VersionBucket.parse("8.7.x"));
+		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, "8.7.x");
+
+		assertThat(recipes).isEmpty();
+	}
+
+	@Test
+	void discoverRecipeFiles_returnsEmptyWhenVersionNotInSupportedList() throws IOException {
+		Path recipesDir = tempDir.toPath();
+		writeRecipe(recipesDir, "8.7.x", "recipe.yml");
+
+		List<Path> recipes = executor().discoverRecipeFiles(recipesDir, "9.0.x");
 
 		assertThat(recipes).isEmpty();
 	}
 
 	private AstGrepExecutor executor() {
-		return new AstGrepExecutor(tempDir);
+		return new AstGrepExecutor(tempDir, VERSIONS);
 	}
 
 	private void writeRecipe(final Path recipesDir, final String bucket, final String filename) throws IOException {

@@ -21,20 +21,23 @@ public class AstGrepExecutor {
 	private static final String RECIPES_DIR = "upgrade/recipes";
 
 	private final File workingDir;
+	private final List<String> versions;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param workingDir the repository working directory to run recipes against
+	 * @param workingDir        the repository working directory to run recipes against
+	 * @param versions ordered list of supported versions from configuration
 	 */
-	public AstGrepExecutor(final File workingDir) {
+	public AstGrepExecutor(final File workingDir, final List<String> versions) {
 		this.workingDir = workingDir;
+		this.versions = versions;
 	}
 
 	/**
 	 * Run all applicable recipes for the given version.
 	 *
-	 * @param version the target version bucket
+	 * @param version the target version
 	 * @return true if all recipes passed (or none found), false if any failed
 	 * @throws IOException if an I/O error occurs
 	 */
@@ -50,17 +53,15 @@ public class AstGrepExecutor {
 			return false;
 		}
 
-		VersionBucket targetBucket = VersionBucket.parse(version);
-
 		File recipesDir = new File(workingDir, RECIPES_DIR);
 		if (!recipesDir.isDirectory()) {
 			LOGGER.info("No upgrade recipes directory found. Skipping.");
 			return true;
 		}
 
-		List<Path> recipeFiles = discoverRecipeFiles(recipesDir.toPath(), targetBucket);
+		List<Path> recipeFiles = discoverRecipeFiles(recipesDir.toPath(), version);
 		if (recipeFiles.isEmpty()) {
-			LOGGER.info("No applicable recipes for bucket {}. Skipping.", version);
+			LOGGER.info("No applicable recipes for {}. Skipping.", version);
 			return true;
 		}
 
@@ -113,26 +114,33 @@ public class AstGrepExecutor {
 	}
 
 	/**
-	 * Discover recipe files for the given target bucket and any later version buckets.
-	 * Scans all version subdirectories {@code >= targetBucket} for {@code *.yml} files,
-	 * supporting backported recipes that live in later version folders.
+	 * Discover recipe files for the given target version and any later versions.
+	 * Uses the configured version ordering to filter directories {@code >= targetVersion}
+	 * and sort them in version order, then by filename within each version.
 	 *
-	 * @param recipesDir   the recipes directory
-	 * @param targetBucket the target version bucket
-	 * @return sorted list of recipe file paths (by bucket then filename)
+	 * @param recipesDir    the recipes directory
+	 * @param targetVersion the target version string (e.g. "8.6.x")
+	 * @return sorted list of recipe file paths (by version order then filename)
 	 * @throws IOException if an I/O error occurs
 	 */
-	List<Path> discoverRecipeFiles(final Path recipesDir, final VersionBucket targetBucket) throws IOException {
+	List<Path> discoverRecipeFiles(final Path recipesDir, final String targetVersion) throws IOException {
+		int targetIndex = versions.indexOf(targetVersion);
+		if (targetIndex == -1) {
+			LOGGER.warn("Version {} not found in supported versions. No recipes will be applied.", targetVersion);
+			return new ArrayList<>();
+		}
+
 		List<Path> bucketDirs = new ArrayList<>();
 		try (DirectoryStream<Path> dirs = Files.newDirectoryStream(recipesDir, Files::isDirectory)) {
 			for (Path dir : dirs) {
-				VersionBucket bucket = VersionBucket.tryParse(dir.getFileName().toString());
-				if (bucket != null && bucket.compareTo(targetBucket) >= 0) {
+				String dirName = dir.getFileName().toString();
+				int dirIndex = versions.indexOf(dirName);
+				if (dirIndex >= 0 && dirIndex >= targetIndex) {
 					bucketDirs.add(dir);
 				}
 			}
 		}
-		bucketDirs.sort(Comparator.comparing(d -> VersionBucket.parse(d.getFileName().toString())));
+		bucketDirs.sort(Comparator.comparingInt(d -> versions.indexOf(d.getFileName().toString())));
 
 		List<Path> recipeFiles = new ArrayList<>();
 		for (Path bucketDir : bucketDirs) {

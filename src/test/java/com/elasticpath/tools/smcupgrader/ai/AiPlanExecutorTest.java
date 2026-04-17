@@ -76,7 +76,7 @@ class AiPlanExecutorTest {
 
 			@Override
 			protected AstGrepExecutor createAstGrepExecutor() {
-				return new AstGrepExecutor(tempDir) {
+				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
 					@Override
 					protected boolean isSgAvailable() {
 						return false;
@@ -510,7 +510,7 @@ class AiPlanExecutorTest {
 
 			@Override
 			protected AstGrepExecutor createAstGrepExecutor() {
-				return new AstGrepExecutor(tempDir) {
+				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
 					@Override
 					protected boolean isSgAvailable() {
 						return true;

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -36,6 +37,7 @@ import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
 import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
@@ -538,7 +540,13 @@ public class AiPlanExecutor {
 	 * @return the AstGrepExecutor
 	 */
 	protected AstGrepExecutor createAstGrepExecutor() {
-		return new AstGrepExecutor(workingDir);
+		try {
+			AiAssistConfigModel config = AiAssistConfigModel.loadFromResource();
+			return new AstGrepExecutor(workingDir, config.getVersions());
+		} catch (IOException e) {
+			LOGGER.warn("Could not load config for version ordering. Using empty version list.");
+			return new AstGrepExecutor(workingDir, new ArrayList<>());
+		}
 	}
 
 	/**
