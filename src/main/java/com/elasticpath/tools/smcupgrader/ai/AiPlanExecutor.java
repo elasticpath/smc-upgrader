@@ -601,7 +601,8 @@ public class AiPlanExecutor {
 	 */
 	private void savePlan(final File planFile, final PlanDocument plan, final AiPlanStep step, final boolean shouldCommit)
 			throws IOException {
-		String markdown = MarkdownWriter.generateMarkdown(plan.getSteps(), plan.getFromVersion(), plan.getToVersion());
+		String markdown = MarkdownWriter.generateMarkdown(
+				plan.getSteps(), plan.getFromVersion(), plan.getToVersion(), plan.isSkipPermissions());
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
 
 		// Commit to git if configured to do so and shouldCommit is true
@@ -619,7 +620,8 @@ public class AiPlanExecutor {
 	 * @throws IOException if an error occurs
 	 */
 	private void savePlan(final File planFile, final PlanDocument plan, final String commitMessage) throws IOException {
-		String markdown = MarkdownWriter.generateMarkdown(plan.getSteps(), plan.getFromVersion(), plan.getToVersion());
+		String markdown = MarkdownWriter.generateMarkdown(
+				plan.getSteps(), plan.getFromVersion(), plan.getToVersion(), plan.isSkipPermissions());
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
 
 		// Always commit with the provided message
