@@ -1,0 +1,5 @@
+customLanguages:
+  xml:
+    libraryPath: tree-sitter-xml.so
+    extensions:
+      - xml

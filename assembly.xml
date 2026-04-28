@@ -23,7 +23,10 @@
 			<outputDirectory>/</outputDirectory>
 			<fileMode>0755</fileMode>
 		</fileSet>
-
+		<fileSet>
+			<directory>${project.build.directory}/native</directory>
+			<outputDirectory>/native</outputDirectory>
+		</fileSet>
 	</fileSets>
 	<files>
 		<file>

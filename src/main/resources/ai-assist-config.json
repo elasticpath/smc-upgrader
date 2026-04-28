@@ -40,20 +40,18 @@
       "prompt": "Review the merge conflicts in the current folder and help to address them. \"ours\" represents the customer's custom code base, and \"theirs\" represents the new Self-Managed Commerce release code. IMPORTANT: Ensure that you do not overwrite \"ours\" changes with \"theirs\" unless the differences don't affect functionality. Make sure to check each file manually - don't simply replace with \"theirs\" unless the changes are whitespace or no longer needed due to the platform changes. Assume that files deleted in \"theirs\" were removed intentionally and accept the deletion. Accept the new \"theirs\" versions for all dependency upgrades. Continue working until all Git merge conflicts are resolved. {NO_VALIDATION} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
+      "title": "Run automated upgrade recipes for {TO_VERSION}",
+      "tool": "ast-grep",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true
+    },
+    {
       "title": "Resolve Maven pom structure issues",
       "tool": "claude",
       "validationCommand": "mvn validate -DskipAllTests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below and help to fix any Maven pom structure issues. {PLATFORM_ACCESS} The validation command is expected to take around 10 seconds to execute. {NO_VALIDATION} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
-    },
-    {
-      "title": "Run Automated Jakarta Source Migration",
-      "tool": "validation-only",
-      "validationCommand": "mvn clean install -N -Pjakarta-source-migration -Dpombom.version.enforcer.skip=true",
-      "commitAllChangesOnCompletion": true,
-      "commitPlanOnCompletion": true,
-      "versionFilter": "8.7.x"
     },
     {
       "title": "Resolve all compilation issues",
