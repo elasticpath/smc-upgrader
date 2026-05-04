@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.elasticpath.tools</groupId>
 	<artifactId>smc-upgrader</artifactId>
-	<version>2.0.1</version>
+	<version>2.0.1-SNAPSHOT</version>
 	<name>smc-upgrader</name>
 	<description>CLI utility to apply Elastic Path Self-Managed Commerce updates to a codebase.</description>
 
@@ -20,7 +20,7 @@
 	<scm>
 		<developerConnection>${developer.connection}</developerConnection>
 		<!-- Keep HEAD on the development branch; the Maven Release Plugin rewrites this to the concrete release tag during release:prepare. -->
-		<tag>smc-upgrader-2.0.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<distributionManagement>
