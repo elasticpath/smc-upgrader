@@ -69,7 +69,7 @@ public class AiPlanExecutor {
 	public AiPlanExecutor(final File workingDir, final boolean cliSkipPermissions) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = cliSkipPermissions;
-		this.upgradeController = new UpgradeController(workingDir, Constants.DEFAULT_UPSTREAM_REPO_URL);
+		this.upgradeController = new UpgradeController(workingDir);
 		this.gitClient = createGitClient(workingDir);
 	}
 
@@ -82,7 +82,7 @@ public class AiPlanExecutor {
 	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = false;
-		this.upgradeController = new UpgradeController(workingDir, Constants.DEFAULT_UPSTREAM_REPO_URL);
+		this.upgradeController = new UpgradeController(workingDir);
 		this.gitClient = gitClient;
 	}
 

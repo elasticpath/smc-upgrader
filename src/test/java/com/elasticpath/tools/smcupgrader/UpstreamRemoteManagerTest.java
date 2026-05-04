@@ -22,10 +22,6 @@ class UpstreamRemoteManagerTest {
 
 	private static final String REMOTE_REPO_NAME = "upstream";
 
-	private static final String REMOTE_REPO_URL = "git@example.com/project.git";
-
-	private static final RemoteRepository REMOTE_REPOSITORY = new RemoteRepository(REMOTE_REPO_NAME, REMOTE_REPO_URL);
-
 	@Mock
 	private GitClient gitClient;
 
@@ -33,15 +29,16 @@ class UpstreamRemoteManagerTest {
 
 	@BeforeEach
 	public void setUp() {
-		upstreamRemoteManager = spy(new UpstreamRemoteManager(gitClient, REMOTE_REPO_URL));
+		upstreamRemoteManager = spy(new UpstreamRemoteManager(gitClient));
 	}
 
 	@Test
 	public void verifyRemoteNameReturnedWhenFound() {
 		final RemoteRepository repoOther = new RemoteRepository("otherName", "git@example.com/otherproject.git");
+		final RemoteRepository upstreamRepo = new RemoteRepository(REMOTE_REPO_NAME, Constants.UPSTREAM_REPO_URL);
 
 		when(gitClient.getRemoteRepositories())
-				.thenReturn(Sets.newLinkedHashSet(repoOther, REMOTE_REPOSITORY));
+				.thenReturn(Sets.newLinkedHashSet(repoOther, upstreamRepo));
 
 		assertThat(upstreamRemoteManager.getUpstreamRemoteName()).isEqualTo(REMOTE_REPO_NAME);
 	}
