@@ -56,19 +56,25 @@ public class UpgradeController {
 	 * @param upstreamRemoteRepositoryUrl the URL of the upstream repository containing upgrade commits
 	 */
 	public UpgradeController(final File workingDir, final String upstreamRemoteRepositoryUrl) {
+		this(buildGitClient(workingDir), upstreamRemoteRepositoryUrl);
+	}
+
+	UpgradeController(final GitClient gitClient, final String upstreamRemoteRepositoryUrl) {
+		this.gitClient = gitClient;
+		this.upstreamRemoteManager = new UpstreamRemoteManager(gitClient, upstreamRemoteRepositoryUrl);
+		this.patchReverter = new PatchReverter(gitClient);
+		this.merger = new Merger(gitClient);
+		this.mergeConflictResolver = new MergeConflictResolver(gitClient);
+		this.diffConflictResolver = new DiffConflictResolver(gitClient);
+	}
+
+	private static GitClient buildGitClient(final File workingDir) {
 		final FileRepositoryBuilder builder = new FileRepositoryBuilder();
 		try {
-			// scan environment GIT_* variables
 			final Repository repository = builder.setGitDir(new File(workingDir, ".git"))
 					.readEnvironment() // scan environment GIT_* variables
 					.build();
-
-			gitClient = new GitClientImpl(repository);
-			upstreamRemoteManager = new UpstreamRemoteManager(gitClient, upstreamRemoteRepositoryUrl);
-			patchReverter = new PatchReverter(gitClient);
-			merger = new Merger(gitClient);
-			mergeConflictResolver = new MergeConflictResolver(gitClient);
-			diffConflictResolver = new DiffConflictResolver(gitClient);
+			return new GitClientImpl(repository);
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -150,7 +156,7 @@ public class UpgradeController {
 		try {
 			// First try to get version from pom.xml
 			try {
-				File pomFile = new File("pom.xml");
+				File pomFile = new File(gitClient.getWorkingDir(), "pom.xml");
 				if (pomFile.exists()) {
 					Document doc = DocumentBuilderFactory.newInstance()
 							.newDocumentBuilder()
@@ -175,7 +181,7 @@ public class UpgradeController {
 			}
 
 			// If pom.xml method failed, try README.txt
-			Path readmePath = Paths.get("README.txt");
+			Path readmePath = Paths.get(gitClient.getWorkingDir().getAbsolutePath(), "README.txt");
 			if (Files.exists(readmePath)) {
 				String firstLine;
 				try (Stream<String> lines = Files.lines(readmePath, StandardCharsets.UTF_8)) {
