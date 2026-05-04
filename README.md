@@ -95,6 +95,64 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 
 1. Execute `smc-upgrader --help` to verify the installation.
 
+# Connecting to code.elasticpath.com
+
+`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up authenticated access to that repository over SSH.
+
+Complete these steps once per machine. The first `smc-upgrader` run will fail at the fetch step if any of them is skipped.
+
+## 1. Verify browser access
+
+Open [https://code.elasticpath.com/ep-commerce/ep-commerce](https://code.elasticpath.com/ep-commerce/ep-commerce) and log in.
+
+If you do not have credentials, or your account cannot access the repository, contact Elastic Path Customer Support (access@elasticpath.com) to request access before continuing.
+
+## 2. Generate an SSH key pair
+
+Generate an RSA key with no passphrase:
+
+```shell
+ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa_smc
+```
+
+> **Important:** The key **must be RSA**, not ED25519. `smc-upgrader` uses JGit's built-in SSH client (Apache MINA SSHD), which does not currently support ED25519 keys against `code.elasticpath.com`. ED25519 support is planned for an upcoming release. If you already have an ED25519 key on this machine, you still need to generate a separate RSA key for use with `code.elasticpath.com`.
+>
+> **Important:** The key **must have no passphrase**. JGit cannot decrypt passphrase-protected keys.
+
+## 3. Add the public key to your GitLab account
+
+Copy the contents of `~/.ssh/id_rsa_smc.pub` and add it as a new SSH key on your `code.elasticpath.com` account at [https://code.elasticpath.com/-/user_settings/ssh_keys](https://code.elasticpath.com/-/user_settings/ssh_keys).
+
+## 4. Configure SSH to use the key for code.elasticpath.com
+
+Add the following block to your SSH config file so that this key is used whenever connecting to `code.elasticpath.com`:
+
+```
+Host code.elasticpath.com
+    IdentityFile ~/.ssh/id_rsa_smc
+    IdentitiesOnly yes
+```
+
+The SSH config file is at `~/.ssh/config` on macOS and Linux, and at `%USERPROFILE%\.ssh\config` on Windows. Create the file if it does not exist.
+
+## 5. Add the Git remote
+
+In your codebase, add `code.elasticpath.com` as a remote called `smc-upgrades`:
+
+```shell
+git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
+```
+
+## 6. Verify the connection
+
+Run the following command to confirm that authentication and access are working:
+
+```shell
+git ls-remote smc-upgrades
+```
+
+If this prints a list of branches and tags, setup is complete. If it fails, see [Troubleshooting](#troubleshooting).
+
 # Command Line Options
 
 ```text
@@ -143,11 +201,7 @@ The following sections describe how to use `smc-upgrader` in standard mode (with
 
 ## Setup
 
-Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository as a remote:
-
-```
-git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
-```
+If you have not already done so, follow [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) to set up SSH access and add the `smc-upgrades` Git remote.
 
 ## Upgrading
 
@@ -198,11 +252,7 @@ The following sections describe how to use `smc-upgrader` in AI assist mode (wit
 
 ## Setup
 
-Before running the application for the first time, ensure the Elastic Path Self-Managed Commerce repository has been added to the git repository as a remote:
-
-```shell
-git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
-```
+If you have not already done so, follow [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) to set up SSH access and add the `smc-upgrades` Git remote.
 
 > **Requirement:** AI Assist Mode requires [Claude Code](https://code.claude.com/docs/en/quickstart) to be installed and a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding.
 
@@ -296,7 +346,7 @@ If `smc-upgrader` shows this error, it usually means that your Git repository wa
 Follow these steps to create a common ancestor in your Git repository:
 
 1. Browse to the [`code.elasticpath.com` repository](https://code.elasticpath.com/ep-commerce/ep-commerce/-/commits/main/?ref_type=HEADS) and make note of the SHA of the commit representing your current version of Self-Managed Commerce. For example, the SHA for SMC 8.5 is `08d434d4b7bc577c0b15f3b600dba4e6dc4a63fd`.
-2. Ensure that you have followed the [Setup](#setup) steps and have a terminal window open in your source code folder.
+2. Ensure that you have followed the [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) steps and have a terminal window open in your source code folder.
 3. Create a temporary branch containing the `code.elasticpath.com` release source code. Replace `${SHA}` with the SHA that you identified in step 1.
 
 ```shell
@@ -331,22 +381,29 @@ git branch -D temp-branch
 
 You should only have to do this once; future uses of the tool should work without issue.
 
-### SSH authentication fails during fetch with "No keys found in identity" or "Cannot log in"
+### SSH authentication fails because your key is ED25519
 
-`smc-upgrader` uses JGit for Git operations. JGit's built-in SSH client (Apache MINA SSHD) has the following limitations:
+If your default SSH key is an ED25519 key, the fetch step will fail with output similar to the following:
 
-* SSH keys **must not** have a passphrase - JGit cannot decrypt protected keys.
-
-If you encounter this error, generate an SSH key without a passphrase:
-
-```shell
-ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa_smc
+```text
+WARN : No keys found in identity /Users/your.name/.ssh/id_ed25519
+java.security.InvalidKeyException: No keys found in identity /Users/your.name/.ssh/id_ed25519
+    at org.eclipse.jgit.internal.transport.sshd.CachingKeyPairProvider.loadKey(CachingKeyPairProvider.java:117)
+    ...
+ERROR: Upgrade failed
+java.lang.RuntimeException: org.eclipse.jgit.api.errors.TransportException: git@code.elasticpath.com:ep-commerce/ep-commerce.git: Cannot log in at code.elasticpath.com:22
+    ...
+Caused by: org.apache.sshd.common.SshException: No more authentication methods available
 ```
 
-Add the public key to your GitLab account at `code.elasticpath.com`, and configure SSH to use it for that host by adding the following to `~/.ssh/config`:
+JGit's built-in SSH client (Apache MINA SSHD) does not currently support ED25519 keys against `code.elasticpath.com`. ED25519 support is planned for an upcoming release. In the meantime, generate a separate RSA key and configure SSH to use it for `code.elasticpath.com` only - see [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom).
 
-```
-Host code.elasticpath.com
-    IdentityFile ~/.ssh/id_rsa_smc
-    IdentitiesOnly yes
-```
+### SSH authentication fails with "No keys found in identity" or "Cannot log in"
+
+This usually means one of the prerequisites in [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) is missing or misconfigured. Common causes:
+
+* The SSH key is protected by a passphrase. JGit cannot decrypt protected keys - regenerate the key with `-N ""`.
+* The SSH key is ED25519 rather than RSA. See the previous troubleshooting entry.
+* The public key has not been added to your `code.elasticpath.com` GitLab account.
+* `~/.ssh/config` does not bind the RSA key to `Host code.elasticpath.com`, so SSH is offering a different key.
+* Your account does not have access to the `ep-commerce/ep-commerce` repository. Confirm by opening [https://code.elasticpath.com/ep-commerce/ep-commerce](https://code.elasticpath.com/ep-commerce/ep-commerce) in a browser; if you cannot access it there, contact Elastic Path Customer Support.
