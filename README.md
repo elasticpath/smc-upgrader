@@ -95,19 +95,19 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 
 1. Execute `smc-upgrader --help` to verify the installation.
 
-# Connecting to code.elasticpath.com
+## Connecting to code.elasticpath.com
 
 `smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up authenticated access to that repository over SSH.
 
 Complete these steps once per machine. The first `smc-upgrader` run will fail at the fetch step if any of them is skipped.
 
-## 1. Verify browser access
+### 1. Verify browser access
 
 Open [https://code.elasticpath.com/ep-commerce/ep-commerce](https://code.elasticpath.com/ep-commerce/ep-commerce) and log in.
 
 If you do not have credentials, or your account cannot access the repository, contact Elastic Path Customer Support (access@elasticpath.com) to request access before continuing.
 
-## 2. Generate an SSH key pair
+### 2. Generate an SSH key pair
 
 Generate an RSA key with no passphrase:
 
@@ -119,11 +119,11 @@ ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa_smc
 >
 > **Important:** The key **must have no passphrase**. JGit cannot decrypt passphrase-protected keys.
 
-## 3. Add the public key to your GitLab account
+### 3. Add the public key to your GitLab account
 
 Copy the contents of `~/.ssh/id_rsa_smc.pub` and add it as a new SSH key on your `code.elasticpath.com` account at [https://code.elasticpath.com/-/user_settings/ssh_keys](https://code.elasticpath.com/-/user_settings/ssh_keys).
 
-## 4. Configure SSH to use the key for code.elasticpath.com
+### 4. Configure SSH to use the key for code.elasticpath.com
 
 Add the following block to your SSH config file so that this key is used whenever connecting to `code.elasticpath.com`:
 
@@ -135,7 +135,7 @@ Host code.elasticpath.com
 
 The SSH config file is at `~/.ssh/config` on macOS and Linux, and at `%USERPROFILE%\.ssh\config` on Windows. Create the file if it does not exist.
 
-## 5. Add the Git remote
+### 5. Add the Git remote
 
 In your codebase, add `code.elasticpath.com` as a remote called `smc-upgrades`:
 
@@ -143,7 +143,7 @@ In your codebase, add `code.elasticpath.com` as a remote called `smc-upgrades`:
 git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
 ```
 
-## 6. Verify the connection
+### 6. Verify the connection
 
 Run the following command to confirm that authentication and access are working:
 
