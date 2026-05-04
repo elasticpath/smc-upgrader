@@ -114,7 +114,7 @@ public class GitClientImpl implements GitClient {
 			final Process process = processBuilder.start();
 			final int exitCode = process.waitFor();
 			if (exitCode != 0) {
-				throw new RuntimeException("git fetch " + remoteName + " failed with exit code " + exitCode);
+				throw new LoggableException("git fetch " + remoteName + " failed with exit code " + exitCode);
 			}
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
