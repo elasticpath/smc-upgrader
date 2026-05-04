@@ -10,19 +10,15 @@ public class UpstreamRemoteManager {
 
 	private final GitClient gitClient;
 
-	private final String upstreamRemoteRepositoryUrl;
-
 	private String remoteRepositoryName;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param gitClient                   the Git client
-	 * @param upstreamRemoteRepositoryUrl the URL of the upstream remote repository containing upgrade commits
+	 * @param gitClient the Git client
 	 */
-	public UpstreamRemoteManager(final GitClient gitClient, final String upstreamRemoteRepositoryUrl) {
+	public UpstreamRemoteManager(final GitClient gitClient) {
 		this.gitClient = gitClient;
-		this.upstreamRemoteRepositoryUrl = upstreamRemoteRepositoryUrl;
 	}
 
 	/**
@@ -36,7 +32,7 @@ public class UpstreamRemoteManager {
 		}
 
 		final Optional<String> existingRemoteRepositoryName = gitClient.getRemoteRepositories().stream()
-				.filter(remoteRepository -> remoteRepository.getUrl().contains(upstreamRemoteRepositoryUrl))
+				.filter(remoteRepository -> remoteRepository.getUrl().contains(Constants.UPSTREAM_REPO_URL))
 				.map(RemoteRepository::getName)
 				.findFirst();
 
@@ -45,8 +41,8 @@ public class UpstreamRemoteManager {
 			return remoteRepositoryName;
 		}
 
-		throw new LoggableException("No upstream repository found in git configuration. Please add the remote via the following commands:\n\n"
-				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + upstreamRemoteRepositoryUrl);
+		throw new LoggableException("No upstream repository found in git configuration. Please add the remote via the following command:\n\n"
+				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + Constants.UPSTREAM_REPO_URL);
 	}
 
 	/**

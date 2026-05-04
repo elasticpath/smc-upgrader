@@ -52,16 +52,15 @@ public class UpgradeController {
 	/**
 	 * Constructor.
 	 *
-	 * @param workingDir                  the working directory containing the git repo to be upgraded
-	 * @param upstreamRemoteRepositoryUrl the URL of the upstream repository containing upgrade commits
+	 * @param workingDir the working directory containing the git repo to be upgraded
 	 */
-	public UpgradeController(final File workingDir, final String upstreamRemoteRepositoryUrl) {
-		this(buildGitClient(workingDir), upstreamRemoteRepositoryUrl);
+	public UpgradeController(final File workingDir) {
+		this(buildGitClient(workingDir));
 	}
 
-	UpgradeController(final GitClient gitClient, final String upstreamRemoteRepositoryUrl) {
+	UpgradeController(final GitClient gitClient) {
 		this.gitClient = gitClient;
-		this.upstreamRemoteManager = new UpstreamRemoteManager(gitClient, upstreamRemoteRepositoryUrl);
+		this.upstreamRemoteManager = new UpstreamRemoteManager(gitClient);
 		this.patchReverter = new PatchReverter(gitClient);
 		this.merger = new Merger(gitClient);
 		this.mergeConflictResolver = new MergeConflictResolver(gitClient);

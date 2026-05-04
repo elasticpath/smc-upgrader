@@ -49,11 +49,6 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	)
 	private File workingDir;
 
-	@CommandLine.Option(names = { "-u", "--upstream-repository-url" },
-			description = "The URL of the upstream repository containing upgrade commits.",
-			defaultValue = Constants.DEFAULT_UPSTREAM_REPO_URL)
-	private String upstreamRemoteRepositoryUrl;
-
 	@CommandLine.Option(names = { "-v", "--verbose" },
 			description = "Enables debug logging.",
 			defaultValue = "false")
@@ -122,7 +117,7 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 				return 1;
 			}
 
-			final UpgradeController upgradeController = new UpgradeController(workingDir, upstreamRemoteRepositoryUrl);
+			final UpgradeController upgradeController = new UpgradeController(workingDir);
 
 			// Handle AI assist modes
 			if (aiStart) {

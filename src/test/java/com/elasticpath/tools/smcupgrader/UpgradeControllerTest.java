@@ -3,7 +3,6 @@ package com.elasticpath.tools.smcupgrader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -34,7 +33,7 @@ class UpgradeControllerTest {
 	@BeforeEach
 	public void setUp() {
 		lenient().when(gitClient.getWorkingDir()).thenReturn(repoDir);
-		upgradeController = new UpgradeController(gitClient, "git@example.com/upstream.git");
+		upgradeController = new UpgradeController(gitClient);
 	}
 
 	@Test
