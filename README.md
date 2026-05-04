@@ -97,7 +97,7 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 
 ## Connecting to code.elasticpath.com
 
-`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up a Git remote with access to that repository.
+`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up authenticated access to that repository over SSH.
 
 Complete these steps once per machine. The first `smc-upgrader` run will fail at the fetch step if any of them is skipped.
 
