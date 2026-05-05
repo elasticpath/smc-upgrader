@@ -31,7 +31,11 @@ public enum ToolTypeEnum {
 
 	/** Step that only runs a validation command. */
 	@SerializedName("validation-only")
-	VALIDATION_ONLY("validation-only");
+	VALIDATION_ONLY("validation-only"),
+
+	/** Step that runs ast-grep recipes for deterministic code transformations. */
+	@SerializedName("ast-grep")
+	AST_GREP("ast-grep");
 
 	private final String value;
 

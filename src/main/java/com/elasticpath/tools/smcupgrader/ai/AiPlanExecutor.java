@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -33,8 +34,10 @@ import org.slf4j.LoggerFactory;
 import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
+import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
+import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
 import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
@@ -400,6 +403,8 @@ public class AiPlanExecutor {
 				return executeClaudeStep(step, skipPermissions);
 			case VALIDATION_ONLY:
 				return executeValidationOnlyStep(step);
+			case AST_GREP:
+				return executeAstGrepStep(step);
 			default:
 				LOGGER.error("Unknown tool: {}", toolType);
 				return false;
@@ -509,6 +514,38 @@ public class AiPlanExecutor {
 			LOGGER.warn("Validation failed. Step not marked as complete.");
 			LOGGER.warn("Please resolve the issue and run 'smc-upgrader --ai:continue' again.");
 			return false;
+		}
+	}
+
+	/**
+	 * Execute an ast-grep recipe step. Delegates to {@link AstGrepExecutor}.
+	 *
+	 * @param step the step to execute
+	 * @return true if recipes ran successfully (or no recipes found), false on failure
+	 * @throws IOException if an error occurs
+	 */
+	private boolean executeAstGrepStep(final AiPlanStep step) throws IOException {
+		String version = step.getVersion();
+		if (version == null || version.trim().isEmpty()) {
+			LOGGER.warn("No version specified for ast-grep step.");
+			return false;
+		}
+
+		return createAstGrepExecutor().run(version);
+	}
+
+	/**
+	 * Create an AstGrepExecutor instance. Overridable for testing.
+	 *
+	 * @return the AstGrepExecutor
+	 */
+	protected AstGrepExecutor createAstGrepExecutor() {
+		try {
+			AiAssistConfigModel config = AiAssistConfigModel.loadFromResource();
+			return new AstGrepExecutor(workingDir, config.getVersions());
+		} catch (IOException e) {
+			LOGGER.warn("Could not load config for version ordering. Using empty version list.");
+			return new AstGrepExecutor(workingDir, new ArrayList<>());
 		}
 	}
 

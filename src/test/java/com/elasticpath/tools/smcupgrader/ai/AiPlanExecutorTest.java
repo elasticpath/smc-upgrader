@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.elasticpath.tools.smcupgrader.GitClient;
+import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
 import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
@@ -65,11 +67,21 @@ class AiPlanExecutorTest {
 		when(claudeInvoker.isClaudeCodeAvailable()).thenReturn(false);
 		when(claudeInvoker.invokeClaudeCode(anyString())).thenReturn(false);
 
-		// Create executor with overridden createClaudeCodeInvoker to use mock
+		// Create executor with overridden methods to use mocks and prevent real process execution
 		executor = new AiPlanExecutor(tempDir, gitClient) {
 			@Override
 			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
 				return claudeInvoker;
+			}
+
+			@Override
+			protected AstGrepExecutor createAstGrepExecutor() {
+				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
+					@Override
+					protected boolean isSgAvailable() {
+						return false;
+					}
+				};
 			}
 		};
 	}
@@ -443,6 +455,77 @@ class AiPlanExecutorTest {
 		// Since we're using a mock GitClient in the executor, we can verify
 		// by checking the commit count in the mock's history.
 		// For now, we verify that the step completes successfully without errors.
+	}
+
+	@Test
+	void testExecuteNextStep_astGrepStep_noVersion() throws IOException {
+		// ast-grep step with no version should fail gracefully
+		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
+		step.setCommitAllChangesOnCompletion(false);
+
+		writePlanFile(Collections.singletonList(step));
+
+		boolean result = executor.executeNextStep();
+
+		assertThat(result).isTrue();
+
+		// Verify step was NOT completed (no version → error)
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
+	}
+
+	@Test
+	void testExecuteNextStep_astGrepStep_sgNotAvailable() throws IOException {
+		// ast-grep step without sg on PATH should NOT auto-complete -
+		// stays in progress so user can install sg and re-run, or [M]ark complete to skip.
+		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
+		step.setVersion("8.7.x");
+		step.setCommitAllChangesOnCompletion(false); // avoid the completion prompt
+
+		writePlanFile(Collections.singletonList(step));
+
+		boolean result = executor.executeNextStep();
+
+		assertThat(result).isTrue();
+
+		// Step should remain in progress (sg not available → user must decide)
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
+	}
+
+	@Test
+	void testExecuteNextStep_astGrepStep_noRecipesDir() throws IOException {
+		// ast-grep step with sg available but no upgrade/recipes/ dir should skip gracefully
+		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
+		step.setVersion("8.7.x");
+
+		writePlanFile(Collections.singletonList(step));
+
+		// Create executor where isSgAvailable() returns true (unlike default test executor)
+		AiPlanExecutor sgAvailableExecutor = new AiPlanExecutor(tempDir, gitClient) {
+			@Override
+			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
+				return claudeInvoker;
+			}
+
+			@Override
+			protected AstGrepExecutor createAstGrepExecutor() {
+				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
+					@Override
+					protected boolean isSgAvailable() {
+						return true;
+					}
+				};
+			}
+		};
+
+		boolean result = sgAvailableExecutor.executeNextStep();
+
+		assertThat(result).isTrue();
+
+		// Step should be marked complete (no recipes dir → graceful skip)
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
 	}
 
 	@Test

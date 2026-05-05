@@ -248,6 +248,12 @@ If you have not already done so, follow [Connecting to code.elasticpath.com](#co
 
 > **Requirement:** AI Assist Mode requires [Claude Code](https://code.claude.com/docs/en/quickstart) to be installed and a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding.
 
+### Optional: ast-grep
+
+AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before Claude resolves compilation errors. This significantly reduces the number of issues Claude needs to address.
+
+To install, see the [ast-grep installation guide](https://ast-grep.github.io/guide/quick-start.html).
+
 ## AI Assist Start
 
 AI Assist Mode can be used to help with version upgrades or to consume all the latest patches for your current version. The tool generates a plan containing all required steps, which are executed one at a time. Steps cover the full upgrade workflow, including:
