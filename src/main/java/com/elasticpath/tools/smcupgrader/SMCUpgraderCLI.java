@@ -34,7 +34,7 @@ import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 /**
  * The main SMC Upgrader class.
  */
-@CommandLine.Command(name = "smc-upgrader", mixinStandardHelpOptions = true, version = "smc-upgrader 1.0",
+@CommandLine.Command(name = "smc-upgrader", mixinStandardHelpOptions = true, versionProvider = ManifestVersionProvider.class,
 		description = "Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.")
 public class SMCUpgraderCLI implements Callable<Integer> {
 
