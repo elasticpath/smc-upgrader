@@ -26,6 +26,6 @@ public class ManifestVersionProvider implements CommandLine.IVersionProvider {
 				properties.load(input);
 			}
 		}
-		return new String[] { "smc-upgrader " + properties.getProperty(VERSION_KEY, UNKNOWN_VERSION) };
+		return new String[]{"smc-upgrader " + properties.getProperty(VERSION_KEY, UNKNOWN_VERSION)};
 	}
 }
