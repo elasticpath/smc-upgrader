@@ -189,7 +189,7 @@ class AiPlanGeneratorTest {
 				new VersionEntry("8.6.x", ""),
 				new VersionEntry("8.7.x", "")
 		);
-		AiPlanStep filteredStep = createStep("Jakarta Migration for {TO_VERSION}", "claude", null);
+		AiPlanStep filteredStep = createStep("Version-specific step for {TO_VERSION}", "claude", null);
 		filteredStep.setVersionFilter("8.7.x");
 
 		List<AiPlanStep> stepsWithFilter = Arrays.asList(
@@ -208,7 +208,7 @@ class AiPlanGeneratorTest {
 
 		// Should have:
 		// - 8.5.x -> 8.6.x: 1 step (Git merge only, filtered step excluded because toVersion is 8.6.x)
-		// - 8.6.x -> 8.7.x: 2 steps (Git merge + Jakarta Migration because toVersion is 8.7.x)
+		// - 8.6.x -> 8.7.x: 2 steps (Git merge + version-specific step because toVersion is 8.7.x)
 		assertThat(steps).hasSize(3);
 
 		// Check first transition (8.5.x -> 8.6.x) - only merge step
@@ -216,7 +216,7 @@ class AiPlanGeneratorTest {
 
 		// Check second transition (8.6.x -> 8.7.x) - both steps included
 		assertThat(steps.get(1).getTitle()).isEqualTo("Git merge from 8.6.x to 8.7.x");
-		assertThat(steps.get(2).getTitle()).isEqualTo("Jakarta Migration for 8.7.x");
+		assertThat(steps.get(2).getTitle()).isEqualTo("Version-specific step for 8.7.x");
 	}
 
 	@Test
