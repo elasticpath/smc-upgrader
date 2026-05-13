@@ -212,9 +212,36 @@
       "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 10 minutes to execute. {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
-      "title": "Resolve Cucumber test failures",
+      "title": "Resolve Cortex Cucumber test failures",
       "tool": "claude",
-      "validationCommand": "mvn verify -pl :cortex-cucumber-tests,:cortex-cucumber-oidc-tests,:http-mock-server-system-tests-cucumber,:integration-cucumber-tests",
+      "validationCommand": "mvn verify -pl :cortex-cucumber-tests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve Cortex OIDC Cucumber test failures",
+      "tool": "claude",
+      "validationCommand": "mvn verify -pl :cortex-cucumber-oidc-tests",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve HTTP Mock Server Cucumber test failures",
+      "tool": "claude",
+      "validationCommand": "mvn verify -pl :http-mock-server-system-tests-cucumber",
+      "commitAllChangesOnCompletion": true,
+      "commitPlanOnCompletion": true,
+      "allowManualValidation": false,
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+    },
+    {
+      "title": "Resolve Integration Cucumber test failures",
+      "tool": "claude",
+      "validationCommand": "mvn verify -pl :integration-cucumber-tests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
