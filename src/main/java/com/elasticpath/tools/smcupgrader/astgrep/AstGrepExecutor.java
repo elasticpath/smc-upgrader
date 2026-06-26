@@ -42,8 +42,8 @@ public class AstGrepExecutor {
 	 * @throws IOException if an I/O error occurs
 	 */
 	public boolean run(final String version) throws IOException {
-		if (!isSgAvailable()) {
-			LOGGER.warn("ast-grep (sg) is not available on PATH.");
+		if (!isAstGrepAvailable()) {
+			LOGGER.warn("ast-grep is not available on PATH.");
 			LOGGER.warn("Automated upgrade recipes for XML/Java will be skipped.");
 			LOGGER.warn("");
 			LOGGER.warn("To install ast-grep, see: https://ast-grep.github.io/guide/quick-start.html");
@@ -67,13 +67,13 @@ public class AstGrepExecutor {
 
 		LOGGER.info("Found {} applicable recipe(s) for {}.", recipeFiles.size(), version);
 
-		String sgConfig = resolveSgConfig();
+		String astGrepConfig = resolveAstGrepConfig();
 
 		try {
 			int failCount = 0;
 			for (Path recipeFile : recipeFiles) {
 				LOGGER.info("Applying recipe: {}", recipeFile.getFileName());
-				int exitCode = runRecipe(recipeFile, sgConfig);
+				int exitCode = runRecipe(recipeFile, astGrepConfig);
 				if (exitCode != 0) {
 					LOGGER.warn("Recipe {} failed (exit code {}).", recipeFile.getFileName(), exitCode);
 					failCount++;
@@ -94,13 +94,13 @@ public class AstGrepExecutor {
 	}
 
 	/**
-	 * Check whether the {@code sg} binary is available on PATH.
+	 * Check whether the {@code ast-grep} binary is available on PATH.
 	 *
-	 * @return true if sg is available
+	 * @return true if ast-grep is available
 	 */
-	protected boolean isSgAvailable() {
+	protected boolean isAstGrepAvailable() {
 		try {
-			int exitCode = new ProcessBuilder("sg", "--version")
+			int exitCode = new ProcessBuilder("ast-grep", "--version")
 					.redirectErrorStream(true)
 					.start()
 					.waitFor();
@@ -165,7 +165,7 @@ public class AstGrepExecutor {
 	 *
 	 * @return the resolved config path, or null if none available
 	 */
-	private String resolveSgConfig() {
+	private String resolveAstGrepConfig() {
 		Platform platform = Platform.detect();
 		if (platform == null) {
 			LOGGER.warn("Unsupported platform: {}. XML recipes may not work.", System.getProperty("os.name"));
@@ -178,18 +178,18 @@ public class AstGrepExecutor {
 			return null;
 		}
 
-		File sgConfig = new File(installDir, "native/" + platform.nativeDir() + "/sgconfig.yml");
-		if (!sgConfig.isFile()) {
-			LOGGER.warn("sg config not found at: {}", sgConfig.getAbsolutePath());
+		File astGrepConfig = new File(installDir, "native/" + platform.nativeDir() + "/sgconfig.yml");
+		if (!astGrepConfig.isFile()) {
+			LOGGER.warn("ast-grep config not found at: {}", astGrepConfig.getAbsolutePath());
 			return null;
 		}
 
 		if (platform == Platform.MAC) {
-			clearQuarantineFlag(new File(sgConfig.getParentFile(), platform.getLibraryFile()));
+			clearQuarantineFlag(new File(astGrepConfig.getParentFile(), platform.getLibraryFile()));
 		}
 
 		LOGGER.info("Tree-sitter XML support ready.");
-		return sgConfig.getAbsolutePath();
+		return astGrepConfig.getAbsolutePath();
 	}
 
 	enum Platform {
@@ -259,20 +259,20 @@ public class AstGrepExecutor {
 	}
 
 	/**
-	 * Run {@code sg scan} for a single recipe file.
+	 * Run {@code ast-grep scan} for a single recipe file.
 	 *
 	 * @param recipeFile the recipe file
-	 * @param sgConfig path to sgconfig.yml, or null if not available
+	 * @param astGrepConfig path to sgconfig.yml, or null if not available
 	 * @return the process exit code
 	 * @throws IOException          if an I/O error occurs
 	 * @throws InterruptedException if the process is interrupted
 	 */
-	int runRecipe(final Path recipeFile, final String sgConfig) throws IOException, InterruptedException {
-		List<String> cmd = new ArrayList<>(Arrays.asList("sg", "scan"));
+	int runRecipe(final Path recipeFile, final String astGrepConfig) throws IOException, InterruptedException {
+		List<String> cmd = new ArrayList<>(Arrays.asList("ast-grep", "scan"));
 
-		if (sgConfig != null) {
+		if (astGrepConfig != null) {
 			cmd.add("--config");
-			cmd.add(sgConfig);
+			cmd.add(astGrepConfig);
 		}
 
 		cmd.addAll(Arrays.asList(

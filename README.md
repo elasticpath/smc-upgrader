@@ -18,6 +18,10 @@ The following section describes how to install and build `smc-upgrader`.
 
 To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 8 JRE or later).
 
+Optionally, you can install [ast-grep](https://ast-grep.github.io/). AI Assist Mode includes an automated recipe step that applies deterministic code transformations via ast-grep before Claude resolves compilation errors, which significantly reduces the number of issues Claude needs to address. Installation instructions are included in the Homebrew and binary installation sections below.
+
+ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means Claude resolves more compilation issues manually instead of having them fixed deterministically up front.
+
 ## Homebrew installation
 
 1. Tap the `smc-upgrader`'s formula repository:
@@ -35,6 +39,12 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
 1. Validate the installation by checking the version:
     ```
     smc-upgrader --help
+    ```
+
+1. Optional: install `ast-grep` for AI Assist Mode (see [Prerequisites](#prerequisites)):
+
+    ```
+    brew install ast-grep
     ```
 
 ## Binary Installation
@@ -65,6 +75,16 @@ To successfully install and use `smc-upgrader`, you will need the `java` command
     ```
 
 1. Execute `smc-upgrader --help` to verify the installation.
+
+1. Optional: install `ast-grep` for AI Assist Mode (see [Prerequisites](#prerequisites)). You can install it using either npm or pip:
+
+    ```
+    npm install --global @ast-grep/cli
+    ```
+
+    ```
+    pip install ast-grep-cli
+    ```
 
 ## Build from source
 
@@ -298,12 +318,6 @@ For example, to drive GitHub Copilot CLI:
 With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'`.
 
 > **Note:** The plan step prompts are authored and tuned for Claude Code. If you configure a different CLI LLM, the default prompts may not yield effective or optimal results, so you will likely need to customize the plan steps after generation. See [AI Assist Start](#ai-assist-start) for how to review and edit the generated `smc-upgrader-plan.md`.
-
-### Optional: ast-grep
-
-AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before the LLM resolves compilation errors. This significantly reduces the number of issues the LLM needs to address.
-
-To install, see the [ast-grep installation guide](https://ast-grep.github.io/guide/quick-start.html).
 
 ## AI Assist Start
 
