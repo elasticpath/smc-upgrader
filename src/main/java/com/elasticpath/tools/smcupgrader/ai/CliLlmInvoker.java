@@ -65,9 +65,6 @@ public class CliLlmInvoker {
 			return false;
 		}
 
-		// Check if we have console access
-		boolean hasConsole = System.console() != null;
-		LOGGER.debug("System console available: {}", hasConsole);
 		LOGGER.debug("Executing LLM with prompt: {}", prompt.substring(0, Math.min(PROMPT_MAX_DISPLAY_LENGTH, prompt.length())) + "...");
 
 		LOGGER.info("Executing the configured CLI LLM with prompt...");
