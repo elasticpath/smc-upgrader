@@ -1,10 +1,7 @@
 package com.elasticpath.tools.smcupgrader.ai;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,28 +149,4 @@ public class CliLlmInvoker {
 			return false;
 		}
 	}
-
-	/**
-	 * Get the version of the configured CLI LLM executable.
-	 *
-	 * @return the version string, or null if unavailable
-	 */
-	public String getVersion() {
-		try {
-			Process process = new ProcessBuilder(config.resolveAvailabilityTarget(), "--version")
-					.redirectErrorStream(true)
-					.start();
-
-			try (BufferedReader reader = new BufferedReader(
-					new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-				String version = reader.readLine();
-				process.waitFor();
-				return version;
-			}
-		} catch (IOException | InterruptedException e) {
-			LOGGER.debug("Error getting CLI LLM version", e);
-			return null;
-		}
-	}
-
 }

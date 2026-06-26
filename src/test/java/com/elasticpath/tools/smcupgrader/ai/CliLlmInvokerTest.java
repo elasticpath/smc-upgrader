@@ -87,12 +87,4 @@ class CliLlmInvokerTest {
 		boolean available = invoker.isLlmAvailable();
 		assertThat(available).isIn(true, false);
 	}
-
-	@Test
-	void testGetVersion() {
-		// This test will return a version or null depending on installation.
-		// We can't make strong assertions, but we can verify the method doesn't crash.
-		String version = invoker.getVersion();
-		assertThat(version == null || version.length() > 0).isTrue();
-	}
 }
