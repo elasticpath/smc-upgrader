@@ -239,11 +239,11 @@ smc-upgrader --no-merge 8.5.x
 
 The following sections describe how to use `smc-upgrader` in AI assist mode (with the `--ai` flags).
 
-> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide Claude Code throughout the upgrade and carefully review all changes it makes. Claude can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
+> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide the LLM throughout the upgrade and carefully review all changes it makes. Claude can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
 >
 > AI Assist Mode works best when the codebase has extensive automated regression tests that cover all custom functionality. These tests are the primary mechanism for detecting mistakes. If comprehensive test coverage is not present, AI Assist Mode may not be able to complete the upgrade successfully, and manual review effort will increase significantly.
 >
-> **Note on usage fees:** Claude Code usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant Claude API charges. Review [Anthropic's pricing](https://www.anthropic.com/pricing) before proceeding.
+> **Note on usage fees:** For most LLM CLI tools, usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant billing charges.
 
 ## Setup
 
@@ -299,7 +299,7 @@ With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'
 
 ### Optional: ast-grep
 
-AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before Claude resolves compilation errors. This significantly reduces the number of issues Claude needs to address.
+AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before the LLM resolves compilation errors. This significantly reduces the number of issues the LLM needs to address.
 
 To install, see the [ast-grep installation guide](https://ast-grep.github.io/guide/quick-start.html).
 
@@ -345,7 +345,7 @@ The tool will read the upgrade plan from `smc-upgrader-plan.md` and check to see
 
 ```text
 INFO : Next step: Resolve all unit test failures
-INFO :   Tool: claude
+INFO :   Tool: llm
 INFO :   Validation command: mvn clean install -DskipITests -DskipCucumberTests -T0.75C
 INFO :
 INFO : What would you like to do?
@@ -355,21 +355,23 @@ INFO :   [M] Mark this step as complete
 INFO :   [X] Exit
 ```
 
-If you choose `E`, then Claude Code will be executed again with the prompt specified in the plan.
+If you choose `E`, then the LLM will be executed again with the prompt specified in the plan.
 If you choose `V`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
 If you choose `M`, the step will be marked as `complete`, and the tool will exit.
 If you choose `X`, the tool will just exit without doing anything else.
 
 If there are no steps `in progress`, the tool will find the first `not started` step, change it to `in progress`, and execute the step automatically.
 
-By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, Claude Code will be invoked with the prompt from the plan.
+By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, the LLM CLI will be invoked with the prompt from the plan.
 
-You can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
+:::note
+If your LLM CLI is Claude Code, you can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
+:::
 
-When Claude Code exits, you will be prompted to decide what you want to do:
+When the LLM CLI exits, you will be prompted to decide what you want to do:
 
 ```text
-INFO : Claude Code completed successfully.
+INFO : The LLM CLI completed successfully.
 INFO :
 INFO : Was this step successfully completed?
 INFO :   [Y/M] Mark this step as complete

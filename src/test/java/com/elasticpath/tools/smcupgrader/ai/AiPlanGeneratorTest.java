@@ -70,7 +70,7 @@ class AiPlanGeneratorTest {
 		);
 		List<AiPlanStep> steps = Arrays.asList(
 				createStep("Git merge from {FROM_VERSION} to {TO_VERSION}", "smc-upgrader", null),
-				createStep("Resolve {TO_VERSION} merge conflicts", "claude", "git diff --check")
+				createStep("Resolve {TO_VERSION} merge conflicts", "llm", "git diff --check")
 		);
 		upgradePath = new AiAssistConfigModel(versions, "", "", steps);
 
@@ -112,7 +112,7 @@ class AiPlanGeneratorTest {
 		assertThat(content).contains("## Git merge from 8.5.x to 8.6.x");
 		assertThat(content).contains("## Resolve 8.6.x merge conflicts");
 		assertThat(content).contains("Tool: smc-upgrader");
-		assertThat(content).contains("Tool: claude");
+		assertThat(content).contains("Tool: llm");
 	}
 
 	@Test
@@ -189,7 +189,7 @@ class AiPlanGeneratorTest {
 				new VersionEntry("8.6.x", ""),
 				new VersionEntry("8.7.x", "")
 		);
-		AiPlanStep filteredStep = createStep("Version-specific step for {TO_VERSION}", "claude", null);
+		AiPlanStep filteredStep = createStep("Version-specific step for {TO_VERSION}", "llm", null);
 		filteredStep.setVersionFilter("8.7.x");
 
 		List<AiPlanStep> stepsWithFilter = Arrays.asList(
@@ -222,7 +222,7 @@ class AiPlanGeneratorTest {
 	@Test
 	void testExpandStepsForVersions_withVersionFilter_greaterThan() {
 		// filter ">8.6.x" should include steps for 8.7.x and 8.8.x transitions, but not 8.6.x
-		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "llm", null);
 		filteredStep.setVersionFilter(">8.6.x");
 
 		AiAssistConfigModel config = new AiAssistConfigModel(
@@ -254,7 +254,7 @@ class AiPlanGeneratorTest {
 	@Test
 	void testExpandStepsForVersions_withVersionFilter_lessThan() {
 		// filter "<8.7.x" should include steps for 8.6.x transition only
-		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "llm", null);
 		filteredStep.setVersionFilter("<8.7.x");
 
 		AiAssistConfigModel config = new AiAssistConfigModel(
@@ -285,7 +285,7 @@ class AiPlanGeneratorTest {
 	@Test
 	void testExpandStepsForVersions_withVersionFilter_greaterThanOrEqual() {
 		// filter ">=8.7.x" should include steps for 8.7.x and 8.8.x transitions, but not 8.6.x
-		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "llm", null);
 		filteredStep.setVersionFilter(">=8.7.x");
 
 		AiAssistConfigModel config = new AiAssistConfigModel(
@@ -317,7 +317,7 @@ class AiPlanGeneratorTest {
 	@Test
 	void testExpandStepsForVersions_withVersionFilter_lessThanOrEqual() {
 		// filter "<=8.7.x" should include steps for 8.6.x and 8.7.x transitions, but not 8.8.x
-		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "claude", null);
+		AiPlanStep filteredStep = createStep("Special step for {TO_VERSION}", "llm", null);
 		filteredStep.setVersionFilter("<=8.7.x");
 
 		AiAssistConfigModel config = new AiAssistConfigModel(
@@ -484,7 +484,7 @@ class AiPlanGeneratorTest {
 		step.setTool(ToolTypeEnum.fromString(tool));
 		step.setStatus(StatusEnum.NOT_STARTED);
 		step.setValidationCommand(validationCommand);
-		if ("claude".equals(tool)) {
+		if ("llm".equals(tool)) {
 			step.setPrompt("Test prompt for {FROM_VERSION} to {TO_VERSION}");
 		}
 		return step;

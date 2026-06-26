@@ -76,7 +76,7 @@ public class AiPlanGenerator {
 	 *
 	 * @param targetVersion   the target version to upgrade to
 	 * @param workingDir      the working directory
-	 * @param skipPermissions whether to skip permission prompts when invoking Claude
+	 * @param skipPermissions whether to skip permission prompts when invoking the CLI LLM
 	 * @return true if plan was generated, false if user cancelled
 	 * @throws IOException if an error occurs
 	 */

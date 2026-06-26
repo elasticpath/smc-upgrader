@@ -130,7 +130,7 @@ public final class MarkdownParser {
 				// Try to parse metadata
 				if (!parseMetadata(paragraphText, currentStep, plan)) {
 					if (currentStep != null && currentStep.getTool() != null && promptBuilder != null) {
-						// This is part of the prompt for claude steps
+						// This is part of the prompt for LLM steps
 						if (promptBuilder.length() > 0) {
 							promptBuilder.append("\n\n");
 						}

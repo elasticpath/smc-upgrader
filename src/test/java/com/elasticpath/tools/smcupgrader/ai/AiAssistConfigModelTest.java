@@ -159,7 +159,7 @@ class AiAssistConfigModelTest {
 
 		assertThat(steps).isNotEmpty();
 		assertThat(steps).anyMatch(step -> ToolTypeEnum.SMC_UPGRADER.equals(step.getTool()));
-		assertThat(steps).anyMatch(step -> ToolTypeEnum.CLAUDE.equals(step.getTool()));
+		assertThat(steps).anyMatch(step -> ToolTypeEnum.LLM.equals(step.getTool()));
 	}
 
 	/**

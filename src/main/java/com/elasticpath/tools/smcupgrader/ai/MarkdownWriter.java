@@ -104,8 +104,8 @@ public final class MarkdownWriter {
 		markdown.append("Commit plan on completion: ").append(step.isCommitPlanOnCompletion()).append("\n");
 		markdown.append("Status: ").append(step.getStatus() != null ? step.getStatus().getValue() : "").append("\n\n");
 
-		// Prompt for claude steps
-		if (step.getTool() == ToolTypeEnum.CLAUDE && step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {
+		// Prompt for LLM steps
+		if (step.getTool() == ToolTypeEnum.LLM && step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {
 			markdown.append(step.getPrompt()).append("\n\n");
 		}
 	}

@@ -389,7 +389,7 @@ public class AiPlanExecutor {
 	 * Execute a step based on its tool type.
 	 *
 	 * @param step            the step to execute
-	 * @param skipPermissions whether to skip permission prompts for Claude
+	 * @param skipPermissions whether to skip permission prompts for the CLI LLM
 	 * @return true if the step was completed successfully
 	 * @throws IOException if an error occurs
 	 */
@@ -403,8 +403,8 @@ public class AiPlanExecutor {
 		switch (toolType) {
 			case SMC_UPGRADER:
 				return executeSmcUpgraderStep(step);
-			case CLAUDE:
-				return executeClaudeStep(step, skipPermissions);
+			case LLM:
+				return executeLlmStep(step, skipPermissions);
 			case VALIDATION_ONLY:
 				return executeValidationOnlyStep(step);
 			case AST_GREP:
@@ -494,7 +494,7 @@ public class AiPlanExecutor {
 	}
 
 	/**
-	 * Execute a validation-only step. This simply runs the validation command without invoking Claude.
+	 * Execute a validation-only step. This simply runs the validation command without invoking the CLI LLM.
 	 *
 	 * @param step the step to execute
 	 * @return true if validation passes, false otherwise
@@ -554,14 +554,14 @@ public class AiPlanExecutor {
 	}
 
 	/**
-	 * Execute a Claude step.
+	 * Execute an LLM step.
 	 *
 	 * @param step the step to execute
-	 * @param skipPermissions indicates if Claude should be executed with the skip permissions parameter
-	 * @return false (Claude steps are never auto-completed, even on success)
+	 * @param skipPermissions indicates if the CLI LLM should be executed with the skip permissions parameter
+	 * @return false (LLM steps are never auto-completed, even on success)
 	 * @throws IOException if an error occurs
 	 */
-	private boolean executeClaudeStep(final AiPlanStep step, final boolean skipPermissions) throws IOException {
+	private boolean executeLlmStep(final AiPlanStep step, final boolean skipPermissions) throws IOException {
 		LOGGER.info("This step requires assistance from the configured CLI LLM.");
 		LOGGER.info("");
 

@@ -86,11 +86,11 @@ class MarkdownParserTest {
 	}
 
 	@Test
-	void testParsePlan_claudeStepWithPrompt() {
+	void testParsePlan_llmStepWithPrompt() {
 		String markdown = "# SMC Upgrader - AI Assist Plan\n\n"
 				+ "## Resolve merge conflicts\n\n"
 				+ "Task: Resolve conflicts  \n"
-				+ "Tool: claude  \n"
+				+ "Tool: llm  \n"
 				+ "Status: incomplete\n\n"
 				+ "Please resolve all merge conflicts in the codebase.\n\n"
 				+ "Focus on maintaining compatibility with existing code.\n\n";
@@ -100,7 +100,7 @@ class MarkdownParserTest {
 		assertThat(plan.getSteps()).hasSize(1);
 		AiPlanStep step = plan.getSteps().get(0);
 		assertThat(step.getTitle()).isEqualTo("Resolve merge conflicts");
-		assertThat(step.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
+		assertThat(step.getTool()).isEqualTo(ToolTypeEnum.LLM);
 		assertThat(step.getPrompt()).contains("Please resolve all merge conflicts");
 		assertThat(step.getPrompt()).contains("Focus on maintaining compatibility");
 	}
@@ -117,7 +117,7 @@ class MarkdownParserTest {
 				+ "Status: complete\n\n"
 				+ "## Step 2\n\n"
 				+ "Task: Task 2  \n"
-				+ "Tool: claude  \n"
+				+ "Tool: llm  \n"
 				+ "Status: incomplete\n\n"
 				+ "Prompt for step 2\n\n"
 				+ "## Step 3\n\n"
@@ -182,7 +182,7 @@ class MarkdownParserTest {
 
 		AiPlanStep step2 = new AiPlanStep();
 		step2.setTitle("Resolve conflicts");
-		step2.setTool(ToolTypeEnum.CLAUDE);
+		step2.setTool(ToolTypeEnum.LLM);
 		step2.setValidationCommand("git diff --check");
 		step2.setStatus(StatusEnum.NOT_STARTED);
 		step2.setPrompt("Please resolve merge conflicts");
@@ -204,7 +204,7 @@ class MarkdownParserTest {
 
 		AiPlanStep parsedStep2 = plan.getSteps().get(1);
 		assertThat(parsedStep2.getTitle()).isEqualTo("Resolve conflicts");
-		assertThat(parsedStep2.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
+		assertThat(parsedStep2.getTool()).isEqualTo(ToolTypeEnum.LLM);
 		assertThat(parsedStep2.getValidationCommand()).isEqualTo("git diff --check");
 		assertThat(parsedStep2.getStatus()).isEqualTo(StatusEnum.NOT_STARTED);
 		assertThat(parsedStep2.getPrompt()).isEqualTo("Please resolve merge conflicts");
@@ -249,7 +249,7 @@ class MarkdownParserTest {
 
 		AiPlanStep step2 = new AiPlanStep();
 		step2.setTitle("Final check for unit test and static analysis failures");
-		step2.setTool(ToolTypeEnum.CLAUDE);
+		step2.setTool(ToolTypeEnum.LLM);
 		step2.setVersion("8.6.x");
 		step2.setValidationCommand("mvn clean install -DskipITests -DskipCucumberTests");
 		step2.setStatus(StatusEnum.NOT_STARTED);
@@ -265,7 +265,7 @@ class MarkdownParserTest {
 		assertThat(plan.getSteps()).hasSize(2);
 		AiPlanStep parsedLastStep = plan.getSteps().get(1);
 		assertThat(parsedLastStep.getTitle()).isEqualTo("Final check for unit test and static analysis failures");
-		assertThat(parsedLastStep.getTool()).isEqualTo(ToolTypeEnum.CLAUDE);
+		assertThat(parsedLastStep.getTool()).isEqualTo(ToolTypeEnum.LLM);
 		assertThat(parsedLastStep.getPrompt()).isEqualTo(longPrompt);
 	}
 }

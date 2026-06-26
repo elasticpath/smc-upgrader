@@ -15,6 +15,9 @@
 
 package com.elasticpath.tools.smcupgrader.ai.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -25,9 +28,9 @@ public enum ToolTypeEnum {
 	@SerializedName("smc-upgrader")
 	SMC_UPGRADER("smc-upgrader"),
 
-	/** Step executed by Claude Code CLI. */
-	@SerializedName("claude")
-	CLAUDE("claude"),
+	/** Step executed by the configured CLI LLM (Claude Code by default). The legacy "claude" value is accepted as an alias. */
+	@SerializedName(value = "llm", alternate = {"claude"})
+	LLM("llm", "claude"),
 
 	/** Step that only runs a validation command. */
 	@SerializedName("validation-only")
@@ -38,9 +41,11 @@ public enum ToolTypeEnum {
 	AST_GREP("ast-grep");
 
 	private final String value;
+	private final List<String> aliases;
 
-	ToolTypeEnum(final String value) {
+	ToolTypeEnum(final String value, final String... aliases) {
 		this.value = value;
+		this.aliases = Arrays.asList(aliases);
 	}
 
 	/**
@@ -53,7 +58,7 @@ public enum ToolTypeEnum {
 	}
 
 	/**
-	 * Parse a string value into a ToolTypeEnum.
+	 * Parse a string value into a ToolTypeEnum, accepting both the primary value and any legacy aliases.
 	 *
 	 * @param value the string value
 	 * @return the corresponding enum, or null if not recognized
@@ -65,6 +70,11 @@ public enum ToolTypeEnum {
 		for (ToolTypeEnum type : values()) {
 			if (type.value.equalsIgnoreCase(value)) {
 				return type;
+			}
+			for (String alias : type.aliases) {
+				if (alias.equalsIgnoreCase(value)) {
+					return type;
+				}
 			}
 		}
 		return null;
