@@ -8,7 +8,7 @@ It has the following benefits:
 * Can upgrade from and to any version of Elastic Path Self-Managed Commerce.
 * Supports consuming all latest patches for your current version without performing a full version upgrade.
 * Reconciles conflicts caused by the presence of Elastic Path post-release patches.
-* AI Assist Mode uses Claude Code to guide you through virtually the entire upgrade process -- from merging and conflict resolution to compilation failures, test failures, schema updates, and more.
+* AI Assist Mode uses a CLI-based LLM (Claude Code by default) to guide you through virtually the entire upgrade process -- from merging and conflict resolution to compilation failures, test failures, schema updates, and more.
 
 # Installation
 
@@ -160,8 +160,11 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
                                to upgrade to. Optional when using --ai:start or
                                --ai:continue.
       --ai:continue          Continue AI-assisted upgrade from saved plan.
-      --ai:skip-permissions  Skip permission prompts when invoking Claude Code
-                               (passes --dangerously-skip-permissions).
+      --ai:skip-permissions  Skip permission prompts when invoking the
+                               configured CLI LLM (passes the skip-permissions
+                               argument, by default
+                               --dangerously-skip-permissions for Claude Code;
+                               configurable in ~/.smc-upgrader.json).
       --ai:start             Start AI-assisted upgrade mode and generate
                                upgrade plan. Requires version parameter.
   -C=<workingDir>            The working directory containing the git repo to
@@ -246,7 +249,53 @@ The following sections describe how to use `smc-upgrader` in AI assist mode (wit
 
 If you have not already done so, follow [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) to set up SSH access and add the `smc-upgrades` Git remote.
 
-> **Requirement:** AI Assist Mode requires [Claude Code](https://code.claude.com/docs/en/quickstart) to be installed and a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding.
+> **Requirement:** AI Assist Mode requires a CLI-based LLM. By default it uses [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding, or configure a different CLI LLM as described in [Configuring the CLI LLM](#configuring-the-cli-llm).
+
+### Configuring the CLI LLM
+
+By default, AI Assist Mode invokes Claude Code as:
+
+```text
+claude --model sonnet '<prompt>'
+```
+
+When `--ai:skip-permissions` is used, `--dangerously-skip-permissions` is added before `--model`.
+
+You can drive a different CLI-based LLM, or change how Claude Code is invoked, by creating a machine-wide configuration file at `~/.smc-upgrader.json`. This file is shared by all project folders. When the file is absent, or any field is omitted, the defaults reproduce the behavior above exactly.
+
+```json
+{
+  "llm": {
+    "command": "{executable} {permissions} --model sonnet {prompt}",
+    "executable": "claude",
+    "skipPermissionsArg": "--dangerously-skip-permissions"
+  }
+}
+```
+
+The `command` is an invocation template with three placeholders:
+
+* `{executable}` is replaced with the `executable` value. The `executable` is also the target of the availability check that runs before invocation, so the binary name is defined in one place. If you omit the `{executable}` placeholder from `command`, the availability check uses the first whitespace-delimited token of the command instead.
+* `{permissions}` is replaced with `skipPermissionsArg` when `--ai:skip-permissions` is active, and removed otherwise.
+* `{prompt}` is replaced with the prompt. The tool single-quotes and shell-escapes the prompt for you, so do **not** add quotes around `{prompt}` in your template.
+
+The model is configured inline within `command`, since model identifiers are tool-specific.
+
+If the configured executable is not found on the `PATH`, the step fails with a clear error rather than proceeding.
+
+For example, to drive GitHub Copilot CLI:
+
+```json
+{
+  "llm": {
+    "command": "{executable} {permissions} --prompt {prompt}",
+    "executable": "copilot",
+    "skipPermissionsArg": "--allow-all"
+  }
+}
+```
+
+With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'`.
 
 ### Optional: ast-grep
 

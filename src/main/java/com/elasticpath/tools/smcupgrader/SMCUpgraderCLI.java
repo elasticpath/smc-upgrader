@@ -97,7 +97,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 	private boolean aiContinue;
 
 	@CommandLine.Option(names = { "--ai:skip-permissions" },
-			description = "Skip permission prompts when invoking Claude Code (passes --dangerously-skip-permissions).")
+			description = "Skip permission prompts when invoking the configured CLI LLM (passes the skip-permissions argument, "
+					+ "by default --dangerously-skip-permissions for Claude Code; configurable in ~/.smc-upgrader.json).")
 	private boolean aiSkipPermissions;
 
 	@Override

@@ -49,13 +49,13 @@ class AiPlanExecutorTest {
 	File tempDir;
 
 	private GitClient gitClient;
-	private ClaudeCodeInvoker claudeInvoker;
+	private CliLlmInvoker llmInvoker;
 	private AiPlanExecutor executor;
 
 	@BeforeEach
 	void setUp() throws IOException {
 		gitClient = mock(GitClient.class);
-		claudeInvoker = mock(ClaudeCodeInvoker.class);
+		llmInvoker = mock(CliLlmInvoker.class);
 
 		// Configure mock to accept git operations without doing anything
 		doNothing().when(gitClient).stage(anyString());
@@ -63,15 +63,15 @@ class AiPlanExecutorTest {
 		doNothing().when(gitClient).unstage(anyString());
 		doNothing().when(gitClient).commit(anyString());
 
-		// Configure mock Claude invoker to always return false (Claude not available)
-		when(claudeInvoker.isClaudeCodeAvailable()).thenReturn(false);
-		when(claudeInvoker.invokeClaudeCode(anyString())).thenReturn(false);
+		// Configure mock LLM invoker to always return false (LLM not available)
+		when(llmInvoker.isLlmAvailable()).thenReturn(false);
+		when(llmInvoker.invoke(anyString())).thenReturn(false);
 
 		// Create executor with overridden methods to use mocks and prevent real process execution
 		executor = new AiPlanExecutor(tempDir, gitClient) {
 			@Override
-			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
-				return claudeInvoker;
+			protected CliLlmInvoker createCliLlmInvoker(final boolean skipPermissions) {
+				return llmInvoker;
 			}
 
 			@Override
@@ -504,8 +504,8 @@ class AiPlanExecutorTest {
 		// Create executor where isSgAvailable() returns true (unlike default test executor)
 		AiPlanExecutor sgAvailableExecutor = new AiPlanExecutor(tempDir, gitClient) {
 			@Override
-			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
-				return claudeInvoker;
+			protected CliLlmInvoker createCliLlmInvoker(final boolean skipPermissions) {
+				return llmInvoker;
 			}
 
 			@Override

@@ -148,9 +148,10 @@ public class AiPlanGenerator {
 		LOGGER.info("");
 		LOGGER.info("You can review and customize the plan if needed.");
 		LOGGER.info("");
-		LOGGER.info("IMPORTANT: This upgrade process requires Claude Code CLI.");
-		LOGGER.info("Please ensure Claude Code is installed and you have a Claude Pro account.");
+		LOGGER.info("IMPORTANT: This upgrade process requires a CLI-based LLM.");
+		LOGGER.info("By default it uses Claude Code; ensure it is installed and you have a paid Claude plan.");
 		LOGGER.info("For installation instructions, visit: https://www.claude.com/product/claude-code");
+		LOGGER.info("To use a different CLI LLM, configure ~/.smc-upgrader.json.");
 		LOGGER.info("");
 		LOGGER.info("To continue with the upgrade, run:");
 		LOGGER.info("  smc-upgrader --ai:continue");
