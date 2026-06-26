@@ -297,6 +297,8 @@ For example, to drive GitHub Copilot CLI:
 
 With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'`.
 
+> **Note:** The plan step prompts are authored and tuned for Claude Code. If you configure a different CLI LLM, the default prompts may not yield effective or optimal results, so you will likely need to customize the plan steps after generation. See [AI Assist Start](#ai-assist-start) for how to review and edit the generated `smc-upgrader-plan.md`.
+
 ### Optional: ast-grep
 
 AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before the LLM resolves compilation errors. This significantly reduces the number of issues the LLM needs to address.
@@ -332,6 +334,8 @@ smc-upgrader --ai:start <current-version>
 This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
 
 We recommend that you review the upgrade plan before continuing. You can add or remove steps, change prompts, or make any other required changes to the plan, which will be read by the tool for all subsequent operations.
+
+The step prompts are authored and tuned for Claude Code. If you have configured a different CLI LLM (see [Configuring the CLI LLM](#configuring-the-cli-llm)), expect to customize these prompts for effective or optimal results.
 
 ## AI Assist Continue
 
