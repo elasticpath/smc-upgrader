@@ -277,7 +277,7 @@ The `command` is an invocation template with three placeholders:
 
 * `{executable}` is replaced with the `executable` value. The `executable` is also the target of the availability check that runs before invocation, so the binary name is defined in one place. If you omit the `{executable}` placeholder from `command`, the availability check uses the first whitespace-delimited token of the command instead.
 * `{permissions}` is replaced with `skipPermissionsArg` when `--ai:skip-permissions` is active, and removed otherwise.
-* `{prompt}` is replaced with the prompt. The tool single-quotes and shell-escapes the prompt for you, so do **not** add quotes around `{prompt}` in your template.
+* `{prompt}` is replaced with the prompt. This placeholder is **required**; if `command` omits it, the tool reports an error at startup. The tool single-quotes and shell-escapes the prompt for you, so do **not** add quotes around `{prompt}` in your template.
 
 The model is configured inline within `command`, since model identifiers are tool-specific.
 

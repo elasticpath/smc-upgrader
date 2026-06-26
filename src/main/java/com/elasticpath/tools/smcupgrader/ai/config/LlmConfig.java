@@ -43,6 +43,9 @@ public class LlmConfig {
 	/** Placeholder substituted with the executable value. */
 	public static final String EXECUTABLE_PLACEHOLDER = "{executable}";
 
+	/** Placeholder substituted with the (shell-escaped) prompt. Required in every command template. */
+	public static final String PROMPT_PLACEHOLDER = "{prompt}";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(LlmConfig.class);
 	private static final String CONFIG_FILE_NAME = ".smc-upgrader.json";
 
@@ -90,8 +93,15 @@ public class LlmConfig {
 	 *
 	 * @param configFile the configuration file
 	 * @return the loaded configuration, with defaults applied for any missing file or field
+	 * @throws LlmConfigException if the configured command is invalid (e.g. missing the {@code {prompt}} placeholder)
 	 */
 	public static LlmConfig load(final File configFile) {
+		LlmConfig config = readConfig(configFile);
+		validate(config, configFile);
+		return config;
+	}
+
+	private static LlmConfig readConfig(final File configFile) {
 		if (configFile == null || !configFile.isFile()) {
 			return withDefaults(new LlmConfig());
 		}
@@ -104,6 +114,22 @@ public class LlmConfig {
 		} catch (IOException | RuntimeException e) {
 			LOGGER.warn("Could not read LLM configuration from {}. Using defaults.", configFile.getAbsolutePath(), e);
 			return withDefaults(new LlmConfig());
+		}
+	}
+
+	/**
+	 * Validate a resolved configuration, failing fast on misconfiguration.
+	 *
+	 * @param config     the resolved configuration
+	 * @param configFile the source file (for the error message; may be null)
+	 * @throws LlmConfigException if the command does not contain the {@code {prompt}} placeholder
+	 */
+	private static void validate(final LlmConfig config, final File configFile) {
+		if (!config.command.contains(PROMPT_PLACEHOLDER)) {
+			String location = configFile == null ? CONFIG_FILE_NAME : configFile.getAbsolutePath();
+			throw new LlmConfigException("Invalid LLM configuration in " + location
+					+ ": the 'command' must contain the " + PROMPT_PLACEHOLDER + " placeholder, "
+					+ "which is replaced with the prompt sent to the LLM.");
 		}
 	}
 

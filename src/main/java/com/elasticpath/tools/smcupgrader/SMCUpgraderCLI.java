@@ -30,6 +30,7 @@ import picocli.CommandLine;
 import com.elasticpath.tools.smcupgrader.ai.AiPlanGenerator;
 import com.elasticpath.tools.smcupgrader.ai.AiPlanExecutor;
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
+import com.elasticpath.tools.smcupgrader.ai.config.LlmConfigException;
 
 /**
  * The main SMC Upgrader class.
@@ -131,6 +132,8 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			}
 
 			return 0;
+		} catch (LlmConfigException e) {
+			LOGGER.error(e.getMessage());
 		} catch (RuntimeException e) {
 			LOGGER.error("Unexpected error encountered while upgrading", e);
 		} catch (IOException e) {

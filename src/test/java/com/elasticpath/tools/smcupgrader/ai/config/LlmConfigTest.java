@@ -1,6 +1,7 @@
 package com.elasticpath.tools.smcupgrader.ai.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,15 @@ class LlmConfigTest {
 		assertThat(config.getCommand()).isEqualTo("{executable} chat {permissions} {prompt}");
 		assertThat(config.getExecutable()).isEqualTo("mytool");
 		assertThat(config.getSkipPermissionsArg()).isEqualTo("--yolo");
+	}
+
+	@Test
+	void testLoad_commandMissingPromptPlaceholder_throws() throws IOException {
+		File configFile = writeConfig("{ \"llm\": { \"command\": \"{executable} {permissions} --model sonnet\" } }");
+
+		assertThatThrownBy(() -> LlmConfig.load(configFile))
+				.isInstanceOf(LlmConfigException.class)
+				.hasMessageContaining("{prompt}");
 	}
 
 	@Test
