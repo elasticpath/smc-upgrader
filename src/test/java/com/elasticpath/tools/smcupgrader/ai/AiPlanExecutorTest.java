@@ -49,13 +49,13 @@ class AiPlanExecutorTest {
 	File tempDir;
 
 	private GitClient gitClient;
-	private ClaudeCodeInvoker claudeInvoker;
+	private CliLlmInvoker llmInvoker;
 	private AiPlanExecutor executor;
 
 	@BeforeEach
 	void setUp() throws IOException {
 		gitClient = mock(GitClient.class);
-		claudeInvoker = mock(ClaudeCodeInvoker.class);
+		llmInvoker = mock(CliLlmInvoker.class);
 
 		// Configure mock to accept git operations without doing anything
 		doNothing().when(gitClient).stage(anyString());
@@ -63,15 +63,15 @@ class AiPlanExecutorTest {
 		doNothing().when(gitClient).unstage(anyString());
 		doNothing().when(gitClient).commit(anyString());
 
-		// Configure mock Claude invoker to always return false (Claude not available)
-		when(claudeInvoker.isClaudeCodeAvailable()).thenReturn(false);
-		when(claudeInvoker.invokeClaudeCode(anyString())).thenReturn(false);
+		// Configure mock LLM invoker to always return false (LLM not available)
+		when(llmInvoker.isLlmAvailable()).thenReturn(false);
+		when(llmInvoker.invoke(anyString())).thenReturn(false);
 
 		// Create executor with overridden methods to use mocks and prevent real process execution
 		executor = new AiPlanExecutor(tempDir, gitClient) {
 			@Override
-			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
-				return claudeInvoker;
+			protected CliLlmInvoker createCliLlmInvoker(final boolean skipPermissions) {
+				return llmInvoker;
 			}
 
 			@Override
@@ -165,9 +165,9 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
-	void testExecuteNextStep_claudeStep() throws IOException {
-		// Create plan with incomplete claude step
-		AiPlanStep step = createStep("Step 1", "claude", "not started");
+	void testExecuteNextStep_llmStep() throws IOException {
+		// Create plan with incomplete LLM step
+		AiPlanStep step = createStep("Step 1", "llm", "not started");
 		step.setPrompt("Test prompt");
 		step.setCommitAllChangesOnCompletion(false); // So it doesn't prompt for completion
 
@@ -179,15 +179,15 @@ class AiPlanExecutorTest {
 		// Should execute but not auto-complete
 		assertThat(result).isTrue();
 
-		// Verify step was marked as in progress (Claude steps are never auto-completed)
+		// Verify step was marked as in progress (LLM steps are never auto-completed)
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
-	void testExecuteNextStep_claudeStepWithCompletionPrompt_userSaysYes() throws IOException {
-		// Create plan with Claude step that has commitAllChanges=true
-		AiPlanStep step = createStep("Step 1", "claude", "not started");
+	void testExecuteNextStep_llmStepWithCompletionPrompt_userSaysYes() throws IOException {
+		// Create plan with LLM step that has commitAllChanges=true
+		AiPlanStep step = createStep("Step 1", "llm", "not started");
 		step.setPrompt("Test prompt");
 		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
 
@@ -205,9 +205,9 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
-	void testExecuteNextStep_claudeStepWithCompletionPrompt_userSaysNo() throws IOException {
-		// Create plan with Claude step that has commitAllChanges=true
-		AiPlanStep step = createStep("Step 1", "claude", "not started");
+	void testExecuteNextStep_llmStepWithCompletionPrompt_userSaysNo() throws IOException {
+		// Create plan with LLM step that has commitAllChanges=true
+		AiPlanStep step = createStep("Step 1", "llm", "not started");
 		step.setPrompt("Test prompt");
 		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
 
@@ -225,9 +225,9 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
-	void testExecuteNextStep_claudeStepWithCompletionPrompt_checkValidationSuccess() throws IOException {
-		// Create plan with Claude step that has commitAllChanges=true and a validation command
-		AiPlanStep step = createStep("Step 1", "claude", "not started");
+	void testExecuteNextStep_llmStepWithCompletionPrompt_checkValidationSuccess() throws IOException {
+		// Create plan with LLM step that has commitAllChanges=true and a validation command
+		AiPlanStep step = createStep("Step 1", "llm", "not started");
 		step.setPrompt("Test prompt");
 		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
 		step.setValidationCommand("exit 0"); // Validation will succeed
@@ -246,9 +246,9 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
-	void testExecuteNextStep_claudeStepWithCompletionPrompt_checkValidationFailure() throws IOException {
-		// Create plan with Claude step that has commitAllChanges=true and a validation command
-		AiPlanStep step = createStep("Step 1", "claude", "not started");
+	void testExecuteNextStep_llmStepWithCompletionPrompt_checkValidationFailure() throws IOException {
+		// Create plan with LLM step that has commitAllChanges=true and a validation command
+		AiPlanStep step = createStep("Step 1", "llm", "not started");
 		step.setPrompt("Test prompt");
 		step.setCommitAllChangesOnCompletion(true); // Trigger the completion prompt
 		step.setValidationCommand("exit 1"); // Validation will fail
@@ -289,15 +289,15 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
-	void testExecuteNextStep_preservesLastClaudeStepPromptAfterSave() throws IOException {
+	void testExecuteNextStep_preservesLastLlmStepPromptAfterSave() throws IOException {
 		// When an earlier step completes, savePlan re-serializes the full plan from the parsed
-		// in-memory state. This test verifies the last Claude step's prompt is not lost during
+		// in-memory state. This test verifies the last LLM step's prompt is not lost during
 		// that round-trip (parse -> modify status -> save -> parse).
 		AiPlanStep step1 = createStep("Git merge step", "smc-upgrader", "not started");
 		step1.setValidationCommand("exit 0"); // Auto-completes
 		step1.setCommitAllChangesOnCompletion(false);
 
-		AiPlanStep step2 = createStep("Final check", "claude", "not started");
+		AiPlanStep step2 = createStep("Final check", "llm", "not started");
 		String longPrompt = "We are in the process of doing an upgrade of the Self-Managed Commerce code base "
 				+ "from version 8.5.x to version 8.6.x. "
 				+ "Run the validation command below in the background and help to fix any test or static analysis failures. "
@@ -364,7 +364,7 @@ class AiPlanExecutorTest {
 	@Test
 	void testExecuteNextStep_checkValidation_success() throws IOException {
 		// Create plan with step already in progress (so menu is shown)
-		AiPlanStep step = createStep("Step 1", "claude", "in progress");
+		AiPlanStep step = createStep("Step 1", "llm", "in progress");
 		step.setValidationCommand("exit 0");
 
 		writePlanFile(Arrays.asList(step));
@@ -382,7 +382,7 @@ class AiPlanExecutorTest {
 	@Test
 	void testExecuteNextStep_checkValidation_failure() throws IOException {
 		// Create plan with step already in progress (so menu is shown)
-		AiPlanStep step = createStep("Step 1", "claude", "in progress");
+		AiPlanStep step = createStep("Step 1", "llm", "in progress");
 		step.setValidationCommand("exit 1");
 		step.setCommitAllChangesOnCompletion(false); // Don't prompt for completion
 
@@ -401,7 +401,7 @@ class AiPlanExecutorTest {
 	@Test
 	void testExecuteNextStep_manualMarkComplete() throws IOException {
 		// Create plan with step already in progress (so menu is shown)
-		AiPlanStep step = createStep("Step 1", "claude", "in progress");
+		AiPlanStep step = createStep("Step 1", "llm", "in progress");
 
 		writePlanFile(Arrays.asList(step));
 
@@ -504,8 +504,8 @@ class AiPlanExecutorTest {
 		// Create executor where isSgAvailable() returns true (unlike default test executor)
 		AiPlanExecutor sgAvailableExecutor = new AiPlanExecutor(tempDir, gitClient) {
 			@Override
-			protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
-				return claudeInvoker;
+			protected CliLlmInvoker createCliLlmInvoker(final boolean skipPermissions) {
+				return llmInvoker;
 			}
 
 			@Override

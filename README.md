@@ -8,7 +8,7 @@ It has the following benefits:
 * Can upgrade from and to any version of Elastic Path Self-Managed Commerce.
 * Supports consuming all latest patches for your current version without performing a full version upgrade.
 * Reconciles conflicts caused by the presence of Elastic Path post-release patches.
-* AI Assist Mode uses Claude Code to guide you through virtually the entire upgrade process -- from merging and conflict resolution to compilation failures, test failures, schema updates, and more.
+* AI Assist Mode uses a CLI-based LLM (Claude Code by default) to guide you through virtually the entire upgrade process -- from merging and conflict resolution to compilation failures, test failures, schema updates, and more.
 
 # Installation
 
@@ -160,8 +160,11 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
                                to upgrade to. Optional when using --ai:start or
                                --ai:continue.
       --ai:continue          Continue AI-assisted upgrade from saved plan.
-      --ai:skip-permissions  Skip permission prompts when invoking Claude Code
-                               (passes --dangerously-skip-permissions).
+      --ai:skip-permissions  Skip permission prompts when invoking the
+                               configured CLI LLM (passes the skip-permissions
+                               argument, by default
+                               --dangerously-skip-permissions for Claude Code;
+                               configurable in ~/.smc-upgrader.json).
       --ai:start             Start AI-assisted upgrade mode and generate
                                upgrade plan. Requires version parameter.
   -C=<workingDir>            The working directory containing the git repo to
@@ -236,21 +239,69 @@ smc-upgrader --no-merge 8.5.x
 
 The following sections describe how to use `smc-upgrader` in AI assist mode (with the `--ai` flags).
 
-> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide Claude Code throughout the upgrade and carefully review all changes it makes. Claude can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
+> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide the LLM throughout the upgrade and carefully review all changes it makes. LLMs can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
 >
 > AI Assist Mode works best when the codebase has extensive automated regression tests that cover all custom functionality. These tests are the primary mechanism for detecting mistakes. If comprehensive test coverage is not present, AI Assist Mode may not be able to complete the upgrade successfully, and manual review effort will increase significantly.
 >
-> **Note on usage fees:** Claude Code usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant Claude API charges. Review [Anthropic's pricing](https://www.anthropic.com/pricing) before proceeding.
+> **Note on usage fees:** For most LLM CLI tools, usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant billing charges.
 
 ## Setup
 
 If you have not already done so, follow [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) to set up SSH access and add the `smc-upgrades` Git remote.
 
-> **Requirement:** AI Assist Mode requires [Claude Code](https://code.claude.com/docs/en/quickstart) to be installed and a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding.
+> **Requirement:** AI Assist Mode requires a CLI-based LLM. By default it uses [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding, or configure a different CLI LLM as described in [Configuring the CLI LLM](#configuring-the-cli-llm).
+
+### Configuring the CLI LLM
+
+By default, AI Assist Mode invokes Claude Code as:
+
+```text
+claude --model sonnet '<prompt>'
+```
+
+When `--ai:skip-permissions` is used, `--dangerously-skip-permissions` is added before `--model`.
+
+You can drive a different CLI-based LLM, or change how Claude Code is invoked, by creating a machine-wide configuration file at `~/.smc-upgrader.json`. This file is shared by all project folders. When the file is absent, or any field is omitted, the defaults reproduce the behavior above exactly.
+
+```json
+{
+  "llm": {
+    "command": "{executable} {permissions} --model sonnet {prompt}",
+    "executable": "claude",
+    "skipPermissionsArg": "--dangerously-skip-permissions"
+  }
+}
+```
+
+The `command` is an invocation template with three placeholders:
+
+* `{executable}` is replaced with the `executable` value. The `executable` is also the target of the availability check that runs before invocation, so the binary name is defined in one place. If you omit the `{executable}` placeholder from `command`, the availability check uses the first whitespace-delimited token of the command instead.
+* `{permissions}` is replaced with `skipPermissionsArg` when `--ai:skip-permissions` is active, and removed otherwise.
+* `{prompt}` is replaced with the prompt. This placeholder is **required**; if `command` omits it, the tool reports an error at startup. The tool single-quotes and shell-escapes the prompt for you, so do **not** add quotes around `{prompt}` in your template.
+
+The model is configured inline within `command`, since model identifiers are tool-specific.
+
+If the configured executable is not found on the `PATH`, the step fails with a clear error rather than proceeding.
+
+For example, to drive GitHub Copilot CLI:
+
+```json
+{
+  "llm": {
+    "command": "{executable} {permissions} --prompt {prompt}",
+    "executable": "copilot",
+    "skipPermissionsArg": "--allow-all"
+  }
+}
+```
+
+With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'`.
+
+> **Note:** The plan step prompts are authored and tuned for Claude Code. If you configure a different CLI LLM, the default prompts may not yield effective or optimal results, so you will likely need to customize the plan steps after generation. See [AI Assist Start](#ai-assist-start) for how to review and edit the generated `smc-upgrader-plan.md`.
 
 ### Optional: ast-grep
 
-AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before Claude resolves compilation errors. This significantly reduces the number of issues Claude needs to address.
+AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before the LLM resolves compilation errors. This significantly reduces the number of issues the LLM needs to address.
 
 To install, see the [ast-grep installation guide](https://ast-grep.github.io/guide/quick-start.html).
 
@@ -284,6 +335,8 @@ This step will generate an upgrade plan file named `smc-upgrader-plan.md` and co
 
 We recommend that you review the upgrade plan before continuing. You can add or remove steps, change prompts, or make any other required changes to the plan, which will be read by the tool for all subsequent operations.
 
+The step prompts are authored and tuned for Claude Code. If you have configured a different CLI LLM (see [Configuring the CLI LLM](#configuring-the-cli-llm)), expect to customize these prompts for effective or optimal results.
+
 ## AI Assist Continue
 
 Once you are ready to continue, run:
@@ -296,7 +349,7 @@ The tool will read the upgrade plan from `smc-upgrader-plan.md` and check to see
 
 ```text
 INFO : Next step: Resolve all unit test failures
-INFO :   Tool: claude
+INFO :   Tool: llm
 INFO :   Validation command: mvn clean install -DskipITests -DskipCucumberTests -T0.75C
 INFO :
 INFO : What would you like to do?
@@ -306,21 +359,21 @@ INFO :   [M] Mark this step as complete
 INFO :   [X] Exit
 ```
 
-If you choose `E`, then Claude Code will be executed again with the prompt specified in the plan.
+If you choose `E`, then the LLM will be executed again with the prompt specified in the plan.
 If you choose `V`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
 If you choose `M`, the step will be marked as `complete`, and the tool will exit.
 If you choose `X`, the tool will just exit without doing anything else.
 
 If there are no steps `in progress`, the tool will find the first `not started` step, change it to `in progress`, and execute the step automatically.
 
-By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, Claude Code will be invoked with the prompt from the plan.
+By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, the LLM CLI will be invoked with the prompt from the plan.
 
-You can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
+> **Note:** If your LLM CLI is Claude Code, you can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
 
-When Claude Code exits, you will be prompted to decide what you want to do:
+When the LLM CLI exits, you will be prompted to decide what you want to do:
 
 ```text
-INFO : Claude Code completed successfully.
+INFO : The LLM CLI completed successfully.
 INFO :
 INFO : Was this step successfully completed?
 INFO :   [Y/M] Mark this step as complete

@@ -39,6 +39,7 @@ import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
+import com.elasticpath.tools.smcupgrader.ai.config.LlmConfig;
 import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
 import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 
@@ -52,6 +53,7 @@ public class AiPlanExecutor {
 	private final UpgradeController upgradeController;
 	private final GitClient gitClient;
 	private final boolean cliSkipPermissions;
+	private final LlmConfig llmConfig;
 	private String testChoice; // For testing only - bypasses interactive prompt
 
 	/**
@@ -72,6 +74,7 @@ public class AiPlanExecutor {
 	public AiPlanExecutor(final File workingDir, final boolean cliSkipPermissions) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = cliSkipPermissions;
+		this.llmConfig = LlmConfig.load();
 		this.upgradeController = new UpgradeController(workingDir);
 		this.gitClient = createGitClient(workingDir);
 	}
@@ -85,6 +88,7 @@ public class AiPlanExecutor {
 	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = false;
+		this.llmConfig = LlmConfig.load();
 		this.upgradeController = new UpgradeController(workingDir);
 		this.gitClient = gitClient;
 	}
@@ -385,7 +389,7 @@ public class AiPlanExecutor {
 	 * Execute a step based on its tool type.
 	 *
 	 * @param step            the step to execute
-	 * @param skipPermissions whether to skip permission prompts for Claude
+	 * @param skipPermissions whether to skip permission prompts for the CLI LLM
 	 * @return true if the step was completed successfully
 	 * @throws IOException if an error occurs
 	 */
@@ -399,8 +403,8 @@ public class AiPlanExecutor {
 		switch (toolType) {
 			case SMC_UPGRADER:
 				return executeSmcUpgraderStep(step);
-			case CLAUDE:
-				return executeClaudeStep(step, skipPermissions);
+			case LLM:
+				return executeLlmStep(step, skipPermissions);
 			case VALIDATION_ONLY:
 				return executeValidationOnlyStep(step);
 			case AST_GREP:
@@ -490,7 +494,7 @@ public class AiPlanExecutor {
 	}
 
 	/**
-	 * Execute a validation-only step. This simply runs the validation command without invoking Claude.
+	 * Execute a validation-only step. This simply runs the validation command without invoking the CLI LLM.
 	 *
 	 * @param step the step to execute
 	 * @return true if validation passes, false otherwise
@@ -550,18 +554,18 @@ public class AiPlanExecutor {
 	}
 
 	/**
-	 * Execute a Claude step.
+	 * Execute an LLM step.
 	 *
 	 * @param step the step to execute
-	 * @param skipPermissions indicates if Claude should be executed with the skip permissions parameter
-	 * @return false (Claude steps are never auto-completed, even on success)
+	 * @param skipPermissions indicates if the CLI LLM should be executed with the skip permissions parameter
+	 * @return false (LLM steps are never auto-completed, even on success)
 	 * @throws IOException if an error occurs
 	 */
-	private boolean executeClaudeStep(final AiPlanStep step, final boolean skipPermissions) throws IOException {
-		LOGGER.info("This step requires Claude Code assistance.");
+	private boolean executeLlmStep(final AiPlanStep step, final boolean skipPermissions) throws IOException {
+		LOGGER.info("This step requires assistance from the configured CLI LLM.");
 		LOGGER.info("");
 
-		// Invoke Claude with the prompt
+		// Invoke the LLM with the prompt
 		if (step.getPrompt() != null && !step.getPrompt().trim().isEmpty()) {
 			// Build the full prompt including validation command if present
 			String fullPrompt = step.getPrompt();
@@ -569,17 +573,17 @@ public class AiPlanExecutor {
 				fullPrompt += "\n\nValidation command: " + step.getValidationCommand();
 			}
 
-			ClaudeCodeInvoker claudeInvoker = createClaudeCodeInvoker(skipPermissions);
-			boolean claudeSuccess = claudeInvoker.invokeClaudeCode(fullPrompt);
+			CliLlmInvoker llmInvoker = createCliLlmInvoker(skipPermissions);
+			boolean llmSuccess = llmInvoker.invoke(fullPrompt);
 
 			LOGGER.info("");
-			if (claudeSuccess) {
-				LOGGER.info("Claude Code completed successfully.");
+			if (llmSuccess) {
+				LOGGER.info("The CLI LLM completed successfully.");
 			} else {
-				LOGGER.warn("Claude Code did not complete successfully.");
+				LOGGER.warn("The CLI LLM did not complete successfully.");
 			}
 		} else {
-			LOGGER.warn("No prompt defined for this Claude step.");
+			LOGGER.warn("No prompt defined for this LLM step.");
 			LOGGER.info("Please manually complete: {}", step.getTitle());
 		}
 
@@ -587,13 +591,13 @@ public class AiPlanExecutor {
 	}
 
 	/**
-	 * Create a ClaudeCodeInvoker with the appropriate settings.
+	 * Create a CliLlmInvoker with the appropriate settings.
 	 *
 	 * @param skipPermissions whether to skip permission prompts
-	 * @return the ClaudeCodeInvoker
+	 * @return the CliLlmInvoker
 	 */
-	protected ClaudeCodeInvoker createClaudeCodeInvoker(final boolean skipPermissions) {
-		return new ClaudeCodeInvoker(workingDir, skipPermissions);
+	protected CliLlmInvoker createCliLlmInvoker(final boolean skipPermissions) {
+		return new CliLlmInvoker(workingDir, skipPermissions, llmConfig);
 	}
 
 	/**

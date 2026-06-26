@@ -43,7 +43,7 @@ public class AiPlanStep {
 	 * @param tool              the tool to use
 	 * @param validationCommand optional validation command
 	 * @param status            the step status (not started, in progress, or complete)
-	 * @param prompt            optional prompt for claude steps
+	 * @param prompt            optional prompt for LLM steps
 	 */
 	public AiPlanStep(final String title, final ToolTypeEnum tool,
 					  final String validationCommand, final StatusEnum status, final String prompt) {
@@ -163,16 +163,16 @@ public class AiPlanStep {
 	}
 
 	/**
-	 * Get the prompt for claude steps.
+	 * Get the prompt for LLM steps.
 	 *
-	 * @return the prompt, or null if not a claude step
+	 * @return the prompt, or null if not an LLM step
 	 */
 	public String getPrompt() {
 		return prompt;
 	}
 
 	/**
-	 * Set the prompt for claude steps.
+	 * Set the prompt for LLM steps.
 	 *
 	 * @param prompt the prompt
 	 */
