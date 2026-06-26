@@ -239,7 +239,7 @@ smc-upgrader --no-merge 8.5.x
 
 The following sections describe how to use `smc-upgrader` in AI assist mode (with the `--ai` flags).
 
-> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide the LLM throughout the upgrade and carefully review all changes it makes. Claude can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
+> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide the LLM throughout the upgrade and carefully review all changes it makes. LLMs can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
 >
 > AI Assist Mode works best when the codebase has extensive automated regression tests that cover all custom functionality. These tests are the primary mechanism for detecting mistakes. If comprehensive test coverage is not present, AI Assist Mode may not be able to complete the upgrade successfully, and manual review effort will increase significantly.
 >
@@ -368,9 +368,7 @@ If there are no steps `in progress`, the tool will find the first `not started` 
 
 By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, the LLM CLI will be invoked with the prompt from the plan.
 
-:::note
-If your LLM CLI is Claude Code, you can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
-:::
+> **Note:** If your LLM CLI is Claude Code, you can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
 
 When the LLM CLI exits, you will be prompted to decide what you want to do:
 
