@@ -32,7 +32,7 @@ public class UpstreamRemoteManager {
 		}
 
 		final Optional<String> existingRemoteRepositoryName = gitClient.getRemoteRepositories().stream()
-				.filter(remoteRepository -> remoteRepository.getUrl().contains(Constants.UPSTREAM_REPO_URL))
+				.filter(remoteRepository -> isUpstreamUrl(remoteRepository.getUrl()))
 				.map(RemoteRepository::getName)
 				.findFirst();
 
@@ -45,13 +45,9 @@ public class UpstreamRemoteManager {
 				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + Constants.UPSTREAM_REPO_URL);
 	}
 
-	/**
-	 * Returns the name to use for the upstream remote containing upgrade commits when that remote has not already been set on the working
-	 * Git repository.
-	 *
-	 * @return the name to use for the upstream remote containing upgrade commits
-	 */
-	protected String createRemoteRepositoryName() {
-		return UPGRADE_REMOTE_NAME;
+	private static boolean isUpstreamUrl(final String url) {
+		return url != null
+				&& url.contains(Constants.UPSTREAM_REPO_HOST)
+				&& url.contains(Constants.UPSTREAM_REPO_PATH);
 	}
 }
