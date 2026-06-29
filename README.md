@@ -18,9 +18,9 @@ The following section describes how to install and build `smc-upgrader`.
 
 To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 8 JRE or later).
 
-Optionally, you can install [ast-grep](https://ast-grep.github.io/). AI Assist Mode includes an automated recipe step that applies deterministic code transformations via ast-grep before Claude resolves compilation errors, which significantly reduces the number of issues Claude needs to address. Installation instructions are included in the Homebrew and binary installation sections below.
+Optionally, you can install [ast-grep](https://ast-grep.github.io/). AI Assist Mode includes an automated recipe step that applies deterministic code transformations via ast-grep before the LLM resolves compilation errors, which significantly reduces the number of issues the LLM needs to address. Installation instructions are included in the Homebrew and binary installation sections below.
 
-ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means Claude resolves more compilation issues manually instead of having them fixed deterministically up front.
+ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means the LLM resolves more compilation issues manually instead of having them fixed deterministically up front.
 
 ## Homebrew installation
 
