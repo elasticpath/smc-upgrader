@@ -78,7 +78,7 @@ class AiPlanExecutorTest {
 			protected AstGrepExecutor createAstGrepExecutor() {
 				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
 					@Override
-					protected boolean isSgAvailable() {
+					protected boolean isAstGrepAvailable() {
 						return false;
 					}
 				};
@@ -475,9 +475,9 @@ class AiPlanExecutorTest {
 	}
 
 	@Test
-	void testExecuteNextStep_astGrepStep_sgNotAvailable() throws IOException {
-		// ast-grep step without sg on PATH should NOT auto-complete -
-		// stays in progress so user can install sg and re-run, or [M]ark complete to skip.
+	void testExecuteNextStep_astGrepStep_astGrepNotAvailable() throws IOException {
+		// ast-grep step without ast-grep on PATH should NOT auto-complete -
+		// stays in progress so user can install ast-grep and re-run, or [M]ark complete to skip.
 		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
 		step.setVersion("8.7.x");
 		step.setCommitAllChangesOnCompletion(false); // avoid the completion prompt
@@ -488,21 +488,21 @@ class AiPlanExecutorTest {
 
 		assertThat(result).isTrue();
 
-		// Step should remain in progress (sg not available → user must decide)
+		// Step should remain in progress (ast-grep not available → user must decide)
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
 	}
 
 	@Test
 	void testExecuteNextStep_astGrepStep_noRecipesDir() throws IOException {
-		// ast-grep step with sg available but no upgrade/recipes/ dir should skip gracefully
+		// ast-grep step with ast-grep available but no upgrade/recipes/ dir should skip gracefully
 		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
 		step.setVersion("8.7.x");
 
 		writePlanFile(Collections.singletonList(step));
 
-		// Create executor where isSgAvailable() returns true (unlike default test executor)
-		AiPlanExecutor sgAvailableExecutor = new AiPlanExecutor(tempDir, gitClient) {
+		// Create executor where isAstGrepAvailable() returns true (unlike default test executor)
+		AiPlanExecutor astGrepAvailableExecutor = new AiPlanExecutor(tempDir, gitClient) {
 			@Override
 			protected CliLlmInvoker createCliLlmInvoker(final boolean skipPermissions) {
 				return llmInvoker;
@@ -512,14 +512,14 @@ class AiPlanExecutorTest {
 			protected AstGrepExecutor createAstGrepExecutor() {
 				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
 					@Override
-					protected boolean isSgAvailable() {
+					protected boolean isAstGrepAvailable() {
 						return true;
 					}
 				};
 			}
 		};
 
-		boolean result = sgAvailableExecutor.executeNextStep();
+		boolean result = astGrepAvailableExecutor.executeNextStep();
 
 		assertThat(result).isTrue();
 
