@@ -34,7 +34,7 @@ class UpstreamRemoteManagerTest {
 
 	@Test
 	public void verifyRemoteNameReturnedWhenSshUrl() {
-		givenUpstreamRemote(Constants.UPSTREAM_REPO_URL);
+		givenUpstreamRemote(Constants.UPSTREAM_REPO_URLS.get(0));
 
 		assertThat(upstreamRemoteManager.getUpstreamRemoteName()).isEqualTo(REMOTE_REPO_NAME);
 	}

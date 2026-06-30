@@ -1,6 +1,7 @@
 package com.elasticpath.tools.smcupgrader;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Manages the configuration for upstream remote repositories.
@@ -41,13 +42,19 @@ public class UpstreamRemoteManager {
 			return remoteRepositoryName;
 		}
 
-		throw new LoggableException("No upstream repository found in git configuration. Please add the remote via the following command:\n\n"
-				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + Constants.UPSTREAM_REPO_URL);
+		final String commands = Constants.UPSTREAM_REPO_URLS.stream()
+				.map(url -> "git remote add " + UPGRADE_REMOTE_NAME + " " + url)
+				.collect(Collectors.joining("\n"));
+
+		throw new LoggableException("No upstream repository found in git configuration."
+				+ " Please add the remote via one of the following commands:\n\n" + commands);
 	}
 
 	private static boolean isUpstreamUrl(final String url) {
-		return url != null
-				&& url.contains(Constants.UPSTREAM_REPO_HOST)
-				&& url.contains(Constants.UPSTREAM_REPO_PATH);
+		if (url == null) {
+			return false;
+		}
+		final String normalizedUrl = url.replaceFirst("://[^@]+@", "://");
+		return Constants.UPSTREAM_REPO_URLS.contains(normalizedUrl);
 	}
 }

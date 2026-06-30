@@ -1,24 +1,21 @@
 package com.elasticpath.tools.smcupgrader;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Application-wide constants.
  */
 public final class Constants {
 
 	/**
-	 * The URL of the upstream repository containing SMC release code.
+	 * The supported upstream repository URLs for fetching SMC release code.
 	 */
-	public static final String UPSTREAM_REPO_URL = "git@code.elasticpath.com:ep-commerce/ep-commerce.git";
-
-	/**
-	 * The hostname of the upstream repository, used for protocol-neutral remote detection.
-	 */
-	public static final String UPSTREAM_REPO_HOST = "code.elasticpath.com";
-
-	/**
-	 * The repository path of the upstream repository, used for protocol-neutral remote detection.
-	 */
-	public static final String UPSTREAM_REPO_PATH = "ep-commerce/ep-commerce";
+	public static final List<String> UPSTREAM_REPO_URLS = Collections.unmodifiableList(Arrays.asList(
+			"git@code.elasticpath.com:ep-commerce/ep-commerce.git",
+			"https://code.elasticpath.com/ep-commerce/ep-commerce.git"
+	));
 
 	/**
 	 * The file name for the upgrade plan.
