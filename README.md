@@ -117,7 +117,7 @@ ast-grep is not required. If it is not installed on your PATH, the recipe step d
 
 ## Connecting to code.elasticpath.com
 
-`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up authenticated access to that repository over SSH.
+`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up authenticated access to that repository over SSH or HTTPS.
 
 Complete these steps once per machine. The first `smc-upgrader` run will fail at the fetch step if any of them is skipped.
 
@@ -157,6 +157,12 @@ In your codebase, add `code.elasticpath.com` as a remote called `smc-upgrades`:
 
 ```shell
 git remote add smc-upgrades git@code.elasticpath.com:ep-commerce/ep-commerce.git
+```
+
+If your network blocks SSH access to `code.elasticpath.com`, use HTTPS instead:
+
+```shell
+git remote add smc-upgrades https://code.elasticpath.com/ep-commerce/ep-commerce.git
 ```
 
 ### 6. Verify the connection

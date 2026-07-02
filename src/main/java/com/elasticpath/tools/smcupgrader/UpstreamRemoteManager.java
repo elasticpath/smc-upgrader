@@ -1,6 +1,7 @@
 package com.elasticpath.tools.smcupgrader;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Manages the configuration for upstream remote repositories.
@@ -32,7 +33,7 @@ public class UpstreamRemoteManager {
 		}
 
 		final Optional<String> existingRemoteRepositoryName = gitClient.getRemoteRepositories().stream()
-				.filter(remoteRepository -> remoteRepository.getUrl().contains(Constants.UPSTREAM_REPO_URL))
+				.filter(remoteRepository -> isUpstreamUrl(remoteRepository.getUrl()))
 				.map(RemoteRepository::getName)
 				.findFirst();
 
@@ -41,17 +42,19 @@ public class UpstreamRemoteManager {
 			return remoteRepositoryName;
 		}
 
-		throw new LoggableException("No upstream repository found in git configuration. Please add the remote via the following command:\n\n"
-				+ "git remote add " + UPGRADE_REMOTE_NAME + " " + Constants.UPSTREAM_REPO_URL);
+		final String commands = Constants.UPSTREAM_REPO_URLS.stream()
+				.map(url -> "git remote add " + UPGRADE_REMOTE_NAME + " " + url)
+				.collect(Collectors.joining("\n"));
+
+		throw new LoggableException("No upstream repository found in git configuration."
+				+ " Please add the remote via one of the following commands:\n\n" + commands);
 	}
 
-	/**
-	 * Returns the name to use for the upstream remote containing upgrade commits when that remote has not already been set on the working
-	 * Git repository.
-	 *
-	 * @return the name to use for the upstream remote containing upgrade commits
-	 */
-	protected String createRemoteRepositoryName() {
-		return UPGRADE_REMOTE_NAME;
+	private static boolean isUpstreamUrl(final String url) {
+		if (url == null) {
+			return false;
+		}
+		final String normalizedUrl = url.replaceFirst("://[^@]+@", "://");
+		return Constants.UPSTREAM_REPO_URLS.contains(normalizedUrl);
 	}
 }
