@@ -16,7 +16,7 @@ The following section describes how to install and build `smc-upgrader`.
 
 ## Prerequisites
 
-To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 11 JRE or later).
+To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 17 JRE or later).
 
 Optionally, you can install [ast-grep](https://ast-grep.github.io/). AI Assist Mode includes an automated recipe step that applies deterministic code transformations via ast-grep before the LLM resolves compilation errors, which significantly reduces the number of issues the LLM needs to address. Installation instructions are included in the Homebrew and binary installation sections below.
 
