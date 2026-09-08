@@ -211,6 +211,68 @@ class MarkdownParserTest {
 	}
 
 	@Test
+	void testParsePlan_allowManualValidationFalse() {
+		String markdown = "# SMC Upgrader - AI Assist Plan\n\n"
+				+ "## Server startup\n\n"
+				+ "Tool: llm\n"
+				+ "Commit all changes on completion: false\n"
+				+ "Commit plan on completion: false\n"
+				+ "Allow manual validation: false\n"
+				+ "Status: not started\n\n"
+				+ "Start the server.\n\n";
+
+		PlanDocument plan = MarkdownParser.parsePlan(markdown);
+
+		assertThat(plan.getSteps()).hasSize(1);
+		assertThat(plan.getSteps().get(0).isAllowManualValidation()).isFalse();
+	}
+
+	@Test
+	void testParsePlan_allowManualValidationAbsentDefaultsToTrue() {
+		// Plan files generated before this feature contain no Allow manual validation line.
+		// The field default of true must be preserved.
+		String markdown = "# SMC Upgrader - AI Assist Plan\n\n"
+				+ "## Resolve compilation issues\n\n"
+				+ "Tool: llm\n"
+				+ "Commit all changes on completion: true\n"
+				+ "Commit plan on completion: true\n"
+				+ "Status: not started\n\n"
+				+ "Fix compilation.\n\n";
+
+		PlanDocument plan = MarkdownParser.parsePlan(markdown);
+
+		assertThat(plan.getSteps()).hasSize(1);
+		assertThat(plan.getSteps().get(0).isAllowManualValidation()).isTrue();
+	}
+
+	@Test
+	void testParsePlan_roundTrip_allowManualValidation() {
+		// Verify both true and false survive a write-then-reparse cycle.
+		AiPlanStep stepFalse = new AiPlanStep();
+		stepFalse.setTitle("Server startup");
+		stepFalse.setTool(ToolTypeEnum.LLM);
+		stepFalse.setStatus(StatusEnum.NOT_STARTED);
+		stepFalse.setAllowManualValidation(false);
+		stepFalse.setPrompt("Start the server.");
+
+		AiPlanStep stepTrue = new AiPlanStep();
+		stepTrue.setTitle("Resolve compilation issues");
+		stepTrue.setTool(ToolTypeEnum.LLM);
+		stepTrue.setStatus(StatusEnum.NOT_STARTED);
+		stepTrue.setAllowManualValidation(true);
+		stepTrue.setPrompt("Fix compilation.");
+
+		String markdown = MarkdownWriter.generateMarkdown(
+				java.util.Arrays.asList(stepFalse, stepTrue), "8.5.x", "8.6.x");
+
+		PlanDocument plan = MarkdownParser.parsePlan(markdown);
+
+		assertThat(plan.getSteps()).hasSize(2);
+		assertThat(plan.getSteps().get(0).isAllowManualValidation()).isFalse();
+		assertThat(plan.getSteps().get(1).isAllowManualValidation()).isTrue();
+	}
+
+	@Test
 	void testParsePlan_roundTripWithRealLengthPrompt() {
 		// The existing round-trip test uses a very short prompt. This test uses a long, realistic
 		// prompt similar to what the actual ai-assist-config.json generates, including special

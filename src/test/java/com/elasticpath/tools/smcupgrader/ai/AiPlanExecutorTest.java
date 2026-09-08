@@ -64,8 +64,8 @@ class AiPlanExecutorTest {
 		doNothing().when(gitClient).commit(anyString());
 
 		// Configure mock LLM invoker to always return false (LLM not available)
-		when(llmInvoker.isLlmAvailable()).thenReturn(false);
-		when(llmInvoker.invoke(anyString())).thenReturn(false);
+		when(llmInvoker.isLlmAvailable()).thenReturn(Boolean.valueOf(false));
+		when(llmInvoker.invoke(anyString())).thenReturn(Boolean.valueOf(false));
 
 		// Create executor with overridden methods to use mocks and prevent real process execution
 		executor = new AiPlanExecutor(tempDir, gitClient) {
@@ -526,6 +526,65 @@ class AiPlanExecutorTest {
 		// Step should be marked complete (no recipes dir → graceful skip)
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+	}
+
+	@Test
+	void testExecuteNextStep_allowManualValidationFalse_rejectsV() throws IOException {
+		// When allowManualValidation is false, choosing V from the menu should be rejected.
+		AiPlanStep step = createStep("Server startup", "llm", "in progress");
+		step.setValidationCommand("mvn tomcat8:run-war");
+		step.setAllowManualValidation(false);
+		step.setCommitAllChangesOnCompletion(false);
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.setTestChoice("V");
+		boolean result = executor.executeNextStep();
+
+		// Should return false because manual validation is not allowed
+		assertThat(result).isFalse();
+
+		// Step should remain in progress
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
+	}
+
+	@Test
+	void testExecuteNextStep_allowManualValidationTrue_acceptsV() throws IOException {
+		// When allowManualValidation is true (default), V should work normally.
+		AiPlanStep step = createStep("Compilation check", "llm", "in progress");
+		step.setValidationCommand("exit 0");
+		step.setAllowManualValidation(true);
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.setTestChoice("V");
+		boolean result = executor.executeNextStep();
+
+		assertThat(result).isTrue();
+
+		// Validation passed, step should be complete
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+	}
+
+	@Test
+	void testExecuteNextStep_allowManualValidationFalse_roundTripThroughPlanFile() throws IOException {
+		// Verify the flag survives the full cycle: write plan → parse → save → reparse.
+		AiPlanStep step = createStep("Server startup", "llm", "not started");
+		step.setAllowManualValidation(false);
+		step.setPrompt("Start the server.");
+		step.setCommitAllChangesOnCompletion(false);
+
+		writePlanFile(Arrays.asList(step));
+
+		// Execute to mark in progress (will save plan)
+		boolean result = executor.executeNextStep();
+		assertThat(result).isTrue();
+
+		// Re-read the plan and verify the flag was preserved through the save
+		PlanDocument plan = readPlanFile();
+		assertThat(plan.getSteps().get(0).isAllowManualValidation()).isFalse();
 	}
 
 	@Test

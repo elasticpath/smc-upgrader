@@ -102,6 +102,7 @@ public final class MarkdownWriter {
 
 		markdown.append("Commit all changes on completion: ").append(step.isCommitAllChangesOnCompletion()).append("\n");
 		markdown.append("Commit plan on completion: ").append(step.isCommitPlanOnCompletion()).append("\n");
+		markdown.append("Allow manual validation: ").append(step.isAllowManualValidation()).append("\n");
 		markdown.append("Status: ").append(step.getStatus() != null ? step.getStatus().getValue() : "").append("\n\n");
 
 		// Prompt for LLM steps

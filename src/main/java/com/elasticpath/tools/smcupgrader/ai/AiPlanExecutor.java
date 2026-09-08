@@ -15,11 +15,9 @@
 
 package com.elasticpath.tools.smcupgrader.ai;
 
-import java.io.BufferedReader;
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -601,7 +599,7 @@ public class AiPlanExecutor {
 	}
 
 	/**
-	 * Run a validation command.
+	 * Run a validation command, streaming its output directly to the terminal.
 	 *
 	 * @param command the command to run
 	 * @return true if the command exited with code 0
@@ -611,17 +609,8 @@ public class AiPlanExecutor {
 		try {
 			Process process = new ProcessBuilder("/bin/sh", "-c", command)
 					.directory(workingDir)
-					.redirectErrorStream(true)
+					.inheritIO()
 					.start();
-
-			// Read output
-			try (BufferedReader reader = new BufferedReader(
-					new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					LOGGER.debug("Validation output: {}", line);
-				}
-			}
 
 			int exitCode = process.waitFor();
 			return exitCode == 0;
