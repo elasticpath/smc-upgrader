@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,10 @@ class AiPlanGeneratorTest {
 
 	@Mock
 	private UpgradeController upgradeController;
+
+	private static final String BROKER_HEALTH_URL = "http://localhost:18081/jms/";
+
+	private static final String PLACEHOLDER_PATTERN = "\\{[A-Z_][A-Z_0-9]*\\}";
 
 	private AiAssistConfigModel upgradePath;
 	private AiPlanGenerator generator;
@@ -502,6 +507,105 @@ class AiPlanGeneratorTest {
 		assertThat(steps).hasSize(2);
 		assertThat(steps.get(0).isAllowManualValidation()).isFalse();
 		assertThat(steps.get(1).isAllowManualValidation()).isTrue();
+	}
+
+	@Test
+	void testExpandStepsForVersions_pre87BrokerTemplateReachesEveryServerStartupStep() throws IOException {
+		List<AiPlanStep> brokerSteps = stepsMentioningBrokerHealthUrl(expandRealConfigSteps("8.5.x", "8.6.x"));
+
+		assertThat(brokerSteps).extracting(AiPlanStep::getTitle)
+				.containsExactlyInAnyOrderElementsOf(serverStartupStepTitles());
+		assertThat(brokerSteps).allSatisfy(step -> assertThat(step.getPrompt())
+				.contains("mvn clean tomcat8:run-war -f extensions/activemq-broker")
+				.doesNotContain("cargo:run -f extensions/activemq-broker"));
+	}
+
+	@Test
+	void testExpandStepsForVersions_87PlusBrokerTemplateReachesEveryServerStartupStep() throws IOException {
+		List<AiPlanStep> brokerSteps = stepsMentioningBrokerHealthUrl(expandRealConfigSteps("8.7.x", "8.8.x"));
+
+		assertThat(brokerSteps).extracting(AiPlanStep::getTitle)
+				.containsExactlyInAnyOrderElementsOf(serverStartupStepTitles());
+		assertThat(brokerSteps).allSatisfy(step -> assertThat(step.getPrompt())
+				.contains("mvn clean package cargo:run -f extensions/activemq-broker")
+				.doesNotContain("tomcat8:run-war -f extensions/activemq-broker"));
+	}
+
+	@Test
+	void testExpandStepsForVersions_patchConsumptionCarriesBrokerTemplateForItsOwnVersion() throws IOException {
+		// Patch consumption passes the same version as from and to, which still yields one transition.
+		assertThat(stepsMentioningBrokerHealthUrl(expandRealConfigSteps("8.6.x", "8.6.x")))
+				.hasSize(5)
+				.allSatisfy(step -> assertThat(step.getPrompt()).contains("tomcat8:run-war -f extensions/activemq-broker"));
+
+		assertThat(stepsMentioningBrokerHealthUrl(expandRealConfigSteps("8.8.x", "8.8.x")))
+				.hasSize(5)
+				.allSatisfy(step -> assertThat(step.getPrompt()).contains("cargo:run -f extensions/activemq-broker"));
+	}
+
+	@Test
+	void testExpandStepsForVersions_noUnresolvedPlaceholdersAcrossFullUpgradePath() throws IOException {
+		List<AiPlanStep> steps = expandRealConfigSteps("8.0.x", "8.8.x");
+
+		assertThat(steps).isNotEmpty();
+		for (AiPlanStep step : steps) {
+			assertThat(step.getTitle()).as("title of step '%s'", step.getTitle()).doesNotContainPattern(PLACEHOLDER_PATTERN);
+			if (step.getPrompt() != null) {
+				assertThat(step.getPrompt()).as("prompt of step '%s'", step.getTitle()).doesNotContainPattern(PLACEHOLDER_PATTERN);
+			}
+			if (step.getValidationCommand() != null) {
+				assertThat(step.getValidationCommand()).as("validation command of step '%s'", step.getTitle())
+						.doesNotContainPattern(PLACEHOLDER_PATTERN);
+			}
+		}
+	}
+
+	@Test
+	void testGeneratedPlan_everyLlmPromptSurvivesWriteAndReparse() throws IOException {
+		// A prompt line matching a metadata pattern drops the whole paragraph on reparse, with no error.
+		List<AiPlanStep> steps = expandRealConfigSteps("8.0.x", "8.8.x");
+
+		PlanDocument reparsed = MarkdownParser.parsePlan(MarkdownWriter.generateMarkdown(steps, "8.0.x", "8.8.x"));
+
+		assertThat(reparsed.getSteps()).hasSameSizeAs(steps);
+		for (int i = 0; i < steps.size(); i++) {
+			AiPlanStep original = steps.get(i);
+			if (original.getTool() == ToolTypeEnum.LLM) {
+				assertThat(reparsed.getSteps().get(i).getPrompt())
+						.as("prompt of step %d '%s'", i, original.getTitle())
+						.isEqualTo(original.getPrompt().trim());
+			}
+		}
+	}
+
+	/**
+	 * Expand the shipped ai-assist-config.json, rather than the synthetic config the other tests use.
+	 */
+	private List<AiPlanStep> expandRealConfigSteps(final String fromVersion, final String toVersion) throws IOException {
+		AiAssistConfigModel realConfig = AiAssistConfigModel.loadFromResource();
+		AiPlanGenerator realGenerator = new AiPlanGenerator(realConfig, upgradeController);
+		return realGenerator.expandStepsForVersions(realConfig.getIntermediateVersions(fromVersion, toVersion));
+	}
+
+	/**
+	 * Select the steps whose prompt carries an ActiveMQ start template.
+	 */
+	private List<AiPlanStep> stepsMentioningBrokerHealthUrl(final List<AiPlanStep> steps) {
+		return steps.stream()
+				.filter(step -> step.getPrompt() != null && step.getPrompt().contains(BROKER_HEALTH_URL))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * The five startup steps that need a broker running alongside them.
+	 */
+	private static List<String> serverStartupStepTitles() {
+		return Arrays.asList(
+				"Resolve Integration Server startup issues",
+				"Resolve Batch Server startup issues",
+				"Resolve Search Server startup issues",
+				"Resolve Cortex startup issues",
+				"Resolve Commerce Manager startup issues");
 	}
 
 	/**
