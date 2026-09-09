@@ -337,21 +337,17 @@ class MarkdownParserTest {
 		String activeMqStartupPrompt = "Run the validation command below in the background to start the Integration Server and help to fix any "
 				+ "startup issues. You will need an ActiveMQ broker running at the same time. Before starting one, check "
 				+ "whether a broker is already running by requesting http://localhost:18081/jms/. If it responds, the broker "
-				+ "is up: do not start another one, and do not run any Maven command against extensions/activemq-broker. If "
-				+ "it does not respond, start the broker as a detached background process from the repository root using "
-				+ "\"mvn clean tomcat8:run-war -f extensions/activemq-broker\", redirecting its output to a log file, then "
-				+ "poll http://localhost:18081/jms/ every 10 seconds for up to 3 minutes and treat any HTTP response as "
-				+ "success. Do not judge whether the broker started by reading its log file, because it writes very little "
-				+ "to standard output and a short or empty log does not mean it failed. If the start fails because a Tomcat "
-				+ "access log file under extensions/activemq-broker/target cannot be deleted, another process is already "
-				+ "holding that file, which almost always means a broker is already running: request "
-				+ "http://localhost:18081/jms/ again before terminating any process. If the broker port has been customized "
-				+ "in your project, its value comes from the activemq.tomcat.port.http property. If you need access to the "
-				+ "platform version of a file, you can retrieve it from the smc-upgrades remote in the release/8.6.x branch. "
-				+ "Before inspecting local build artifacts or .m2 jars, always check the platform version of any relevant "
-				+ "file from the smc-upgrades remote in release/8.6.x. Use that as your primary reference for what changed. "
-				+ "When rebuilding modules after making code changes, always include -DskipAllTests to reduce build times. "
-				+ "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git.";
+				+ "is up: do not start another one. If it does not respond, start the broker as a detached background "
+				+ "process from the repository root using \"mvn clean tomcat8:run-war -f extensions/activemq-broker\", "
+				+ "redirecting its output to a log file, then poll http://localhost:18081/jms/ every 10 seconds, allowing at "
+				+ "least a minute for the build to finish and treat any HTTP response as success. If the start fails because "
+				+ "a Tomcat access log file under extensions/activemq-broker/target cannot be deleted, another process is "
+				+ "already holding that file, which almost always means a broker is already running. If you need access to "
+				+ "the platform version of a file, you can retrieve it from the smc-upgrades remote in the release/8.6.x "
+				+ "branch. Before inspecting local build artifacts or .m2 jars, always check the platform version of any "
+				+ "relevant file from the smc-upgrades remote in release/8.6.x. Use that as your primary reference for what "
+				+ "changed. When rebuilding modules after making code changes, always include -DskipAllTests to reduce build "
+				+ "times. Do not read or update smc-upgrader-plan.md. Do not commit changes to Git.";
 
 		AiPlanStep step = new AiPlanStep();
 		step.setTitle("Resolve Integration Server startup issues");

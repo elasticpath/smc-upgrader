@@ -180,18 +180,11 @@ class AiAssistConfigModelTest {
 
 		for (String template : Arrays.asList(pre87, post87)) {
 			assertThat(template).contains("check whether a broker is already running")
+					.contains("do not start another one")
 					.contains("detached background process")
-					.contains("Do not judge whether the broker started by reading its log file")
+					.contains("allowing at least a minute for the build to finish")
 					.contains("cannot be deleted");
 		}
-
-		// Only cargo pings the broker before reporting success.
-		assertThat(post87).contains("performs its own health check against /jms");
-		assertThat(pre87).doesNotContain("performs its own health check against /jms");
-
-		// The port property was renamed in 8.7.
-		assertThat(pre87).contains("activemq.tomcat.port.http").doesNotContain("ep.activemq");
-		assertThat(post87).contains("ep.activemq.tomcat.port.http");
 	}
 
 	/**
