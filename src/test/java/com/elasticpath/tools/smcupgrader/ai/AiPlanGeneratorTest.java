@@ -475,6 +475,35 @@ class AiPlanGeneratorTest {
 		assertThat(content).doesNotContain("Existing plan");
 	}
 
+	@Test
+	void testExpandStepsForVersions_copiesAllowManualValidation() {
+		// Create upgrade path with a step that has allowManualValidation=false
+		AiPlanStep templateFalse = createStep("Server startup for {TO_VERSION}", "llm", "mvn tomcat8:run-war");
+		templateFalse.setAllowManualValidation(false);
+
+		AiPlanStep templateTrue = createStep("Resolve {TO_VERSION} compilation issues", "llm", "mvn clean install");
+		// allowManualValidation defaults to true
+
+		List<VersionEntry> versions = Arrays.asList(
+				new VersionEntry("8.5.x", ""),
+				new VersionEntry("8.6.x", "")
+		);
+		AiAssistConfigModel config = new AiAssistConfigModel(versions, "", "",
+				Arrays.asList(templateFalse, templateTrue));
+		AiPlanGenerator gen = new AiPlanGenerator(config, upgradeController) {
+			@Override
+			protected GitClient createGitClient(final File workingDir) {
+				return null;
+			}
+		};
+
+		List<AiPlanStep> steps = gen.expandStepsForVersions(Arrays.asList("8.5.x", "8.6.x"));
+
+		assertThat(steps).hasSize(2);
+		assertThat(steps.get(0).isAllowManualValidation()).isFalse();
+		assertThat(steps.get(1).isAllowManualValidation()).isTrue();
+	}
+
 	/**
 	 * Helper method to create a test step.
 	 */

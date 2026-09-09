@@ -242,6 +242,7 @@ public class AiPlanGenerator {
 				step.setStatus(template.getStatus() != null ? template.getStatus() : StatusEnum.NOT_STARTED);
 				step.setCommitPlanOnCompletion(template.isCommitPlanOnCompletion());
 				step.setCommitAllChangesOnCompletion(template.isCommitAllChangesOnCompletion());
+				step.setAllowManualValidation(template.isAllowManualValidation());
 				step.setVersion(toVersion);
 
 				if (template.getValidationCommand() != null) {
