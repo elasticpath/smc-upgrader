@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
@@ -160,6 +161,30 @@ class AiAssistConfigModelTest {
 		assertThat(steps).isNotEmpty();
 		assertThat(steps).anyMatch(step -> ToolTypeEnum.SMC_UPGRADER.equals(step.getTool()));
 		assertThat(steps).anyMatch(step -> ToolTypeEnum.LLM.equals(step.getTool()));
+	}
+
+	@Test
+	void testLoadFromResource_activeMqTemplatesCarryHealthCheckAndBrokerProbe() throws IOException {
+		String healthUrl = "http://localhost:18081/jms/";
+		Map<String, String> templates = AiAssistConfigModel.loadFromResource().getTemplates();
+
+		String pre87 = templates.get("START_ACTIVEMQ_PRE_87");
+		String post87 = templates.get("START_ACTIVEMQ");
+
+		assertThat(pre87).contains(healthUrl)
+				.contains("mvn clean tomcat8:run-war -f extensions/activemq-broker")
+				.doesNotContain("cargo:run");
+		assertThat(post87).contains(healthUrl)
+				.contains("mvn clean package cargo:run -f extensions/activemq-broker")
+				.doesNotContain("tomcat8:run-war");
+
+		for (String template : Arrays.asList(pre87, post87)) {
+			assertThat(template).contains("check whether a broker is already running")
+					.contains("do not start another one")
+					.contains("detached background process")
+					.contains("allowing at least a minute for the build to finish")
+					.contains("cannot be deleted");
+		}
 	}
 
 	/**
