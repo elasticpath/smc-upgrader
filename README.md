@@ -1,5 +1,8 @@
 # Overview
 
+> [!WARNING]
+> `smc-upgrader` currently fails on Windows, both when building from source and when running AI Assist Mode. We are working on a fix. Until then, use macOS or Linux for these tasks.
+
 `smc-upgrader` upgrades an Elastic Path Self-Managed Commerce codebase to a given version.
 
 It has the following benefits:
