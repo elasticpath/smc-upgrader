@@ -13,17 +13,14 @@ It has the following benefits:
 * Reconciles conflicts caused by the presence of Elastic Path post-release patches.
 * AI Assist Mode uses a CLI-based LLM (Claude Code by default) to guide you through virtually the entire upgrade process -- from merging and conflict resolution to compilation failures, test failures, schema updates, and more.
 
-# Installation
+# Prerequisites
 
-The following section describes how to install and build `smc-upgrader`.
+* `java` on the PATH (Java 17 JRE or later).
+* Access to the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. See [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom).
+* For AI Assist Mode only: a CLI-based LLM. By default this is [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). To use a different CLI LLM, see [Configuring the CLI LLM](#configuring-the-cli-llm).
+* For AI Assist Mode only, optional: [ast-grep](https://ast-grep.github.io/). See [Automated upgrade recipes](#automated-upgrade-recipes-ast-grep).
 
-## Prerequisites
-
-To successfully install and use `smc-upgrader`, you will need the `java` command available on the PATH (Java 17 JRE or later).
-
-Optionally, you can install [ast-grep](https://ast-grep.github.io/). AI Assist Mode includes an automated recipe step that applies deterministic code transformations via ast-grep before the LLM resolves compilation errors, which significantly reduces the number of issues the LLM needs to address. Installation instructions are included in the Homebrew and binary installation sections below.
-
-ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means the LLM resolves more compilation issues manually instead of having them fixed deterministically up front.
+# Installation and Setup
 
 ## Homebrew installation
 
@@ -44,50 +41,33 @@ ast-grep is not required. If it is not installed on your PATH, the recipe step d
     smc-upgrader --help
     ```
 
-1. Optional: install `ast-grep` for AI Assist Mode (see [Prerequisites](#prerequisites)):
-
-    ```
-    brew install ast-grep
-    ```
-
 ## Binary Installation
 
 1. Go to [`smc-upgrader` releases](https://github.com/elasticpath/smc-upgrader/releases) and check for currently available releases.
 1. Download the required zip file and place it into a folder, such as `~/tools/smc-upgrader`.
-1. Extract the downloaded file:
+1. Extract the downloaded file, replacing `<version>` with the release version:
 
     ```
-    unzip smc-upgrader-2.0.0.zip
+    unzip smc-upgrader-<version>.zip
     ```
 
-1. Set up alias/shortcut:
-    1. On a `*nix` running bash, including Mac, create an alias in your terminal.
+1. Set up an alias or shortcut:
 
-    **Note**: This can also be made for permanent use, by adding it to your `~/.bash_profile`.
+    * On macOS or Linux, create an alias. To make it permanent, add it to your `~/.bash_profile`.
 
-    ```
-    alias smc-upgrader='java -jar ~/tools/smc-upgrader/smc-upgrader-2.0.0-jar-with-dependencies.jar'
-    ```
+        ```
+        alias smc-upgrader='java -jar ~/tools/smc-upgrader/smc-upgrader-<version>-jar-with-dependencies.jar'
+        ```
 
-    1. On Windows you will likely want to create a `smc-upgrader.cmd` file on your PATH that looks like this:
+    * On Windows, create a `smc-upgrader.cmd` file on your PATH:
 
-    ```
-    @echo off
-    set SMC_UPGRADER_JAR=C:\path\to\smc-upgrader\smc-upgrader-2.0.0-jar-with-dependencies.jar
-    java -jar "%SMC_UPGRADER_JAR%" %*
-    ```
+        ```
+        @echo off
+        set SMC_UPGRADER_JAR=C:\path\to\smc-upgrader\smc-upgrader-<version>-jar-with-dependencies.jar
+        java -jar "%SMC_UPGRADER_JAR%" %*
+        ```
 
 1. Execute `smc-upgrader --help` to verify the installation.
-
-1. Optional: install `ast-grep` for AI Assist Mode (see [Prerequisites](#prerequisites)). You can install it using either npm or pip:
-
-    ```
-    npm install --global @ast-grep/cli
-    ```
-
-    ```
-    pip install ast-grep-cli
-    ```
 
 ## Build from source
 
@@ -100,27 +80,27 @@ ast-grep is not required. If it is not installed on your PATH, the recipe step d
     ./smc-upgraderw clean install
     ```
 
-1. Set up alias/shortcut:
-    1. On a `*nix` running bash, including Mac, create an alias in your terminal.
+1. Set up an alias or shortcut, replacing `<version>` with the version of the jar in `target/` (for example, `2.3.2-SNAPSHOT`):
 
-   **Note**: This can also be made for permanent use, by adding it to your `~/.bash_profile`.
+    * On macOS or Linux, create an alias. To make it permanent, add it to your `~/.bash_profile`.
 
-    ```
-    alias smc-upgrader='java -jar ~/git/smc-upgrader/target/smc-upgrader-2.0.0-SNAPSHOT-jar-with-dependencies.jar'
-    ```
+        ```
+        alias smc-upgrader='java -jar ~/git/smc-upgrader/target/smc-upgrader-<version>-jar-with-dependencies.jar'
+        ```
 
-    2. On Windows you will likely want to create a `smc-upgrader.cmd` file on your PATH that looks like this:
-    ```
-    @echo off
-    set SMC_UPGRADER_JAR=C:\path\to\git\smc-upgrader\target\smc-upgrader-2.0.0-SNAPSHOT-jar-with-dependencies.jar
-    java -jar "%SMC_UPGRADER_JAR%" %*
-    ```
+    * On Windows, create a `smc-upgrader.cmd` file on your PATH:
+
+        ```
+        @echo off
+        set SMC_UPGRADER_JAR=C:\path\to\git\smc-upgrader\target\smc-upgrader-<version>-jar-with-dependencies.jar
+        java -jar "%SMC_UPGRADER_JAR%" %*
+        ```
 
 1. Execute `smc-upgrader --help` to verify the installation.
 
-## Connecting to code.elasticpath.com
+## Connect to code.elasticpath.com
 
-`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool in either Standard Mode or AI Assist Mode, you need to set up authenticated access to that repository over SSH or HTTPS.
+`smc-upgrader` fetches upgrade commits from the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. Before you can use the tool, you need to set up authenticated access to that repository over SSH or HTTPS.
 
 Complete these steps once per machine. The first `smc-upgrader` run will fail at the fetch step if any of them is skipped.
 
@@ -178,58 +158,116 @@ git ls-remote smc-upgrades
 
 If this prints a list of branches and tags, setup is complete. If it fails, see [Troubleshooting](#troubleshooting).
 
-# Command Line Options
+# AI Assist Mode Usage
+
+AI Assist Mode uses a CLI-based LLM to guide you through the full upgrade. It can be used for version upgrades or to consume all the latest patches for your current version.
+
+> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide the LLM throughout the upgrade and carefully review all changes it makes. LLMs can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
+>
+> AI Assist Mode works best when the codebase has extensive automated regression tests that cover all custom functionality. These tests are the primary mechanism for detecting mistakes. If comprehensive test coverage is not present, AI Assist Mode may not be able to complete the upgrade successfully, and manual review effort will increase significantly.
+>
+> **Note on usage fees:** For most LLM CLI tools, usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant billing charges.
+
+Typical workflow:
+
+```shell
+smc-upgrader --ai:start 8.7.x   # generate and commit smc-upgrader-plan.md
+# review and edit smc-upgrader-plan.md
+smc-upgrader --ai:continue      # run the next step; repeat until all steps are complete
+```
+
+## AI Assist Start
+
+The tool generates a plan containing all required steps, which are executed one at a time. Steps cover the full upgrade workflow, including:
+
+* Merging the upgraded platform codebase into your branch
+* Resolving Git merge conflicts
+* Fixing Maven validation and compilation failures
+* Resolving unit test and integration test failures
+* Handling schema update issues
+* Resolving Cucumber test failures
+* Fixing server startup problems
+
+To start an AI-assisted upgrade, run:
+
+```shell
+smc-upgrader --ai:start <version>
+```
+
+Where `<version>` is the **target** version you want to upgrade to, such as `8.7.x`.
+
+To consume all latest patches on your **current** version without performing a full version upgrade, pass your current version instead:
+
+```shell
+smc-upgrader --ai:start <current-version>
+```
+
+This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
+
+We recommend that you review the upgrade plan before continuing. You can add or remove steps, change prompts, or make any other required changes to the plan, which will be read by the tool for all subsequent operations.
+
+## AI Assist Continue
+
+Once you are ready to continue, run:
+
+```shell
+smc-upgrader --ai:continue
+```
+
+The tool will read the upgrade plan from `smc-upgrader-plan.md` and check to see if there are any steps in the `in progress` state. If it finds one, it will prompt the user to decide what they want to do next, as in the following example:
 
 ```text
-Usage: smc-upgrader [-dfhmprvV] [--ai:continue] [--ai:skip-permissions] [--ai:
-                    start] [--[no-]clean-working-directory-check]
-                    [-C=<workingDir>] [<version>]
-Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
-      [<version>]            The version of Elastic Path Self-Managed Commerce
-                               to upgrade to. Optional when using --ai:start or
-                               --ai:continue.
-      --ai:continue          Continue AI-assisted upgrade from saved plan.
-      --ai:skip-permissions  Skip permission prompts when invoking the
-                               configured CLI LLM (passes the skip-permissions
-                               argument, by default
-                               --dangerously-skip-permissions for Claude Code;
-                               configurable in ~/.smc-upgrader.json).
-      --ai:start             Start AI-assisted upgrade mode and generate
-                               upgrade plan. Requires version parameter.
-  -C=<workingDir>            The working directory containing the git repo to
-                               be upgraded. Defaults to the current working
-                               directory.
-      --[no-]clean-working-directory-check
-                             Indicates whether to do a clean working directory
-                               check. Enabled by default.
-  -d, --[no-]resolve-diffs   Indicates whether to reconcile diffs between the
-                               merged branch and the upstream contents. Enabled
-                               by default.
-  -f, --[no-]fetch           Indicates whether to fetch the latest updates from
-                               the remote. Enabled by default.
-  -h, --help                 Show this help message and exit.
-  -m, --[no-]merge           Indicates whether to perform a merge. Enabled by
-                               default.
-  -p, --[no-]revert-patches  Indicates whether to revert patches before
-                               merging. Enabled by default.
-  -r, --[no-]resolve-conflicts
-                             Indicates whether to resolve merge conflicts.
-                               Enabled by default.
-  -v, --verbose              Enables debug logging.
-  -V, --version              Print version information and exit.
+INFO : Next step: Resolve all unit test failures
+INFO :   Tool: llm
+INFO :   Validation command: mvn clean install -DskipITests -DskipCucumberTests -T0.75C
+INFO :
+INFO : What would you like to do?
+INFO :   [E] Execute this step
+INFO :   [V] Verify that this step is complete
+INFO :   [M] Mark this step as complete
+INFO :   [X] Exit
 ```
+
+| Option | Result |
+|--------|--------|
+| `E` | Runs the LLM again with the step's prompt. |
+| `V` | Runs the validation command (may take a few minutes). If it succeeds, marks the step `complete` and exits. |
+| `M` | Marks the step `complete` and exits. |
+| `X` | Exits without changes. |
+
+If there are no steps `in progress`, the tool will find the first `not started` step, change it to `in progress`, and execute the step automatically.
+
+By default, the first step is to start merging from the Self-Managed Commerce repository. This step runs the same process as [Standard Mode](#standard-mode-usage), is completed automatically, and does not involve AI. For all other steps, the LLM CLI will be invoked with the prompt from the plan.
+
+> **Note:** If your LLM CLI is Claude Code, you can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
+
+When the LLM CLI exits, you will be prompted to decide what you want to do:
+
+```text
+INFO : The LLM CLI completed successfully.
+INFO :
+INFO : Was this step successfully completed?
+INFO :   [Y/M] Mark this step as complete
+INFO :   [V] Verify that this step is complete
+INFO :   [N/X] Exit
+INFO :
+```
+
+| Option | Result |
+|--------|--------|
+| `Y` / `M` | Marks the step `complete` and exits. |
+| `V` | Runs the validation command (may take a few minutes). If it succeeds, marks the step `complete` and exits. |
+| `N` / `X` | Exits without changes. |
+
+You can then run `smc-upgrader --ai:continue` again to continue the current step or move on to the next step. Keep running this command until all steps are completed.
 
 # Standard Mode Usage
 
-The following sections describe how to use `smc-upgrader` in standard mode (without the `--ai` flags).
-
-## Setup
-
-If you have not already done so, follow [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) to set up SSH access and add the `smc-upgrades` Git remote.
+Standard Mode runs only the first step of AI Assist Mode (fetch, merge, and automated conflict resolution), without any LLM involvement. Use it if you want to resolve the remaining conflicts, build failures, and test failures yourself.
 
 ## Upgrading
 
-The primary usage for `smc-upgrader` is to upgrade an existing codebase to a specified release version by executing these steps:
+`smc-upgrader` executes these steps:
 
 1. Fetch step: Fetches the latest updates from the `release/<version>` branch of the `code.elasticpath.com` repository.
 2. Merge step: Merges the `release/<version>` branch of the `code.elasticpath.com` repository into the current branch.
@@ -260,27 +298,23 @@ If you prefer to start the merge manually, and then only have `smc-upgrader` att
 smc-upgrader --no-merge 8.5.x
 ```
 
-## Demonstration
+# Advanced Configuration
 
-![SMC Upgrader standard mode demonstration](smc-upgrader.gif)
+## Automated upgrade recipes (ast-grep)
 
-# AI Assist Mode Usage
+AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before the LLM resolves compilation errors. This significantly reduces the number of issues the LLM needs to address.
 
-The following sections describe how to use `smc-upgrader` in AI assist mode (with the `--ai` flags).
+Install ast-grep with one of:
 
-> **Important:** AI Assist Mode is not a fully automated process. Experienced developers must actively guide the LLM throughout the upgrade and carefully review all changes it makes. LLMs can make mistakes -- for example, it may replace important customer customizations with standard platform functionality rather than correctly merging the two. Do not treat any AI-generated change as correct without review.
->
-> AI Assist Mode works best when the codebase has extensive automated regression tests that cover all custom functionality. These tests are the primary mechanism for detecting mistakes. If comprehensive test coverage is not present, AI Assist Mode may not be able to complete the upgrade successfully, and manual review effort will increase significantly.
->
-> **Note on usage fees:** For most LLM CLI tools, usage is billed based on the number of tokens processed. Upgrading a large codebase may result in significant billing charges.
+```
+brew install ast-grep
+npm install --global @ast-grep/cli
+pip install ast-grep-cli
+```
 
-## Setup
+ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means the LLM resolves more compilation issues manually instead of having them fixed deterministically up front.
 
-If you have not already done so, follow [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) to set up SSH access and add the `smc-upgrades` Git remote.
-
-> **Requirement:** AI Assist Mode requires a CLI-based LLM. By default it uses [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). Install Claude Code and sign up for a paid plan before proceeding, or configure a different CLI LLM as described in [Configuring the CLI LLM](#configuring-the-cli-llm).
-
-### Configuring the CLI LLM
+## Configuring the CLI LLM
 
 By default, AI Assist Mode invokes Claude Code as:
 
@@ -328,92 +362,52 @@ With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'
 
 > **Note:** The plan step prompts are authored and tuned for Claude Code. If you configure a different CLI LLM, the default prompts may not yield effective or optimal results, so you will likely need to customize the plan steps after generation. See [AI Assist Start](#ai-assist-start) for how to review and edit the generated `smc-upgrader-plan.md`.
 
-## AI Assist Start
-
-AI Assist Mode can be used to help with version upgrades or to consume all the latest patches for your current version. The tool generates a plan containing all required steps, which are executed one at a time. Steps cover the full upgrade workflow, including:
-
-* Merging the upgraded platform codebase into your branch
-* Resolving Git merge conflicts
-* Fixing Maven validation and compilation failures
-* Resolving unit test and integration test failures
-* Handling schema update issues
-* Resolving Cucumber test failures
-* Fixing server startup problems
-
-To start an AI-assisted upgrade, run:
-
-```shell
-smc-upgrader --ai:start <version>
-```
-
-Where `<version>` is the **target** version you want to upgrade to, such as `8.7.x`.
-
-To consume all latest patches on your **current** version without performing a full version upgrade, pass your current version instead:
-
-```shell
-smc-upgrader --ai:start <current-version>
-```
-
-This step will generate an upgrade plan file named `smc-upgrader-plan.md` and commit it to Git with a commit message starting with `Generated upgrade plan`.
-
-We recommend that you review the upgrade plan before continuing. You can add or remove steps, change prompts, or make any other required changes to the plan, which will be read by the tool for all subsequent operations.
-
-The step prompts are authored and tuned for Claude Code. If you have configured a different CLI LLM (see [Configuring the CLI LLM](#configuring-the-cli-llm)), expect to customize these prompts for effective or optimal results.
-
-## AI Assist Continue
-
-Once you are ready to continue, run:
-
-```shell
-smc-upgrader --ai:continue
-```
-
-The tool will read the upgrade plan from `smc-upgrader-plan.md` and check to see if there are any steps in the `in progress` state. If it finds one, it will prompt the user to decide what they want to do next, as in the following example:
+# Command Line Options
 
 ```text
-INFO : Next step: Resolve all unit test failures
-INFO :   Tool: llm
-INFO :   Validation command: mvn clean install -DskipITests -DskipCucumberTests -T0.75C
-INFO :
-INFO : What would you like to do?
-INFO :   [E] Execute this step
-INFO :   [V] Verify that this step is complete
-INFO :   [M] Mark this step as complete
-INFO :   [X] Exit
+Usage: smc-upgrader [-dfhmprvV] [--ai:continue] [--ai:skip-permissions] [--ai:
+                    start] [--[no-]clean-working-directory-check]
+                    [-C=<workingDir>] [<version>]
+Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
+      [<version>]            The version of Elastic Path Self-Managed Commerce
+                               to upgrade to. Optional when using --ai:start or
+                               --ai:continue.
+      --ai:continue          Continue AI-assisted upgrade from saved plan.
+      --ai:skip-permissions  Skip permission prompts when invoking the
+                               configured CLI LLM (passes the skip-permissions
+                               argument, by default
+                               --dangerously-skip-permissions for Claude Code;
+                               configurable in ~/.smc-upgrader.json).
+      --ai:start             Start AI-assisted upgrade mode and generate
+                               upgrade plan. Requires version parameter.
+  -C=<workingDir>            The working directory containing the git repo to
+                               be upgraded. Defaults to the current working
+                               directory.
+      --[no-]clean-working-directory-check
+                             Indicates whether to do a clean working directory
+                               check. Enabled by default.
+  -d, --[no-]resolve-diffs   Indicates whether to reconcile diffs between the
+                               merged branch and the upstream contents. Enabled
+                               by default.
+  -f, --[no-]fetch           Indicates whether to fetch the latest updates from
+                               the remote. Enabled by default.
+  -h, --help                 Show this help message and exit.
+  -m, --[no-]merge           Indicates whether to perform a merge. Enabled by
+                               default.
+  -p, --[no-]revert-patches  Indicates whether to revert patches before
+                               merging. Enabled by default.
+  -r, --[no-]resolve-conflicts
+                             Indicates whether to resolve merge conflicts.
+                               Enabled by default.
+  -v, --verbose              Enables debug logging.
+  -V, --version              Print version information and exit.
 ```
 
-If you choose `E`, then the LLM will be executed again with the prompt specified in the plan.
-If you choose `V`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
-If you choose `M`, the step will be marked as `complete`, and the tool will exit.
-If you choose `X`, the tool will just exit without doing anything else.
+# Troubleshooting
 
-If there are no steps `in progress`, the tool will find the first `not started` step, change it to `in progress`, and execute the step automatically.
+## Git merge fails: no common ancestor
 
-By default, the first step is to start merging from the Self-Managed Commerce repository. This step will be completed automatically and does not involve AI. For all other steps, the LLM CLI will be invoked with the prompt from the plan.
-
-> **Note:** If your LLM CLI is Claude Code, you can interact with Claude Code normally, providing guidance or correcting mistakes. Claude Code may also ask for advice when it's not sure about the best way to proceed. When Claude Code appears to be done, type `/exit` to exit the interactive Claude Code tool.
-
-When the LLM CLI exits, you will be prompted to decide what you want to do:
-
-```text
-INFO : The LLM CLI completed successfully.
-INFO :
-INFO : Was this step successfully completed?
-INFO :   [Y/M] Mark this step as complete
-INFO :   [V] Verify that this step is complete
-INFO :   [N/X] Exit
-INFO :
-```
-
-If you choose `Y` or `M`, the step will be marked as `complete`, and the tool will exit.
-If you choose `V`, then the validation command will be executed (this may take a few minutes), and if successful, the step will be marked as `complete`, and the tool will exit.
-If you choose `N` or `X`, the tool will just exit without doing anything else.
-
-You can then run `smc-upgrader --ai:continue` again to continue the current step or move on to the next step. Keep running this command until all steps are completed.
-
-## Troubleshooting
-
-### Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.
+Error: `Git merge failed. Usually this means that Git could not find a common ancestor commit between your branch and the Self Managed Commerce release branch.`
 
 If `smc-upgrader` shows this error, it usually means that your Git repository was initialized using a snapshot of the source code, rather than by cloning from `code.elasticpath.com`. This will be the case if your project team started with SMC 7.0.1 or earlier, before the `code.elasticpath.com` public repository was available.
 
@@ -451,11 +445,11 @@ git merge --allow-unrelated-histories -s ours temp-branch
 git branch -D temp-branch
 ```
 
-8. Follow the [upgrading](#upgrading) steps normally.
+8. Run `smc-upgrader` normally, using either [AI Assist Mode](#ai-assist-mode-usage) or [Standard Mode](#standard-mode-usage).
 
 You should only have to do this once; future uses of the tool should work without issue.
 
-### SSH authentication fails with "No keys found in identity" or "Cannot log in"
+## SSH authentication fails with "No keys found in identity" or "Cannot log in"
 
 This usually means one of the prerequisites in [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom) is missing or misconfigured. Common causes:
 
