@@ -22,6 +22,12 @@ It has the following benefits:
 
 # Installation and Setup
 
+1. Choose an installation option:
+  * [Homebrew installation](#homebrew-installation) is usually the best choice for Mac users. Homebrew will also keep the `smc-upgrader` up-to-date automatically.
+  * [Binary installation](#binary-installation) works for all operating systems that support Java. When new versions are released, they will need to be updated manually.
+  * [Build from source)[#build-from-source) is an option for users who may want to modify the tool behavior.
+2. [Connect to code.elasticpath.com](#connect-to-codeelasticpathcom)
+
 ## Homebrew installation
 
 1. Tap the `smc-upgrader`'s formula repository:
@@ -41,7 +47,7 @@ It has the following benefits:
     smc-upgrader --help
     ```
 
-## Binary Installation
+## Binary installation
 
 1. Go to [`smc-upgrader` releases](https://github.com/elasticpath/smc-upgrader/releases) and check for currently available releases.
 1. Download the required zip file and place it into a folder, such as `~/tools/smc-upgrader`.
