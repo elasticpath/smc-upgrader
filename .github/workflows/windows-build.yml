@@ -64,6 +64,7 @@ jobs:
           probe="java -cp $jar .github/probe/ShellTiming.java"
           echo "=== stdin from /dev/null ==="; timeout 300 $probe < /dev/null
           echo "=== stdin from open pipe ==="; (sleep 400) | timeout 300 $probe
+          echo "=== stdin pipe with pending reader, data after 12 s ==="; (sleep 12; echo x; sleep 400) | timeout 300 $probe reader
 
       - name: Upload test reports
         if: always()

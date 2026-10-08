@@ -4,6 +4,20 @@ import com.elasticpath.tools.smcupgrader.ShellCommand;
 public class ShellTiming {
 	public static void main(String[] args) throws Exception {
 		ShellCommand shell = new ShellCommand();
+		if (args.length > 0 && args[0].equals("reader")) {
+			// Mimic Surefire's command reader: a thread with a read always pending on stdin.
+			Thread reader = new Thread(() -> {
+				try {
+					int b = System.in.read();
+					System.out.println("reader got byte " + b);
+				} catch (java.io.IOException e) {
+					e.printStackTrace();
+				}
+			});
+			reader.setDaemon(true);
+			reader.start();
+			Thread.sleep(500);
+		}
 		long start = System.nanoTime();
 		System.out.println("shell=" + shell.resolveShell() + " resolve ms=" + (System.nanoTime() - start) / 1_000_000);
 		time("default pipes", shell, pb -> { });
