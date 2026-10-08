@@ -58,7 +58,7 @@
     {
       "title": "Resolve all compilation issues",
       "tool": "llm",
-      "validationCommand": "mvn clean install -DskipAllTests -pl '!:ext-common-test-database,!:smoketest-h2-database'",
+      "validationCommand": "mvn clean install -DskipAllTests -pl -:ext-common-test-database,-:smoketest-h2-database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background and help to fix any compilation issues. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 10 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
@@ -82,7 +82,7 @@
     {
       "title": "Resolve all unit test failures",
       "tool": "llm",
-      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip -pl '!:webapp-smoketests'",
+      "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip -pl -:webapp-smoketests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"

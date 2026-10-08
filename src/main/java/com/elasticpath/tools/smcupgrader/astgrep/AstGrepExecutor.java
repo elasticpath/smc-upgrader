@@ -9,9 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.elasticpath.tools.smcupgrader.ShellCommand;
 
 /**
  * Discovers and executes ast-grep recipes against a working tree.
@@ -22,6 +25,7 @@ public class AstGrepExecutor {
 
 	private final File workingDir;
 	private final List<String> versions;
+	private final ShellCommand shellCommand = new ShellCommand();
 
 	/**
 	 * Constructor.
@@ -100,10 +104,9 @@ public class AstGrepExecutor {
 	 */
 	protected boolean isAstGrepAvailable() {
 		try {
-			int exitCode = new ProcessBuilder("ast-grep", "--version")
-					.redirectErrorStream(true)
-					.start()
-					.waitFor();
+			int exitCode = shellCommand.run("ast-grep --version", processBuilder -> processBuilder
+					.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+					.redirectError(ProcessBuilder.Redirect.DISCARD));
 			return exitCode == 0;
 		} catch (IOException e) {
 			return false;
@@ -272,15 +275,14 @@ public class AstGrepExecutor {
 
 		if (astGrepConfig != null) {
 			cmd.add("--config");
-			cmd.add(astGrepConfig);
+			cmd.add(ShellCommand.toPosixPath(astGrepConfig));
 		}
 
 		cmd.addAll(Arrays.asList(
-				"--rule", recipeFile.toString(),
-				"--update-all", workingDir.getAbsolutePath()));
+				"--rule", ShellCommand.toPosixPath(recipeFile.toString()),
+				"--update-all", ShellCommand.toPosixPath(workingDir.getAbsolutePath())));
 
-		ProcessBuilder pb = new ProcessBuilder(cmd);
-		pb.inheritIO();
-		return pb.start().waitFor();
+		String command = cmd.stream().map(ShellCommand::quote).collect(Collectors.joining(" "));
+		return shellCommand.run(command, ProcessBuilder::inheritIO);
 	}
 }

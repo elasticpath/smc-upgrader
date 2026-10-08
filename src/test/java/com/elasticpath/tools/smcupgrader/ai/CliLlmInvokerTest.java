@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,5 +88,32 @@ class CliLlmInvokerTest {
 		// We can't make strong assertions, but we can verify the method doesn't crash.
 		boolean available = invoker.isLlmAvailable();
 		assertThat(available).isIn(true, false);
+	}
+
+	@Test
+	void testInvoke_promptWithSpecialCharactersReachesLlmUnchanged() throws IOException {
+		LlmConfig config = new LlmConfig("printf '%s' {prompt} > captured.txt", "printf", "");
+		CliLlmInvoker capturingInvoker = new CliLlmInvoker(tempDir, config);
+		String prompt = "Run \"mvn\" in C:\\work\\it's here!\nThen check $HOME and `pwd`.";
+
+		boolean result = capturingInvoker.invoke(prompt);
+
+		assertThat(result).isTrue();
+		assertThat(Files.readAllBytes(new File(tempDir, "captured.txt").toPath()))
+				.isEqualTo(prompt.getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	void testIsLlmAvailable_trueForExistingExecutable() {
+		LlmConfig config = new LlmConfig("{executable} {prompt}", "sh", "");
+
+		assertThat(new CliLlmInvoker(tempDir, config).isLlmAvailable()).isTrue();
+	}
+
+	@Test
+	void testIsLlmAvailable_falseForMissingExecutable() {
+		LlmConfig config = new LlmConfig("{executable} {prompt}", "no-such-llm-executable", "");
+
+		assertThat(new CliLlmInvoker(tempDir, config).isLlmAvailable()).isFalse();
 	}
 }
