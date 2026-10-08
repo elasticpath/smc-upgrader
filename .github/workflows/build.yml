@@ -1,9 +1,10 @@
-# Temporary workflow for PB-14428. Remove before merging.
-name: Cross-platform build
+name: Build
 
 on:
   push:
-    branches: [PB-14428]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -56,19 +57,8 @@ jobs:
           fi
           wait "$build_pid"
 
-      - name: Shell timing probe
-        if: always() && runner.os == 'Windows' && matrix.shell == 'bash'
-        shell: bash
-        run: |
-          jar=$(ls target/*-jar-with-dependencies.jar)
-          probe="java -cp $jar .github/probe/ShellTiming.java"
-          echo "=== stdin from /dev/null ==="; timeout 300 $probe < /dev/null
-          # Process substitution, not a pipe: bash would otherwise wait for the sleep to finish.
-          echo "=== stdin from open pipe ==="; timeout 120 $probe < <(sleep 60)
-          echo "=== stdin pipe with pending reader, data after 12 s ==="; timeout 120 $probe reader < <(sleep 12; echo x; sleep 60)
-
       - name: Upload test reports
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: surefire-${{ matrix.os }}-${{ matrix.shell }}-${{ matrix.jdk }}
