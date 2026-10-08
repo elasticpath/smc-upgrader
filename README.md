@@ -1,8 +1,5 @@
 # Overview
 
-> [!WARNING]
-> `smc-upgrader` currently fails on Windows, both when building from source and when running AI Assist Mode. We are working on a fix. Until then, use macOS or Linux for these tasks.
-
 `smc-upgrader` upgrades an Elastic Path Self-Managed Commerce codebase to a given version.
 
 It has the following benefits:
@@ -16,8 +13,10 @@ It has the following benefits:
 # Prerequisites
 
 * `java` on the PATH (Java 17 JRE or later).
+* On Windows: [Git for Windows](https://git-scm.com/download/win). It provides the `sh.exe` that `smc-upgrader` uses to run commands. You can run `smc-upgrader` from Command Prompt, PowerShell, or Git Bash.
 * Access to the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. See [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom).
-* For AI Assist Mode only: a CLI-based LLM. By default this is [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). To use a different CLI LLM, see [Configuring the CLI LLM](#configuring-the-cli-llm).
+* For AI Assist Mode only: a CLI-based LLM. By default this is [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). To use a different CLI LLM, see [Configuring the CLI LLM](#configuring-the-cli-llm). On Windows, the Claude Code native installer puts `claude.exe` in `%USERPROFILE%\.local\bin`, which you may need to add to the PATH.
+* For AI Assist Mode only: `mvn` on the PATH. Validation steps run Maven in the project being upgraded.
 * For AI Assist Mode only, optional: [ast-grep](https://ast-grep.github.io/). See [Automated upgrade recipes](#automated-upgrade-recipes-ast-grep).
 
 # Installation and Setup
@@ -65,7 +64,13 @@ It has the following benefits:
         alias smc-upgrader='java -jar ~/tools/smc-upgrader/smc-upgrader-<version>-jar-with-dependencies.jar'
         ```
 
-    * On Windows, create a `smc-upgrader.cmd` file on your PATH:
+    * On Windows with Git Bash, create an alias. To make it permanent, add it to your `~/.bashrc`.
+
+        ```
+        alias smc-upgrader='java -jar /c/Users/<user>/tools/smc-upgrader/smc-upgrader-<version>-jar-with-dependencies.jar'
+        ```
+
+    * On Windows with Command Prompt or PowerShell, create a `smc-upgrader.cmd` file on your PATH:
 
         ```
         @echo off
@@ -86,6 +91,8 @@ It has the following benefits:
     ./smc-upgraderw clean install
     ```
 
+    On Windows, the same command works from Git Bash. From Command Prompt or PowerShell, run `smc-upgraderw.cmd clean install`. The wrapper requires `JAVA_HOME` to point to a Java 17 or later JDK.
+
 1. Set up an alias or shortcut, replacing `<version>` with the version of the jar in `target/` (for example, `2.3.2-SNAPSHOT`):
 
     * On macOS or Linux, create an alias. To make it permanent, add it to your `~/.bash_profile`.
@@ -94,7 +101,13 @@ It has the following benefits:
         alias smc-upgrader='java -jar ~/git/smc-upgrader/target/smc-upgrader-<version>-jar-with-dependencies.jar'
         ```
 
-    * On Windows, create a `smc-upgrader.cmd` file on your PATH:
+    * On Windows with Git Bash, create an alias. To make it permanent, add it to your `~/.bashrc`.
+
+        ```
+        alias smc-upgrader='java -jar /c/Users/<user>/git/smc-upgrader/target/smc-upgrader-<version>-jar-with-dependencies.jar'
+        ```
+
+    * On Windows with Command Prompt or PowerShell, create a `smc-upgrader.cmd` file on your PATH:
 
         ```
         @echo off
@@ -318,6 +331,8 @@ npm install --global @ast-grep/cli
 pip install ast-grep-cli
 ```
 
+On Windows, both the npm and pip installations work.
+
 ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means the LLM resolves more compilation issues manually instead of having them fixed deterministically up front.
 
 ## Configuring the CLI LLM
@@ -330,7 +345,7 @@ claude --model sonnet '<prompt>'
 
 When `--ai:skip-permissions` is used, `--dangerously-skip-permissions` is added before `--model`.
 
-You can drive a different CLI-based LLM, or change how Claude Code is invoked, by creating a machine-wide configuration file at `~/.smc-upgrader.json`. This file is shared by all project folders. When the file is absent, or any field is omitted, the defaults reproduce the behavior above exactly.
+You can drive a different CLI-based LLM, or change how Claude Code is invoked, by creating a machine-wide configuration file at `~/.smc-upgrader.json` (`%USERPROFILE%\.smc-upgrader.json` on Windows). This file is shared by all project folders. When the file is absent, or any field is omitted, the defaults reproduce the behavior above exactly.
 
 ```json
 {
@@ -462,3 +477,19 @@ This usually means one of the prerequisites in [Connecting to code.elasticpath.c
 * The public key has not been added to your `code.elasticpath.com` GitLab account.
 * `~/.ssh/config` does not bind the configured key to `Host code.elasticpath.com`, so SSH is offering a different key.
 * Your account does not have access to the `ep-commerce/ep-commerce` repository. Confirm by opening [https://code.elasticpath.com/ep-commerce/ep-commerce](https://code.elasticpath.com/ep-commerce/ep-commerce) in a browser; if you cannot access it there, contact Elastic Path Customer Support.
+
+## Windows: "The configured CLI LLM executable 'claude' is not available on the PATH"
+
+Claude Code is not installed, or its folder is not on the PATH. With the native installer, add `%USERPROFILE%\.local\bin` to the PATH. With npm, add the npm global folder (shown by `npm prefix -g`). Open a new terminal and confirm that `claude --version` works.
+
+## Windows: "mvn: command not found" during a validation step
+
+Maven is not on the PATH. Install Maven, add its `bin` folder to the PATH, open a new terminal, and confirm that `mvn --version` works.
+
+## Windows: "A POSIX shell (sh.exe) was not found"
+
+Git for Windows is not installed, or `git` is not on the PATH. Install [Git for Windows](https://git-scm.com/download/win), open a new terminal, and confirm that `git --version` works.
+
+## Windows: "JAVA_HOME not found" when building from source
+
+`smc-upgraderw.cmd` requires `JAVA_HOME` to point to a Java 17 or later JDK. Set it in System Properties > Environment Variables, then open a new terminal.
