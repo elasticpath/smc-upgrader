@@ -65,6 +65,10 @@ public class ShellCommand {
 	 */
 	public int run(final String command, final Consumer<ProcessBuilder> configurer) throws IOException, InterruptedException {
 		String sh = resolveShell();
+		// Pass the command in a script file, not as "sh -c <command>". Windows passes a process one command-line
+		// string, and ProcessBuilder does not escape embedded quotes when joining arguments into it, so prompts
+		// containing " or \ would be re-split and corrupted. This also avoids the 32K Windows command-line limit.
+		// The script is used on every platform so macOS and Linux tests exercise the same code path.
 		Path script = Files.createTempFile("smc-upgrader-", ".sh");
 		try {
 			Files.write(script, command.getBytes(StandardCharsets.UTF_8));
