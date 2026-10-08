@@ -63,8 +63,9 @@ jobs:
           jar=$(ls target/*-jar-with-dependencies.jar)
           probe="java -cp $jar .github/probe/ShellTiming.java"
           echo "=== stdin from /dev/null ==="; timeout 300 $probe < /dev/null
-          echo "=== stdin from open pipe ==="; (sleep 400) | timeout 300 $probe
-          echo "=== stdin pipe with pending reader, data after 12 s ==="; (sleep 12; echo x; sleep 400) | timeout 300 $probe reader
+          # Process substitution, not a pipe: bash would otherwise wait for the sleep to finish.
+          echo "=== stdin from open pipe ==="; timeout 120 $probe < <(sleep 60)
+          echo "=== stdin pipe with pending reader, data after 12 s ==="; timeout 120 $probe reader < <(sleep 12; echo x; sleep 60)
 
       - name: Upload test reports
         if: always()
