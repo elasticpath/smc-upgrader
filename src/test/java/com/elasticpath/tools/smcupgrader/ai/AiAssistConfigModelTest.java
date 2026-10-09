@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
@@ -42,6 +43,18 @@ class AiAssistConfigModelTest {
 		assertThat(upgradePath).isNotNull();
 		assertThat(upgradePath.getVersions()).isNotEmpty();
 		assertThat(upgradePath.getSteps()).isNotEmpty();
+	}
+
+	@Test
+	void testShippedValidationCommandsContainNoShellMetacharacters() throws IOException {
+		// Validation commands are shown to users for manual copy into any shell, including Command Prompt.
+		AiAssistConfigModel config = AiAssistConfigModel.loadFromResource();
+
+		assertThat(config.getSteps())
+				.extracting(AiPlanStep::getValidationCommand)
+				.filteredOn(Objects::nonNull)
+				.isNotEmpty()
+				.allSatisfy(command -> assertThat(command).doesNotContainPattern("['\"`!$*&|;<>\\\\]"));
 	}
 
 	@Test

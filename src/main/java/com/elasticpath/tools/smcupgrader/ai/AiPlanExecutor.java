@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
+import com.elasticpath.tools.smcupgrader.ShellCommand;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
@@ -52,6 +53,7 @@ public class AiPlanExecutor {
 	private final GitClient gitClient;
 	private final boolean cliSkipPermissions;
 	private final LlmConfig llmConfig;
+	private final ShellCommand shellCommand = new ShellCommand();
 	private String testChoice; // For testing only - bypasses interactive prompt
 
 	/**
@@ -607,12 +609,9 @@ public class AiPlanExecutor {
 	 */
 	boolean runValidationCommand(final String command) throws IOException {
 		try {
-			Process process = new ProcessBuilder("/bin/sh", "-c", command)
+			int exitCode = shellCommand.run(command, processBuilder -> processBuilder
 					.directory(workingDir)
-					.inheritIO()
-					.start();
-
-			int exitCode = process.waitFor();
+					.inheritIO());
 			return exitCode == 0;
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

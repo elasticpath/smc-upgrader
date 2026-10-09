@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -21,6 +22,13 @@ class AstGrepExecutorTest {
 
 	@TempDir
 	File tempDir;
+
+	@Test
+	@EnabledIfEnvironmentVariable(named = "SMC_UPGRADER_TEST_AST_GREP", matches = "npm|pip")
+	void isAstGrepAvailable_trueWhenInstalled() {
+		// CI sets the variable after installing ast-grep with npm or pip, covering both install layouts on Windows.
+		assertThat(executor().isAstGrepAvailable()).isTrue();
+	}
 
 	@Test
 	void discoverRecipeFiles_filtersOutOlderBuckets() throws IOException {

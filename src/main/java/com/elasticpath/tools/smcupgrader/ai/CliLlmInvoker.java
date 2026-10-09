@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.elasticpath.tools.smcupgrader.ShellCommand;
 import com.elasticpath.tools.smcupgrader.ai.config.LlmConfig;
 
 /**
@@ -23,6 +24,7 @@ public class CliLlmInvoker {
 	private final File workingDir;
 	private final boolean skipPermissions;
 	private final LlmConfig config;
+	private final ShellCommand shellCommand = new ShellCommand();
 
 	/**
 	 * Constructor.
@@ -75,16 +77,12 @@ public class CliLlmInvoker {
 
 			LOGGER.debug("Shell command: {}", command.substring(0, Math.min(COMMAND_MAX_DISPLAY_LENGTH, command.length())) + "...");
 
-			// Execute through a shell to ensure proper terminal allocation
-			Process process = new ProcessBuilder("/bin/sh", "-c", command)
+			// Execute through a shell to ensure proper terminal allocation, and wait for the LLM to complete
+			int exitCode = shellCommand.run(command, processBuilder -> processBuilder
 					.directory(workingDir)
 					.redirectInput(ProcessBuilder.Redirect.INHERIT)
 					.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-					.redirectError(ProcessBuilder.Redirect.INHERIT)
-					.start();
-
-			// Wait for the LLM to complete
-			int exitCode = process.waitFor();
+					.redirectError(ProcessBuilder.Redirect.INHERIT));
 
 			LOGGER.info("");
 			if (exitCode == 0) {
@@ -135,14 +133,17 @@ public class CliLlmInvoker {
 	 */
 	public boolean isLlmAvailable() {
 		try {
-			Process process = new ProcessBuilder("which", config.resolveAvailabilityTarget())
-					.redirectErrorStream(true)
-					.start();
-
-			int exitCode = process.waitFor();
+			int exitCode = shellCommand.run("command -v " + ShellCommand.quote(config.resolveAvailabilityTarget()),
+					processBuilder -> processBuilder
+							.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+							.redirectError(ProcessBuilder.Redirect.DISCARD));
 			return exitCode == 0;
-		} catch (IOException | InterruptedException e) {
-			LOGGER.debug("Error checking for CLI LLM availability", e);
+		} catch (IOException e) {
+			LOGGER.warn("Error checking for CLI LLM availability: {}", e.getMessage());
+			return false;
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.debug("Interrupted while checking for CLI LLM availability", e);
 			return false;
 		}
 	}
