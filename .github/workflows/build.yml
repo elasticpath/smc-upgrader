@@ -16,8 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-latest, shell: cmd, jdk: '17' }
-          - { os: windows-latest, shell: bash, jdk: '17' }
+          - { os: windows-latest, shell: cmd, jdk: '17', ast-grep: pip }
+          - { os: windows-latest, shell: bash, jdk: '17', ast-grep: npm }
           - { os: windows-latest, shell: bash, jdk: '21' }
           - { os: ubuntu-latest, shell: bash, jdk: '17' }
           - { os: macos-latest, shell: bash, jdk: '17' }
@@ -28,6 +28,23 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.jdk }}
           cache: maven
+
+      # Installs ast-grep with one method per job, so the ast-grep availability test covers both install layouts.
+      - uses: actions/setup-python@v5
+        if: matrix.ast-grep == 'pip'
+        with:
+          python-version: '3.12'
+      - name: Install ast-grep (${{ matrix.ast-grep }})
+        if: matrix.ast-grep
+        shell: bash
+        run: |
+          if [ "${{ matrix.ast-grep }}" = npm ]; then
+            npm install --global @ast-grep/cli
+          else
+            pip install ast-grep-cli
+          fi
+          where ast-grep
+          echo "SMC_UPGRADER_TEST_AST_GREP=${{ matrix.ast-grep }}" >> "$GITHUB_ENV"
 
       - name: Build (cmd)
         if: matrix.shell == 'cmd'

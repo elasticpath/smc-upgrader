@@ -178,16 +178,16 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0-M5</version>
+				<version>3.5.6</version>
 				<configuration>
-					<!-- Talk to the forked JVM over TCP, not stdin. On Windows, a child process that inherits stdin (sh.exe)
-					blocks at startup while Surefire has a read pending on it. -->
+					<!-- Talk to the forked JVM over TCP on loopback, not stdin. On Windows, a child process that inherits stdin
+					(sh.exe) blocks at startup while Surefire has a read pending on it. -->
 					<forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
 				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.0.0-M5</version>
+				<version>3.5.6</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
