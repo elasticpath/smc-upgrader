@@ -24,7 +24,8 @@
     "REBUILD_SKIP_TESTS": "When rebuilding modules after making code changes, always include -DskipAllTests to reduce build times.",
     "NO_VALIDATION": "Do not run any Maven commands to build the source - this will be done in later steps.",
     "PRESERVE_IMPORTS": "When a conflict touches or is adjacent to a Java import block, take the union of both sides' import statements instead of choosing one side. Then prune only imports that no symbol in the final merged file references. As a final per-file check, confirm every type and annotation used in the merged body has a matching import.",
-    "SKIP_SMC_UPGRADER_RESPONSIBILITIES": "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git."
+    "SKIP_SMC_UPGRADER_RESPONSIBILITIES": "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git.",
+    "CONTINUE_UNTIL_COMPLETE": "Continue fixing compilation issues until the validation command passes. If you have medium to low confidence in any decisions, ask the human to make a choice."
   },
   "steps": [
     {
@@ -53,7 +54,7 @@
       "validationCommand": "mvn validate -DskipAllTests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below and help to fix any Maven pom structure issues. {PLATFORM_ACCESS} The validation command is expected to take around 10 seconds to execute. {NO_VALIDATION} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below and help to fix any Maven pom structure issues. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} The validation command is expected to take around 10 seconds to execute. {NO_VALIDATION} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve all compilation issues",
@@ -61,7 +62,7 @@
       "validationCommand": "mvn clean install -DskipAllTests -pl -:ext-common-test-database,-:smoketest-h2-database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background and help to fix any compilation issues. Continue fixing compilation issues until the validation command passes. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 10 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any compilation issues. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 10 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve data population failures",
@@ -69,7 +70,7 @@
       "validationCommand": "mvn clean install -DskipAllTests -pl :smoketest-h2-database -am",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background to run data population and help to fix any Liquibase changeset failures. If you encounter a Liquibase failure in the smoketest-h2-database module, check the logs at extensions/system-tests/smoketest-h2-database/target/ext-data-population-cli-0.0.0-SNAPSHOT/logs/data-population.log for additional details. {PLATFORM_ACCESS} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 5 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background to run data population and help to fix any Liquibase changeset failures. If you encounter a Liquibase failure in the smoketest-h2-database module, check the logs at extensions/system-tests/smoketest-h2-database/target/ext-data-population-cli-0.0.0-SNAPSHOT/logs/data-population.log for additional details. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 5 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve all static analysis failures",
@@ -77,7 +78,7 @@
       "validationCommand": "mvn clean install -DskipTests -DskipITests -DskipCucumberTests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background and help to fix any static analysis failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 15 minutes to execute. {RESUME_BUILD} If you encounter these errors, use @SuppressWarnings to ignore, but fix all other errors: PMD.ConsecutiveLiteralAppends, PMD.TooManyFields, PMD.GodClass, PMD.ExcessiveParameterList, PMD.ExcessiveMethodLength, PMD.ExcessiveClassLength, PMD.ExcessiveImports, PMD.NPathComplexity. {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any static analysis failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 15 minutes to execute. {RESUME_BUILD} If you encounter these errors, use @SuppressWarnings to ignore, but fix all other errors: PMD.ConsecutiveLiteralAppends, PMD.TooManyFields, PMD.GodClass, PMD.ExcessiveParameterList, PMD.ExcessiveMethodLength, PMD.ExcessiveClassLength, PMD.ExcessiveImports, PMD.NPathComplexity. {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve all unit test failures",
@@ -85,7 +86,7 @@
       "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests -Dpmd.skip -Dcheckstyle.skip -pl -:webapp-smoketests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve all integration test failures",
@@ -94,7 +95,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 60 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} The validation command is expected to take around 60 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve initialize local database issues",
@@ -102,7 +103,7 @@
       "validationCommand": "mvn install -Preset-db -Depdb.schemaname=TEMPDB{TO_VERSION_SCHEMA} -f extensions/database/pom.xml",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below to initialize the local database and help to fix any issues. {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below to initialize the local database and help to fix any issues. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve Integration Server startup issues",
@@ -211,7 +212,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 10 minutes to execute. {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 10 minutes to execute. {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve Cortex Cucumber test failures",
@@ -220,7 +221,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve Cortex OIDC Cucumber test failures",
@@ -229,7 +230,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve HTTP Mock Server Cucumber test failures",
@@ -238,7 +239,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve Integration Cucumber test failures",
@@ -247,7 +248,7 @@
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
       "allowManualValidation": false,
-      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any Cucumber or Selenium test failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {REBUILD_SKIP_TESTS} The validation command is expected to take around 90 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Final check for unit test and static analysis failures",
@@ -255,7 +256,7 @@
       "validationCommand": "mvn clean install -DskipITests -DskipCucumberTests",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background and help to fix any test or static analysis failures. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any test or static analysis failures. {CONTINUE_UNTIL_COMPLETE} {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 20 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     }
   ]
 }
