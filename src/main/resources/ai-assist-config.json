@@ -25,7 +25,7 @@
     "NO_VALIDATION": "Do not run any Maven commands to build the source - this will be done in later steps.",
     "PRESERVE_IMPORTS": "When a conflict touches or is adjacent to a Java import block, take the union of both sides' import statements instead of choosing one side. Then prune only imports that no symbol in the final merged file references. As a final per-file check, confirm every type and annotation used in the merged body has a matching import.",
     "SKIP_SMC_UPGRADER_RESPONSIBILITIES": "Do not read or update smc-upgrader-plan.md. Do not commit changes to Git.",
-    "CONTINUE_UNTIL_COMPLETE": "Continue fixing compilation issues until the validation command passes. If you have medium to low confidence in any decisions, ask the human to make a choice."
+    "CONTINUE_UNTIL_COMPLETE": "Continue fixing compilation issues until the validation command passes."
   },
   "steps": [
     {
