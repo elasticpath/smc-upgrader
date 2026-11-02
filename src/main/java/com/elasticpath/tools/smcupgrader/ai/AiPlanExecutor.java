@@ -55,7 +55,11 @@ public class AiPlanExecutor {
 			+ "Record the goal of the step, the evidence you found, your theories and assumptions, each decision with its "
 			+ "rationale and the alternatives you rejected, each file you changed with the reason for the change, and open "
 			+ "items that a human must review. "
-			+ "Update the journal as your work progresses, not only at the end. "
+			+ "Update the journal as your work progresses, not only at the end, and keep updating it until the step is "
+			+ "complete. After every file edit and after every build or test run, update the journal before you make any "
+			+ "other tool call. Do not start a new investigation until the previous one is recorded. Never stop updating "
+			+ "the journal because the work is long or complex. Before you report that the step is done, make sure that "
+			+ "the journal records every change you made and every build result. "
 			+ "Never edit or delete entries from other steps or earlier runs. "
 			+ "Do not commit %1$s to Git.";
 
