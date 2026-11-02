@@ -61,7 +61,7 @@
       "validationCommand": "mvn clean install -DskipAllTests -pl -:ext-common-test-database,-:smoketest-h2-database",
       "commitAllChangesOnCompletion": true,
       "commitPlanOnCompletion": true,
-      "prompt": "Run the validation command below in the background and help to fix any compilation issues. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 10 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
+      "prompt": "Run the validation command below in the background and help to fix any compilation issues. Continue fixing compilation issues until the validation command passes. {PLATFORM_ACCESS} {CODING_BEST_PRACTICES} {AVOID_REMOVING_CUSTOMIZATIONS} The validation command is expected to take around 10 minutes to execute. {RESUME_BUILD} {REPORT_PROGRESS} {ACCELERATORS} {SKIP_SMC_UPGRADER_RESPONSIBILITIES}"
     },
     {
       "title": "Resolve data population failures",
