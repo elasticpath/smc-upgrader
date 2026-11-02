@@ -48,6 +48,17 @@ import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 public class AiPlanExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AiPlanExecutor.class);
 
+	private static final String JOURNAL_INSTRUCTION_FORMAT = "Maintain an upgrade journal in the file %1$s in the current "
+			+ "directory. Create the file if it does not exist. Record your work for this step in a section with the heading "
+			+ "\"## %2$s\". If that section already exists, add a new subsection under it with the heading "
+			+ "\"### Run <current date and time>\" and record this run there. "
+			+ "Record the goal of the step, the evidence you found, your theories and assumptions, each decision with its "
+			+ "rationale and the alternatives you rejected, each file you changed with the reason for the change, and open "
+			+ "items that a human must review. "
+			+ "Update the journal as your work progresses, not only at the end. "
+			+ "Never edit or delete entries from other steps or earlier runs. "
+			+ "Do not commit %1$s to Git.";
+
 	private final File workingDir;
 	private final UpgradeController upgradeController;
 	private final GitClient gitClient;
@@ -572,6 +583,7 @@ public class AiPlanExecutor {
 			if (step.hasValidationCommand()) {
 				fullPrompt += "\n\nValidation command: " + step.getValidationCommand();
 			}
+			fullPrompt += "\n\n" + buildJournalInstruction(step.getTitle());
 
 			CliLlmInvoker llmInvoker = createCliLlmInvoker(skipPermissions);
 			boolean llmSuccess = llmInvoker.invoke(fullPrompt);
@@ -588,6 +600,16 @@ public class AiPlanExecutor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Build the instruction that tells the LLM to record its reasoning for a step in the upgrade journal.
+	 *
+	 * @param stepTitle the title of the step, used as the journal section heading
+	 * @return the journal instruction
+	 */
+	String buildJournalInstruction(final String stepTitle) {
+		return String.format(JOURNAL_INSTRUCTION_FORMAT, Constants.JOURNAL_FILE_NAME, stepTitle);
 	}
 
 	/**
@@ -707,7 +729,8 @@ public class AiPlanExecutor {
 		// Stage all changes (modified, new, and deleted files)
 		gitClient.stageAll();
 
-		// Unstage the plan file - it should be committed separately
+		// Unstage the plan file - it should be committed separately.
+		// The journal file (Constants.JOURNAL_FILE_NAME) stays staged on purpose, so it is committed with the step changes.
 		gitClient.unstage(Constants.PLAN_FILE_NAME);
 
 		// Commit all changes

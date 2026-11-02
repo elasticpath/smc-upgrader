@@ -193,6 +193,7 @@ Typical workflow:
 smc-upgrader --ai:start 8.7.x   # generate and commit smc-upgrader-plan.md
 # review and edit smc-upgrader-plan.md
 smc-upgrader --ai:continue      # run the next step; repeat until all steps are complete
+# review each step commit with its section in smc-upgrader-journal.md
 ```
 
 ## AI Assist Start
@@ -279,6 +280,14 @@ INFO :
 | `N` / `X` | Exits without changes. |
 
 You can then run `smc-upgrader --ai:continue` again to continue the current step or move on to the next step. Keep running this command until all steps are completed.
+
+## Upgrade journal
+
+Each LLM step records its reasoning in `smc-upgrader-journal.md`, in the root of the codebase, next to `smc-upgrader-plan.md`. The file has one section per LLM step, titled with the step title. A section records the goal, the evidence, the assumptions, each decision with its rationale and rejected alternatives, each changed file with the reason, and the open items that need human review.
+
+The LLM updates the journal while it works. If you run a step again with `E`, the LLM adds a new dated run under that step's section. The Git merge step and the ast-grep recipe step add no entries.
+
+When you mark a step complete, the tool commits the journal with that step's code changes. When you review the commit of a step, read its journal section with the diff.
 
 # Standard Mode Usage
 

@@ -22,6 +22,11 @@ public final class Constants {
 	 */
 	public static final String PLAN_FILE_NAME = "smc-upgrader-plan.md";
 
+	/**
+	 * The file name for the upgrade journal, which LLM steps use to record their reasoning.
+	 */
+	public static final String JOURNAL_FILE_NAME = "smc-upgrader-journal.md";
+
 	private Constants() {
 		// Prevent instantiation
 	}

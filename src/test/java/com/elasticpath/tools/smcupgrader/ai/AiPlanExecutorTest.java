@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -32,7 +33,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 
+import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 
@@ -182,6 +185,44 @@ class AiPlanExecutorTest {
 		// Verify step was marked as in progress (LLM steps are never auto-completed)
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
+	}
+
+	@Test
+	void testExecuteNextStep_llmStepPromptIncludesJournalInstruction() throws IOException {
+		AiPlanStep step = createStep("Resolve merge conflicts", "llm", "not started");
+		step.setPrompt("Test prompt");
+		step.setCommitAllChangesOnCompletion(false);
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.executeNextStep();
+
+		String prompt = captureLlmPrompt();
+		assertThat(prompt)
+				.startsWith("Test prompt")
+				.contains(Constants.JOURNAL_FILE_NAME)
+				.contains("## Resolve merge conflicts")
+				.doesNotContain("Validation command:");
+	}
+
+	@Test
+	void testExecuteNextStep_llmStepWithValidationPromptIncludesJournalInstructionAfterValidationCommand()
+			throws IOException {
+		AiPlanStep step = createStep("Resolve unit test failures", "llm", "not started");
+		step.setPrompt("Test prompt");
+		step.setValidationCommand("exit 0");
+		step.setCommitAllChangesOnCompletion(false);
+
+		writePlanFile(Arrays.asList(step));
+
+		executor.executeNextStep();
+
+		String prompt = captureLlmPrompt();
+		assertThat(prompt)
+				.contains(Constants.JOURNAL_FILE_NAME)
+				.contains("## Resolve unit test failures");
+		assertThat(prompt.indexOf(Constants.JOURNAL_FILE_NAME))
+				.isGreaterThan(prompt.indexOf("Validation command: exit 0"));
 	}
 
 	@Test
@@ -642,6 +683,15 @@ class AiPlanExecutorTest {
 		String markdown = MarkdownWriter.generateMarkdown(steps, "8.5.x", "8.6.x");
 		File planFile = new File(tempDir, "smc-upgrader-plan.md");
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * Helper to capture the prompt passed to the CLI LLM.
+	 */
+	private String captureLlmPrompt() throws IOException {
+		ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+		verify(llmInvoker).invoke(promptCaptor.capture());
+		return promptCaptor.getValue();
 	}
 
 	/**
