@@ -137,12 +137,6 @@ public class UpgradeController {
 		} else {
 			LOGGER.info("Skipping diff conflict resolution.");
 		}
-
-		LOGGER.info("Use your IDE to resolve any remaining merge conflicts, or run the following command:\n\n"
-				+ "git mergetool\n\n"
-				+ "Once all conflicts have been resolved, stage the changes and commit to complete the merge:\n\n"
-				+ "git add -A .\n"
-				+ "git commit");
 	}
 
 	/**
