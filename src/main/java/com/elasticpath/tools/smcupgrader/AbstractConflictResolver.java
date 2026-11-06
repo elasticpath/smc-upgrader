@@ -42,34 +42,13 @@ public class AbstractConflictResolver {
 	 * @param change the change representing the conflict to resolve
 	 */
 	protected void resolveConflictTheirs(final Change change) {
-		if (acceptingTheirsDeletes(change)) {
+		if (change.getTheirChangeType() == ChangeType.DELETED || change.getOurChangeType() == ChangeType.CREATED) {
 			delete(change.getPath());
 			return;
 		}
 
 		replaceContents(change.getPath(), change.getTheirVersionSHA(), change.getTheirFilePermissions());
 		stage(change.getPath());
-	}
-
-	/**
-	 * Indicates whether accepting the incoming change deletes the file rather than writing the upstream version.
-	 *
-	 * @param change the change
-	 * @return true if {@link #resolveConflictTheirs(Change)} deletes the file
-	 */
-	protected static boolean acceptingTheirsDeletes(final Change change) {
-		return change.getTheirChangeType() == ChangeType.DELETED || change.getOurChangeType() == ChangeType.CREATED;
-	}
-
-	/**
-	 * Describe an upstream match as journal evidence.
-	 *
-	 * @param match the upstream match
-	 * @return the evidence text
-	 */
-	protected static String matchEvidence(final UpstreamMatch match) {
-		return "The latest local commit of this file has blob " + match.getBlobId()
-				+ ", the same blob as upstream commit " + match.getCommitId() + ".";
 	}
 
 	/**

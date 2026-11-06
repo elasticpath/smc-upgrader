@@ -17,7 +17,6 @@ package com.elasticpath.tools.smcupgrader.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -30,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +38,6 @@ import org.mockito.ArgumentCaptor;
 
 import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
-import com.elasticpath.tools.smcupgrader.UpgradeJournal;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
@@ -82,7 +79,7 @@ class AiPlanExecutorTest {
 			}
 
 			@Override
-			protected AstGrepExecutor createAstGrepExecutor(final String stepTitle) {
+			protected AstGrepExecutor createAstGrepExecutor() {
 				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
 					@Override
 					protected boolean isAstGrepAvailable() {
@@ -227,108 +224,6 @@ class AiPlanExecutorTest {
 				.contains("## Resolve unit test failures");
 		assertThat(prompt.indexOf(Constants.JOURNAL_FILE_NAME))
 				.isGreaterThan(prompt.indexOf("Validation command: exit 0"));
-	}
-
-	@Test
-	void testExecuteNextStep_llmStepPromptAsksForFixedFieldEntriesAndCheckedClaims() throws IOException {
-		AiPlanStep step = createStep("Resolve merge conflicts", "llm", "not started");
-		step.setPrompt("Test prompt");
-		step.setCommitAllChangesOnCompletion(false);
-
-		writePlanFile(Arrays.asList(step));
-
-		executor.executeNextStep();
-
-		String prompt = captureLlmPrompt();
-		assertThat(prompt)
-				.contains("fenced yaml code block")
-				.contains("step (\"Resolve merge conflicts\")")
-				.contains("extension_or_core (\"extension\" if the path starts with extensions/, otherwise \"core\")")
-				.contains("verified (each factual claim in this entry, the file you checked it in, and the result)")
-				.contains("check each factual claim in it against the files in the working tree after your change")
-				.contains("For a claim about another file, open that file in the working tree.")
-				.doesNotContain("'");
-	}
-
-	@Test
-	void testExecuteNextStep_llmChangeWithoutEntryGetsUnexplainedEntry() throws IOException {
-		AiPlanStep step = createStep("Resolve merge conflicts", "llm", "not started");
-		step.setPrompt("Test prompt");
-		step.setCommitAllChangesOnCompletion(false);
-		writePlanFile(Arrays.asList(step));
-
-		when(gitClient.getWorkingDir()).thenReturn(tempDir);
-		when(gitClient.getUncommittedPaths()).thenReturn(new HashSet<>(Arrays.asList(
-				"Explained.java", "Unexplained.java", Constants.PLAN_FILE_NAME, Constants.JOURNAL_FILE_NAME)));
-		doAnswer(invocation -> {
-			writeFile("Explained.java", "changed");
-			writeFile("Unexplained.java", "changed");
-			writeFile(Constants.JOURNAL_FILE_NAME, "## Resolve merge conflicts\n\n### Run 2026-11-05 14:32\n\n"
-					+ "```yaml\nfile: \"Explained.java\"\npass: \"llm\"\n```\n");
-			return Boolean.TRUE;
-		}).when(llmInvoker).invoke(anyString());
-
-		executor.executeNextStep();
-
-		String journal = new UpgradeJournal(tempDir).read();
-		assertThat(journal).contains("### Coverage check ");
-		assertThat(journal).contains("```yaml\nfile: \"Unexplained.java\"\nstep: \"Resolve merge conflicts\"\npass: \"llm\"\n"
-				+ "action: \"changed\"\nextension_or_core: \"core\"\nreason: \"changed by the LLM with no journal entry\"\n"
-				+ "evidence: \"The file contents changed while the LLM ran.\"\nneeds_review: true\n```");
-		assertThat(UpgradeJournal.countFileFields(journal))
-				.containsEntry("Explained.java", 1)
-				.containsEntry("Unexplained.java", 1)
-				.doesNotContainKeys(Constants.PLAN_FILE_NAME, Constants.JOURNAL_FILE_NAME);
-	}
-
-	@Test
-	void testExecuteNextStep_entryFromEarlierStepDoesNotExplainNewChange() throws IOException {
-		AiPlanStep step = createStep("Resolve compilation failures", "llm", "not started");
-		step.setPrompt("Test prompt");
-		step.setCommitAllChangesOnCompletion(false);
-		writePlanFile(Arrays.asList(step));
-		writeFile(Constants.JOURNAL_FILE_NAME, "## Resolve merge conflicts\n\n```yaml\nfile: \"Address.java\"\n```\n");
-
-		when(gitClient.getWorkingDir()).thenReturn(tempDir);
-		when(gitClient.getUncommittedPaths()).thenReturn(new HashSet<>(Arrays.asList("Address.java")));
-		doAnswer(invocation -> {
-			writeFile("Address.java", "changed again");
-			return Boolean.TRUE;
-		}).when(llmInvoker).invoke(anyString());
-
-		executor.executeNextStep();
-
-		String journal = new UpgradeJournal(tempDir).read();
-		assertThat(journal).startsWith("## Resolve merge conflicts\n\n```yaml\nfile: \"Address.java\"\n```\n");
-		assertThat(journal).contains("\n## Resolve compilation failures\n\n### Coverage check ");
-		assertThat(UpgradeJournal.countFileFields(journal)).containsEntry("Address.java", 2);
-	}
-
-	@Test
-	void testExecuteNextStep_llmRunWithNoChangesWritesNoCoverageCheck() throws IOException {
-		AiPlanStep step = createStep("Resolve merge conflicts", "llm", "not started");
-		step.setPrompt("Test prompt");
-		step.setCommitAllChangesOnCompletion(false);
-		writePlanFile(Arrays.asList(step));
-
-		executor.executeNextStep();
-
-		assertThat(new File(tempDir, Constants.JOURNAL_FILE_NAME)).doesNotExist();
-	}
-
-	@Test
-	void testExecuteNextStep_mergeStepFailureIsRecordedInJournal() throws IOException {
-		// tempDir has no pom.xml, so the upgrade fails before it changes anything
-		AiPlanStep step = createStep("Git merge from 8.6.x to 8.7.x", "smc-upgrader", "not started");
-		step.setVersion("8.7.x");
-		step.setCommitAllChangesOnCompletion(false);
-		writePlanFile(Arrays.asList(step));
-
-		executor.executeNextStep();
-
-		String journal = new UpgradeJournal(tempDir).read();
-		assertThat(journal).startsWith("## Git merge from 8.6.x to 8.7.x\n\n### Run ");
-		assertThat(journal).contains("The merge step failed: ");
 	}
 
 	@Test
@@ -660,7 +555,7 @@ class AiPlanExecutorTest {
 			}
 
 			@Override
-			protected AstGrepExecutor createAstGrepExecutor(final String stepTitle) {
+			protected AstGrepExecutor createAstGrepExecutor() {
 				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
 					@Override
 					protected boolean isAstGrepAvailable() {
@@ -793,13 +688,6 @@ class AiPlanExecutorTest {
 		String markdown = MarkdownWriter.generateMarkdown(steps, "8.5.x", "8.6.x");
 		File planFile = new File(tempDir, "smc-upgrader-plan.md");
 		Files.write(planFile.toPath(), markdown.getBytes(StandardCharsets.UTF_8));
-	}
-
-	/**
-	 * Helper to write a file in the working directory.
-	 */
-	private void writeFile(final String path, final String content) throws IOException {
-		Files.write(new File(tempDir, path).toPath(), content.getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**

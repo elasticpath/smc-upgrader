@@ -6,8 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -51,8 +49,6 @@ public class UpgradeController {
 
 	private final GitClient gitClient;
 
-	private UpgradeJournal activeJournal;
-
 	/**
 	 * Constructor.
 	 *
@@ -71,27 +67,6 @@ public class UpgradeController {
 		this.diffConflictResolver = new DiffConflictResolver(gitClient);
 	}
 
-	private void journalCleanMerges(final String preMergeHead, final String version) {
-		final Set<String> cleanMerges = new HashSet<>(gitClient.getPathsChangedSince(preMergeHead));
-		cleanMerges.removeAll(gitClient.getConflicts().keySet());
-		cleanMerges.remove(Constants.PLAN_FILE_NAME);
-		cleanMerges.remove(Constants.JOURNAL_FILE_NAME);
-		activeJournal.appendParagraph(String.format("Git merged %d file(s) from the %s release branch without a conflict. "
-				+ "These files have no entries.", cleanMerges.size(), version));
-	}
-
-	private void journalPass(final String summary, final PassResult passResult, final String upstreamRemoteName) {
-		for (JournalEntry entry : passResult.getEntries()) {
-			final Object commitId = entry.get(JournalEntry.MATCHED_UPSTREAM_COMMIT);
-			if (commitId != null) {
-				gitClient.findUpstreamBranchContaining(commitId.toString(), upstreamRemoteName)
-						.ifPresent(branch -> entry.with(JournalEntry.MATCHED_UPSTREAM_BRANCH, branch));
-			}
-		}
-		activeJournal.appendParagraph(summary);
-		activeJournal.appendEntries(passResult.getEntries());
-	}
-
 	private static GitClient buildGitClient(final File workingDir) {
 		final FileRepositoryBuilder builder = new FileRepositoryBuilder();
 		try {
@@ -101,22 +76,6 @@ public class UpgradeController {
 			return new GitClientImpl(repository);
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Performs the upgrade as AI Assist Mode runs it: fetch, merge, conflict pass, and diff pass, without the clean working
-	 * directory check or the patch revert. Writes one journal entry for each file the conflict pass or the diff pass handled.
-	 *
-	 * @param version the target version to upgrade to
-	 * @param journal the journal to write to. The caller starts the run subsection.
-	 */
-	public void performUpgrade(final String version, final UpgradeJournal journal) {
-		activeJournal = journal;
-		try {
-			performUpgrade(version, false, true, false, true, true, true);
-		} finally {
-			activeJournal = null;
 		}
 	}
 
@@ -161,37 +120,20 @@ public class UpgradeController {
 		}
 
 		if (doMerge) {
-			final String preMergeHead = activeJournal == null ? null : gitClient.getHeadCommitId();
 			merger.merge(doCleanWorkingDirectoryCheck, upstreamRemoteName, version);
 			LOGGER.info("Merge succeeded.");
-			if (activeJournal != null) {
-				journalCleanMerges(preMergeHead, version);
-			}
 		} else {
 			LOGGER.info("Skipping merge.");
 		}
 
 		if (doConflictResolution) {
-			final PassResult conflictPass = mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName);
-			if (activeJournal != null) {
-				final String summary = String.format("The conflict pass handled %d conflicted file(s). "
-								+ "Entries with `needs_review: true` are left for the next step to resolve.",
-						conflictPass.getEntries().size());
-				journalPass(summary, conflictPass, upstreamRemoteName);
-			}
+			mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName);
 		} else {
 			LOGGER.info("Skipping merge conflict resolution.");
 		}
 
 		if (doDiffResolution) {
-			final PassResult diffPass = diffConflictResolver.resolveDiffConflicts(upstreamRemoteName, version);
-			if (activeJournal != null) {
-				final String summary = String.format("The diff pass changed %d file(s) that differed from the %s release branch. "
-								+ "It left %d file(s) unchanged without an entry, "
-								+ "because their latest local version matches no upstream version.",
-						diffPass.getEntries().size(), version, diffPass.getUnchangedCount());
-				journalPass(summary, diffPass, upstreamRemoteName);
-			}
+			diffConflictResolver.resolveDiffConflicts(upstreamRemoteName, version);
 		} else {
 			LOGGER.info("Skipping diff conflict resolution.");
 		}

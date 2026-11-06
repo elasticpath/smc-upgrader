@@ -2,7 +2,6 @@ package com.elasticpath.tools.smcupgrader.astgrep;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,19 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.elasticpath.tools.smcupgrader.GitClient;
-import com.elasticpath.tools.smcupgrader.JournalEntry;
 import com.elasticpath.tools.smcupgrader.ShellCommand;
-import com.elasticpath.tools.smcupgrader.UpgradeJournal;
-import com.elasticpath.tools.smcupgrader.WorkingTreeSnapshot;
 
 /**
  * Discovers and executes ast-grep recipes against a working tree.
@@ -31,42 +23,19 @@ public class AstGrepExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AstGrepExecutor.class);
 	private static final String RECIPES_DIR = "upgrade/recipes";
 
-	private static final Pattern RECIPE_ID_PATTERN = Pattern.compile("^id:\\s*[\"']?(.*?)[\"']?\\s*$", Pattern.MULTILINE);
-	private static final Pattern RECIPE_MESSAGE_PATTERN = Pattern.compile("^message:\\s*[\"']?(.*?)[\"']?\\s*$", Pattern.MULTILINE);
-
 	private final File workingDir;
 	private final List<String> versions;
-	private final GitClient gitClient;
-	private final UpgradeJournal journal;
-	private final String stepTitle;
 	private final ShellCommand shellCommand = new ShellCommand();
 
 	/**
-	 * Constructor. Changes are not recorded in the upgrade journal.
+	 * Constructor.
 	 *
 	 * @param workingDir        the repository working directory to run recipes against
 	 * @param versions ordered list of supported versions from configuration
 	 */
 	public AstGrepExecutor(final File workingDir, final List<String> versions) {
-		this(workingDir, versions, null, null, null);
-	}
-
-	/**
-	 * Constructor. Each file a recipe changes gets an entry in the upgrade journal.
-	 *
-	 * @param workingDir the repository working directory to run recipes against
-	 * @param versions   ordered list of supported versions from configuration
-	 * @param gitClient  the Git client, used to find the files each recipe changed
-	 * @param journal    the upgrade journal, or null to record nothing
-	 * @param stepTitle  the title of the plan step, used as the journal section heading
-	 */
-	public AstGrepExecutor(final File workingDir, final List<String> versions, final GitClient gitClient,
-			final UpgradeJournal journal, final String stepTitle) {
 		this.workingDir = workingDir;
 		this.versions = versions;
-		this.gitClient = gitClient;
-		this.journal = journal;
-		this.stepTitle = stepTitle;
 	}
 
 	/**
@@ -104,21 +73,11 @@ public class AstGrepExecutor {
 
 		String astGrepConfig = resolveAstGrepConfig();
 
-		if (journal != null) {
-			journal.startRun(stepTitle);
-			journal.appendParagraph(String.format("Applying %d ast-grep recipe(s) for %s.", recipeFiles.size(), version));
-		}
-
 		try {
 			int failCount = 0;
 			for (Path recipeFile : recipeFiles) {
 				LOGGER.info("Applying recipe: {}", recipeFile.getFileName());
-				WorkingTreeSnapshot before = journal == null ? null : WorkingTreeSnapshot.capture(gitClient);
 				int exitCode = runRecipe(recipeFile, astGrepConfig);
-				if (journal != null) {
-					Set<String> changedPaths = WorkingTreeSnapshot.capture(gitClient).changedSince(before);
-					journal.appendEntries(createJournalEntries(recipeFile, changedPaths));
-				}
 				if (exitCode != 0) {
 					LOGGER.warn("Recipe {} failed (exit code {}).", recipeFile.getFileName(), exitCode);
 					failCount++;
@@ -136,53 +95,6 @@ public class AstGrepExecutor {
 			Thread.currentThread().interrupt();
 			throw new IOException("ast-grep execution interrupted", e);
 		}
-	}
-
-	/**
-	 * Create one journal entry for each file a recipe changed.
-	 *
-	 * @param recipeFile   the recipe file
-	 * @param changedPaths the files the recipe changed
-	 * @return the entries
-	 * @throws IOException if the recipe file cannot be read
-	 */
-	List<JournalEntry> createJournalEntries(final Path recipeFile, final Set<String> changedPaths) throws IOException {
-		String recipe = new String(Files.readAllBytes(recipeFile), StandardCharsets.UTF_8);
-		String recipePath = recipePath(recipeFile);
-		List<String> ids = allMatches(RECIPE_ID_PATTERN, recipe);
-		List<String> messages = allMatches(RECIPE_MESSAGE_PATTERN, recipe);
-
-		String rule = ids.isEmpty() ? recipePath : recipePath + ": " + String.join(", ", ids);
-		String reason = messages.isEmpty() ? "Applied ast-grep recipe " + recipePath + "." : String.join(" ", messages);
-
-		List<JournalEntry> entries = new ArrayList<>();
-		for (String path : changedPaths) {
-			entries.add(JournalEntry.forFile(path, "ast-grep")
-					.with(JournalEntry.RULE, rule)
-					.with(JournalEntry.ACTION, "rewritten")
-					.with(JournalEntry.REGION, JournalEntry.WHOLE_FILE)
-					.with(JournalEntry.REASON, reason)
-					.with(JournalEntry.EVIDENCE, "ast-grep recipe " + recipePath + " matched this file and rewrote it.")
-					.with(JournalEntry.REJECTED_ALTERNATIVES, "none")
-					.with(JournalEntry.NEEDS_REVIEW, false));
-		}
-		return entries;
-	}
-
-	private String recipePath(final Path recipeFile) {
-		Path root = workingDir.toPath().toAbsolutePath().normalize();
-		Path recipe = recipeFile.toAbsolutePath().normalize();
-		Path relative = recipe.startsWith(root) ? root.relativize(recipe) : recipe;
-		return relative.toString().replace('\\', '/');
-	}
-
-	private static List<String> allMatches(final Pattern pattern, final String text) {
-		List<String> matches = new ArrayList<>();
-		Matcher matcher = pattern.matcher(text);
-		while (matcher.find()) {
-			matches.add(matcher.group(1));
-		}
-		return matches;
 	}
 
 	/**

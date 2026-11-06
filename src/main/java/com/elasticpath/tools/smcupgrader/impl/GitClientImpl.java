@@ -8,14 +8,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.Git;
@@ -70,8 +68,6 @@ public class GitClientImpl implements GitClient {
 	private static final String BRANCH_NAME_PREFIX = "release/";
 
 	private final Repository repository;
-
-	private final Map<String, Optional<String>> upstreamBranchCache = new ConcurrentHashMap<>();
 
 	/**
 	 * Constructor.
@@ -492,87 +488,6 @@ public class GitClientImpl implements GitClient {
 			return hexString.toString();
 		} catch (final IOException | NoSuchAlgorithmException | GitAPIException ex) {
 			throw new RuntimeException(ex);
-		}
-	}
-
-	@Override
-	public String getHeadCommitId() {
-		try {
-			final ObjectId head = repository.resolve("HEAD");
-			if (head == null) {
-				throw new IllegalStateException("HEAD does not point to a commit.");
-			}
-			return head.name();
-		} catch (final IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public Set<String> getPathsChangedSince(final String commitId) {
-		try (Git git = new Git(repository); RevWalk walk = new RevWalk(repository)) {
-			final RevCommit commit = walk.parseCommit(ObjectId.fromString(commitId));
-			final List<DiffEntry> diffs = git.diff()
-					.setOldTree(prepareTreeParser(commit))
-					.setCached(true)
-					.call();
-			final Set<String> paths = new HashSet<>();
-			for (final DiffEntry diff : diffs) {
-				paths.add(diff.getChangeType() == DiffEntry.ChangeType.DELETE ? diff.getOldPath() : diff.getNewPath());
-			}
-			return paths;
-		} catch (final GitAPIException | IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public Set<String> getUncommittedPaths() {
-		try (Git git = new Git(repository)) {
-			final Status status = git.status().call();
-			final Set<String> paths = new HashSet<>();
-			paths.addAll(status.getAdded());
-			paths.addAll(status.getChanged());
-			paths.addAll(status.getRemoved());
-			paths.addAll(status.getModified());
-			paths.addAll(status.getMissing());
-			paths.addAll(status.getUntracked());
-			paths.addAll(status.getConflicting());
-			return paths;
-		} catch (final GitAPIException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public Optional<String> findUpstreamBranchContaining(final String commitId, final String upstreamRemoteName) {
-		// Many files match the same upstream commit, so cache the result for each commit
-		return upstreamBranchCache.computeIfAbsent(upstreamRemoteName + ":" + commitId,
-				key -> lookUpUpstreamBranchContaining(commitId, upstreamRemoteName));
-	}
-
-	private Optional<String> lookUpUpstreamBranchContaining(final String commitId, final String upstreamRemoteName) {
-		final String remoteBranchPrefix = "refs/remotes/" + upstreamRemoteName + "/";
-		try (Git git = new Git(repository); RevWalk walk = new RevWalk(repository)) {
-			final List<Ref> branches = git.branchList()
-					.setListMode(ListBranchCommand.ListMode.REMOTE)
-					.call()
-					.stream()
-					.filter(ref -> ref.getName().startsWith(remoteBranchPrefix))
-					.sorted(Comparator.comparing((Ref ref) -> !ref.getName().startsWith(remoteBranchPrefix + BRANCH_NAME_PREFIX))
-							.thenComparing(Ref::getName))
-					.collect(Collectors.toList());
-
-			final RevCommit target = walk.parseCommit(ObjectId.fromString(commitId));
-			for (final Ref branch : branches) {
-				final RevCommit branchHead = walk.parseCommit(branch.getObjectId());
-				if (walk.isMergedInto(target, branchHead)) {
-					return Optional.of(branch.getName().substring(remoteBranchPrefix.length()));
-				}
-			}
-			return Optional.empty();
-		} catch (final GitAPIException | IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 

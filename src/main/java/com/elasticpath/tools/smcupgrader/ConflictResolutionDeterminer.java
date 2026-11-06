@@ -1,6 +1,5 @@
 package com.elasticpath.tools.smcupgrader;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -12,28 +11,28 @@ public class ConflictResolutionDeterminer {
 	 * Determines the appropriate method of resolving a given conflict.
 	 *
 	 * @param change                             represents the conflict to resolve
-	 * @param upstreamMatch                      a function that finds the upstream version matching the latest local version, if any
+	 * @param safeToOverwrite                    a function that determines whether the path is safe to overwrite
 	 * @param fileContentsOursTheirsIdentical    a function that determines whether the contents for both sides of the conflict are identical
-	 * @return the decision: the strategy, the rule that chose it, and the upstream match it used
+	 * @return the {@link ConflictResolutionStrategy} that should be used to resolve this conflict
 	 */
-	public ResolutionDecision determineResolution(final Change change,
-			final Supplier<Optional<UpstreamMatch>> upstreamMatch,
+	public ConflictResolutionStrategy determineResolution(final Change change,
+			final Supplier<Boolean> safeToOverwrite,
 			final Supplier<Boolean> fileContentsOursTheirsIdentical) {
 		if (change.getTheirChangeType() == ChangeType.DELETED) {
-			return new ResolutionDecision(ConflictResolutionStrategy.ACCEPT_THEIRS, ResolutionRule.R_DEL, null);
+			return ConflictResolutionStrategy.ACCEPT_THEIRS;
 		}
 
 		if (change.getOurChangeType() == ChangeType.CREATED && change.getTheirChangeType() == ChangeType.CREATED) {
 			if (fileContentsOursTheirsIdentical.get()) {
-				return new ResolutionDecision(ConflictResolutionStrategy.ACCEPT_OURS, ResolutionRule.R_SAME, null);
+				return ConflictResolutionStrategy.ACCEPT_OURS;
 			}
 		}
 
-		Optional<UpstreamMatch> match = upstreamMatch.get();
-		if (match.isPresent()) {
-			return new ResolutionDecision(ConflictResolutionStrategy.ACCEPT_THEIRS, ResolutionRule.R_SAFE, match.get());
+		if (safeToOverwrite.get()) {
+			return ConflictResolutionStrategy.ACCEPT_THEIRS;
 		}
 
-		return new ResolutionDecision(ConflictResolutionStrategy.MANUAL_RESOLUTION_REQUIRED, ResolutionRule.R_MANUAL, null);
+		return ConflictResolutionStrategy.MANUAL_RESOLUTION_REQUIRED;
 	}
+
 }

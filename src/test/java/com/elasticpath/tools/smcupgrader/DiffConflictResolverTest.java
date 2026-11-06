@@ -84,7 +84,7 @@ class DiffConflictResolverTest {
 
 		when(gitClient.getContentHashOfPathAtCommit(eq(PATH_1), same(remoteCommit1))).thenReturn(Optional.of(CONTENT_HASH_1)); // Match localCommit1
 
-		final PassResult result = diffConflictResolver.resolveDiffConflicts(UPSTREAM_REMOTE_NAME, VERSION);
+		diffConflictResolver.resolveDiffConflicts(UPSTREAM_REMOTE_NAME, VERSION);
 
 		assertThat(resolvedWithOurs.get())
 				.as("Conflicts resolved with ours doesn't match expectation")
@@ -92,38 +92,5 @@ class DiffConflictResolverTest {
 		assertThat(resolvedWithTheirs.get())
 				.as("Conflicts resolved with theirs doesn't match expectation")
 				.isEqualTo(1);
-
-		assertThat(result.getUnchangedCount()).isZero();
-		assertThat(result.getEntries()).hasSize(1);
-		final JournalEntry entry = result.getEntries().get(0);
-		assertThat(entry.get(JournalEntry.FILE)).isEqualTo(PATH_1);
-		assertThat(entry.get(JournalEntry.PASS)).isEqualTo("diff");
-		assertThat(entry.get(JournalEntry.RULE)).isEqualTo("D-REPLACE");
-		assertThat(entry.get(JournalEntry.ACTION)).isEqualTo("took upstream");
-		assertThat(entry.get(JournalEntry.RAW_MERGE_BLOB)).isEqualTo(SHA_2);
-		assertThat(entry.get(JournalEntry.FINAL_BLOB)).isEqualTo(SHA_1);
-		assertThat(entry.get(JournalEntry.MATCHED_UPSTREAM_BLOB)).isEqualTo(CONTENT_HASH_1);
-		assertThat(entry.get(JournalEntry.MATCHED_UPSTREAM_COMMIT)).isEqualTo(remoteCommit1.getName());
-		assertThat(entry.get(JournalEntry.NEEDS_REVIEW)).isEqualTo(false);
-	}
-
-	@Test
-	void resolveDiffConflicts_customizedFileIsCountedButHasNoEntry() {
-		final Ref releaseBranch = mock(Ref.class);
-		when(gitClient.getReleaseBranch(UPSTREAM_REMOTE_NAME, VERSION)).thenReturn(releaseBranch);
-
-		DiffEntry diff = mock(DiffEntry.class);
-		when(diff.getNewId()).thenReturn(AbbreviatedObjectId.fromString(SHA_1));
-		when(diff.getOldId()).thenReturn(AbbreviatedObjectId.fromString(SHA_2));
-		when(diff.getChangeType()).thenReturn(DiffEntry.ChangeType.MODIFY);
-		when(diff.getOldPath()).thenReturn(PATH_1);
-		when(gitClient.getDiff(releaseBranch)).thenReturn(Collections.singletonList(diff));
-		when(gitClient.getLatestCommitForPath(PATH_1)).thenReturn(null);
-
-		final PassResult result = diffConflictResolver.resolveDiffConflicts(UPSTREAM_REMOTE_NAME, VERSION);
-
-		assertThat(resolvedWithTheirs.get()).isZero();
-		assertThat(result.getEntries()).isEmpty();
-		assertThat(result.getUnchangedCount()).isEqualTo(1);
 	}
 }
