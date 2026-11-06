@@ -283,11 +283,72 @@ You can then run `smc-upgrader --ai:continue` again to continue the current step
 
 ## Upgrade journal
 
-Each LLM step records its reasoning in `smc-upgrader-journal.md`, in the root of the codebase, next to `smc-upgrader-plan.md`. The file has one section per LLM step, titled with the step title. A section records the goal, the evidence, and the assumptions. It also records each decision with its rationale and rejected alternatives, each changed file with the reason, and open items for human review.
+In AI Assist Mode, every step that changes files records its decisions in `smc-upgrader-journal.md`. The journal is in the root of the codebase, next to `smc-upgrader-plan.md`. Standard Mode writes no journal.
 
-The LLM updates the journal while it works. If you run a step again with `E`, the LLM adds a new dated run under that step's section. The Git merge step and the ast-grep recipe step add no entries.
+The journal has one section for each step, titled with the step title. Each run of a step adds a dated run subsection. The tool and the LLM only add to the journal. They do not change earlier entries.
 
-When you mark a step complete, the tool commits the journal with that step's code changes. Read the journal section of each step with the diff of its commit.
+Each decision about a file is an entry in a fenced YAML block, for example:
+
+```yaml
+file: "commerce-engine/core/ep-core/src/main/java/com/elasticpath/domain/Foo.java"
+step: "Git merge from 8.6.x to 8.7.x"
+pass: "diff"
+rule: "D-REPLACE"
+action: "took upstream"
+region: "whole file"
+extension_or_core: "core"
+matched_upstream_commit: "2b7e..."
+matched_upstream_blob: "9f1c..."
+matched_upstream_branch: "release/8.6.x"
+raw_merge_blob: "a952..."
+final_blob: "7418..."
+reason: "The file differs from the target release, and the latest local version matches an upstream version, so it has no customer changes."
+evidence: "The latest local commit of this file has blob 9f1c..., the same blob as upstream commit 2b7e...."
+rejected_alternatives: "Keep the local file. Rejected because it has no customer changes."
+needs_review: false
+```
+
+Every entry has these fields:
+
+| Field | Meaning |
+|-------|---------|
+| `file` | The path of the file, relative to the codebase root. |
+| `step` | The title of the step that made the decision. |
+| `pass` | `conflict` or `diff` for the Git merge step, `ast-grep` for the recipe step, and `llm` for LLM steps. |
+| `action` | What the step did to the file. |
+| `region` | The part of the file the decision applies to. The merge step and the recipe step always use `whole file`. |
+| `extension_or_core` | `extension` for paths under `extensions/`. `core` for all other paths. |
+| `reason`, `evidence`, `rejected_alternatives` | Why the step made the decision, what supports it, and what it rejected. |
+| `needs_review` | `true` means that a person must review the decision. |
+
+Some steps add more fields:
+
+| Field | Added by | Meaning |
+|-------|----------|---------|
+| `git_stage` | Git merge step, conflict pass | The Git status code of the conflict: `UU`, `AA`, `UD`, `DU`, `AU`, `UA`, or `DD`. |
+| `rule` | Git merge step | The rule the pass applied. See the table below. |
+| `rule` | ast-grep step | The recipe file and the IDs of its rules. |
+| `matched_upstream_commit`, `matched_upstream_blob`, `matched_upstream_branch` | Git merge step | The upstream commit, blob, and branch whose contents match the latest local version of the file. |
+| `raw_merge_blob`, `final_blob` | Git merge step, diff pass | The blob before and after the diff pass, `missing`, or `deleted`. |
+| `verified` | LLM steps | Each factual claim in the entry, the file the LLM checked it in, and the result. |
+
+The Git merge step uses these rules. Some rules use the term "matches an upstream version". It means that some upstream commit of the file has the same contents as its latest local commit. Such a file has no customer changes.
+
+| Rule | Pass | Meaning |
+|------|------|---------|
+| `R-DEL` | Conflict | The target release deleted the file, so the tool deletes it. |
+| `R-SAME` | Conflict | Both sides added the file with identical contents, so the tool keeps the local copy. |
+| `R-SAFE` | Conflict | The local file matches an upstream version, so the tool takes the upstream version. |
+| `R-MANUAL` | Conflict | No rule applies, so the conflict stays for the next LLM step. The entry has `needs_review: true`. |
+| `D-REPLACE` | Diff | The file differs from the target release and matches an upstream version, so the tool replaces it. |
+| `D-DELETE` | Diff | The target release does not have the file, and the file matches an upstream version, so the tool deletes it. |
+| `D-READD` | Diff | The target release has the file and the local tree does not, so the tool restores it. |
+
+Files that Git merged without a conflict, and files that the diff pass left unchanged, get no entries. The merge step section gives the count of each.
+
+Each LLM step writes a short narrative and one entry for each file it changed. Before the LLM writes an entry, it checks each claim in the entry against the files in the working tree. After each LLM run, the tool compares the files that the LLM changed with the entries that the LLM wrote. For each changed file without an entry, the tool adds an entry with `needs_review: true` under a "Coverage check" subsection.
+
+When you mark a step complete, the tool commits the journal with that step's code changes. The Git merge step does not commit, so its section is committed with the next step. Read the journal section of each step with the diff of its commit. Start with entries that have `needs_review: true`.
 
 # Standard Mode Usage
 

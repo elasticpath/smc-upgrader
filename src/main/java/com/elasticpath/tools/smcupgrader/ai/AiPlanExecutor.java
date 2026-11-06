@@ -22,7 +22,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -31,8 +33,11 @@ import org.slf4j.LoggerFactory;
 
 import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
+import com.elasticpath.tools.smcupgrader.JournalEntry;
 import com.elasticpath.tools.smcupgrader.ShellCommand;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
+import com.elasticpath.tools.smcupgrader.UpgradeJournal;
+import com.elasticpath.tools.smcupgrader.WorkingTreeSnapshot;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
@@ -50,16 +55,33 @@ public class AiPlanExecutor {
 
 	private static final String JOURNAL_INSTRUCTION_FORMAT = "Maintain an upgrade journal in the file %1$s in the current "
 			+ "directory. Create the file if it does not exist. Record your work for this step in a section with the heading "
-			+ "\"## %2$s\". If that section already exists, add a new subsection under it with the heading "
+			+ "\"## %2$s\". Create that section if it does not exist. Under it, add a new subsection with the heading "
 			+ "\"### Run <current date and time>\" and record this run there. "
-			+ "Record the goal of the step, the evidence you found, your theories and assumptions, each decision with its "
-			+ "rationale and the alternatives you rejected, each file you changed with the reason for the change, and open "
-			+ "items that a human must review. "
+			+ "At the top of the run subsection, write a short narrative: the goal of the step, the evidence you found, your "
+			+ "theories and assumptions, and open items that a human must review. "
+			+ "For each file you change, create, or delete, add one entry to the run subsection as a fenced yaml code block with "
+			+ "these keys, in this order: "
+			+ "file (the path relative to the current directory), "
+			+ "step (\"%2$s\"), "
+			+ "pass (\"llm\"), "
+			+ "action (what you changed), "
+			+ "region (the line range or member name you changed), "
+			+ "extension_or_core (\"extension\" if the path starts with extensions/, otherwise \"core\"), "
+			+ "reason (why you changed it), "
+			+ "evidence (what you found that supports the change), "
+			+ "rejected_alternatives (the alternatives you considered, and why you rejected each one), "
+			+ "verified (each factual claim in this entry, the file you checked it in, and the result), "
+			+ "needs_review (true or false). "
+			+ "Put every value except needs_review in double quotes. If you change the same file again in this run, update its "
+			+ "entry instead of adding a second one. "
+			+ "Before you write an entry, check each factual claim in it against the files in the working tree after your "
+			+ "change. Do not rely on the version from either side of the merge, or on your memory of a file. For a claim about "
+			+ "another file, open that file in the working tree. If a claim is false, correct the entry or the code. "
 			+ "Update the journal as your work progresses, not only at the end, and keep updating it until the step is "
 			+ "complete. After every file edit and after every build or test run, update the journal before you make any "
 			+ "other tool call. Do not start a new investigation until the previous one is recorded. Never stop updating "
 			+ "the journal because the work is long or complex. Before you report that the step is done, make sure that "
-			+ "the journal records every change you made and every build result. "
+			+ "the journal has an entry for every file you changed and records every build result. "
 			+ "Never edit or delete entries from other steps or earlier runs. "
 			+ "Do not commit %1$s to Git.";
 
@@ -446,17 +468,11 @@ public class AiPlanExecutor {
 		if (targetVersion != null && !targetVersion.trim().isEmpty()) {
 			LOGGER.info("Performing upgrade to version: {}", targetVersion);
 
+			UpgradeJournal journal = createJournal();
+			journal.startRun(step.getTitle());
 			try {
-				// Execute the upgrade with standard options
-				upgradeController.performUpgrade(
-						targetVersion,
-						false,  // doCleanWorkingDirectoryCheck
-						true,   // doFetch
-						false,  // doRevertPatches
-						true,  // doMerge
-						true,  // doConflictResolution
-						true   // doDiffResolution
-				);
+				// Fetch, merge, conflict pass, and diff pass, recording each decision in the journal
+				upgradeController.performUpgrade(targetVersion, journal);
 
 				LOGGER.info("Upgrade completed successfully.");
 
@@ -478,6 +494,7 @@ public class AiPlanExecutor {
 					return true;
 				}
 			} catch (RuntimeException e) {
+				journal.appendParagraph("The merge step failed: " + e.getMessage());
 				LOGGER.error("Upgrade failed", e);
 				LOGGER.warn("Step not marked as complete.");
 				LOGGER.warn("Please resolve the issue and run 'smc-upgrader --ai:continue' again.");
@@ -550,22 +567,33 @@ public class AiPlanExecutor {
 			return false;
 		}
 
-		return createAstGrepExecutor().run(version);
+		return createAstGrepExecutor(step.getTitle()).run(version);
 	}
 
 	/**
-	 * Create an AstGrepExecutor instance. Overridable for testing.
+	 * Create an AstGrepExecutor instance that records its changes in the journal. Overridable for testing.
 	 *
+	 * @param stepTitle the title of the step, used as the journal section heading
 	 * @return the AstGrepExecutor
 	 */
-	protected AstGrepExecutor createAstGrepExecutor() {
+	protected AstGrepExecutor createAstGrepExecutor(final String stepTitle) {
+		List<String> versions;
 		try {
-			AiAssistConfigModel config = AiAssistConfigModel.loadFromResource();
-			return new AstGrepExecutor(workingDir, config.getVersions());
+			versions = AiAssistConfigModel.loadFromResource().getVersions();
 		} catch (IOException e) {
 			LOGGER.warn("Could not load config for version ordering. Using empty version list.");
-			return new AstGrepExecutor(workingDir, new ArrayList<>());
+			versions = new ArrayList<>();
 		}
+		return new AstGrepExecutor(workingDir, versions, gitClient, createJournal(), stepTitle);
+	}
+
+	/**
+	 * Create the upgrade journal. Overridable for testing.
+	 *
+	 * @return the journal
+	 */
+	protected UpgradeJournal createJournal() {
+		return new UpgradeJournal(workingDir);
 	}
 
 	/**
@@ -589,8 +617,13 @@ public class AiPlanExecutor {
 			}
 			fullPrompt += "\n\n" + buildJournalInstruction(step.getTitle());
 
+			String journalBefore = createJournal().read();
+			WorkingTreeSnapshot snapshotBefore = WorkingTreeSnapshot.capture(gitClient);
+
 			CliLlmInvoker llmInvoker = createCliLlmInvoker(skipPermissions);
 			boolean llmSuccess = llmInvoker.invoke(fullPrompt);
+
+			recordUnexplainedChanges(step.getTitle(), journalBefore, snapshotBefore);
 
 			LOGGER.info("");
 			if (llmSuccess) {
@@ -604,6 +637,46 @@ public class AiPlanExecutor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Add a journal entry for each file the LLM changed without writing an entry for it during this run.
+	 *
+	 * <p>A file counts as explained when the journal has more {@code file:} fields for it than it had before the run.</p>
+	 *
+	 * @param stepTitle      the step title
+	 * @param journalBefore  the journal content before the LLM started
+	 * @param snapshotBefore the working tree snapshot before the LLM started
+	 */
+	void recordUnexplainedChanges(final String stepTitle, final String journalBefore, final WorkingTreeSnapshot snapshotBefore) {
+		Set<String> changedPaths = WorkingTreeSnapshot.capture(gitClient).changedSince(snapshotBefore);
+		if (changedPaths.isEmpty()) {
+			return;
+		}
+
+		UpgradeJournal journal = createJournal();
+		Map<String, Integer> countsBefore = UpgradeJournal.countFileFields(journalBefore);
+		Map<String, Integer> countsAfter = UpgradeJournal.countFileFields(journal.read());
+		List<JournalEntry> unexplained = new ArrayList<>();
+		for (String path : changedPaths) {
+			if (countsAfter.getOrDefault(path, 0) <= countsBefore.getOrDefault(path, 0)) {
+				unexplained.add(JournalEntry.forFile(path, "llm")
+						.with(JournalEntry.ACTION, "changed")
+						.with(JournalEntry.REASON, "changed by the LLM with no journal entry")
+						.with(JournalEntry.EVIDENCE, "The file contents changed while the LLM ran.")
+						.with(JournalEntry.NEEDS_REVIEW, true));
+			}
+		}
+		if (unexplained.isEmpty()) {
+			return;
+		}
+
+		LOGGER.warn("The CLI LLM changed {} file(s) without a journal entry. The tool added an entry for each one, for review.",
+				unexplained.size());
+		journal.startTimestampedSubsection(stepTitle, "Coverage check");
+		journal.appendParagraph("The LLM changed these files during this run without writing a journal entry for them. "
+				+ "Review each one.");
+		journal.appendEntries(unexplained);
 	}
 
 	/**

@@ -1,9 +1,6 @@
 package com.elasticpath.tools.smcupgrader;
 
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -33,21 +30,32 @@ public class SafeOverwriteDeterminer {
 	 * @return true if the file at path has does not appear to contain customizations
 	 */
 	public boolean pathIsSafeToOverwrite(final String path, final String upstreamRemoteName) {
-		RevCommit latestCommitForPath = gitClient.getLatestCommitForPath(path);
-		if (latestCommitForPath == null) {
-			return false;
-		}
-		Optional<String> latestCommitContentHash = gitClient.getContentHashOfPathAtCommit(path, latestCommitForPath);
-		if (!latestCommitContentHash.isPresent()) {
-			return false;
-		}
-		Iterable<RevCommit> authoritativeCommits = gitClient.getAllCommitsForPathInAllBranches(path, upstreamRemoteName);
-		Set<String> authoritativeContentHashes = StreamSupport.stream(authoritativeCommits.spliterator(), false)
-				.map(revCommit -> gitClient.getContentHashOfPathAtCommit(path, revCommit))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(Collectors.toSet());
-		return authoritativeContentHashes.contains(latestCommitContentHash.get());
+		return findUpstreamMatch(path, upstreamRemoteName).isPresent();
 	}
 
+	/**
+	 * Find the first upstream commit of the specified path whose contents match the latest local commit of that path.
+	 *
+	 * @param path               the file to evaluate
+	 * @param upstreamRemoteName the upstream remote name that contains commits that are considered authoritative
+	 * @return the matching upstream commit and blob, or Optional.empty if the file appears to contain customizations
+	 */
+	public Optional<UpstreamMatch> findUpstreamMatch(final String path, final String upstreamRemoteName) {
+		RevCommit latestCommitForPath = gitClient.getLatestCommitForPath(path);
+		if (latestCommitForPath == null) {
+			return Optional.empty();
+		}
+		Optional<String> latestBlobId = gitClient.getContentHashOfPathAtCommit(path, latestCommitForPath);
+		if (!latestBlobId.isPresent()) {
+			return Optional.empty();
+		}
+
+		for (RevCommit authoritativeCommit : gitClient.getAllCommitsForPathInAllBranches(path, upstreamRemoteName)) {
+			Optional<String> authoritativeBlobId = gitClient.getContentHashOfPathAtCommit(path, authoritativeCommit);
+			if (authoritativeBlobId.isPresent() && authoritativeBlobId.get().equals(latestBlobId.get())) {
+				return Optional.of(new UpstreamMatch(authoritativeCommit.getName(), authoritativeBlobId.get()));
+			}
+		}
+		return Optional.empty();
+	}
 }

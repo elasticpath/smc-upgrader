@@ -176,11 +176,11 @@ public interface GitClient {
 	void writeBlobContents(String hexSha, OutputStream outputStream);
 
 	/**
-	 * Returns a SHA-256 hash of the contents of the path at the specified commit.
+	 * Returns the Git blob ID of the path at the specified commit. Equal blob IDs mean equal file contents.
 	 *
 	 * @param path   the path of a file
 	 * @param commit a commit
-	 * @return an optional hash of the file contents, or Optional.empty if we were unable to generate the content hash
+	 * @return an optional blob ID, or Optional.empty if the path does not exist in the commit
 	 */
 	Optional<String> getContentHashOfPathAtCommit(String path, RevCommit commit);
 
@@ -192,4 +192,35 @@ public interface GitClient {
 	 * @return a hash of the commit contents
 	 */
 	String getContentHash(RevCommit commit);
+
+	/**
+	 * Returns the ID of the commit that HEAD points to.
+	 *
+	 * @return the commit ID
+	 */
+	String getHeadCommitId();
+
+	/**
+	 * Returns the paths whose index entries differ from the tree of the given commit, including conflicted paths.
+	 *
+	 * @param commitId the commit to compare the index with
+	 * @return the changed paths
+	 */
+	Set<String> getPathsChangedSince(String commitId);
+
+	/**
+	 * Returns every path with uncommitted changes: staged, unstaged, conflicting, missing, or untracked. Ignored files are excluded.
+	 *
+	 * @return the uncommitted paths
+	 */
+	Set<String> getUncommittedPaths();
+
+	/**
+	 * Returns the name of the first upstream branch that contains the given commit. Release branches are checked first.
+	 *
+	 * @param commitId           the commit
+	 * @param upstreamRemoteName the upstream remote name
+	 * @return the branch name without the remote prefix, or Optional.empty if no upstream branch contains the commit
+	 */
+	Optional<String> findUpstreamBranchContaining(String commitId, String upstreamRemoteName);
 }

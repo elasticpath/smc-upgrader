@@ -101,7 +101,7 @@ class MergeConflictResolverTest {
 		when(gitClient.getContentHashOfPathAtCommit(eq(PATH_2), same(remoteCommit1))).thenReturn(Optional.of(CONTENT_HASH_1)); // Match localCommit1
 		when(gitClient.getContentHashOfPathAtCommit(eq(PATH_3), same(remoteCommit2))).thenReturn(Optional.of(CONTENT_HASH_3)); // Don't match localCommit2
 
-		mergeConflictResolver.resolveMergeConflicts(UPSTREAM_REMOTE_NAME);
+		final PassResult result = mergeConflictResolver.resolveMergeConflicts(UPSTREAM_REMOTE_NAME);
 
 		assertThat(resolvedWithOurs.get())
 				.as("Conflicts resolved with ours doesn't match expectation")
@@ -109,5 +109,31 @@ class MergeConflictResolverTest {
 		assertThat(resolvedWithTheirs.get())
 				.as("Conflicts resolved with theirs doesn't match expectation")
 				.isEqualTo(1);
+
+		final List<JournalEntry> entries = result.getEntries();
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.FILE)).containsExactly(PATH_1, PATH_2, PATH_3);
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.PASS)).containsOnly("conflict");
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.RULE)).containsExactly("R-SAME", "R-SAFE", "R-MANUAL");
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.GIT_STAGE)).containsExactly("AA", "UU", "UU");
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.ACTION))
+				.containsExactly("kept ours", "took upstream", "left for manual resolution");
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.NEEDS_REVIEW)).containsExactly(false, false, true);
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.EXTENSION_OR_CORE)).containsExactly("core", "core", "extension");
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.MATCHED_UPSTREAM_BLOB)).containsExactly(null, CONTENT_HASH_1, null);
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.REASON)).doesNotContainNull();
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.EVIDENCE)).doesNotContainNull();
+		assertThat(entries).extracting(entry -> entry.get(JournalEntry.REJECTED_ALTERNATIVES)).doesNotContainNull();
+		assertThat(result.getUnchangedCount()).isZero();
+	}
+
+	@Test
+	void gitStageUsesTwoLetterStatusCodes() {
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.BOTH_DELETED)).isEqualTo("DD");
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.ADDED_BY_US)).isEqualTo("AU");
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.DELETED_BY_THEM)).isEqualTo("UD");
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.ADDED_BY_THEM)).isEqualTo("UA");
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.DELETED_BY_US)).isEqualTo("DU");
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.BOTH_ADDED)).isEqualTo("AA");
+		assertThat(MergeConflictResolver.gitStage(IndexDiff.StageState.BOTH_MODIFIED)).isEqualTo("UU");
 	}
 }
