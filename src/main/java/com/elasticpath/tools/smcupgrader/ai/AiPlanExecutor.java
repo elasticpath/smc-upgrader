@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -33,6 +34,7 @@ import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.ShellCommand;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
+import com.elasticpath.tools.smcupgrader.UpgradeReport;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
@@ -48,18 +50,22 @@ import com.elasticpath.tools.smcupgrader.ai.config.ToolTypeEnum;
 public class AiPlanExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AiPlanExecutor.class);
 
-	private static final String JOURNAL_INSTRUCTION_FORMAT = "Maintain an upgrade journal in the file %1$s in the current "
-			+ "directory. Create the file if it does not exist. Record your work for this step in a section with the heading "
-			+ "\"## %2$s\". If that section already exists, add a new subsection under it with the heading "
-			+ "\"### Run <current date and time>\" and record this run there. "
-			+ "Record the goal of the step, the evidence you found, your theories and assumptions, each decision with its "
-			+ "rationale and the alternatives you rejected, each file you changed with the reason for the change, and open "
-			+ "items that a human must review. "
-			+ "Update the journal as your work progresses, not only at the end, and keep updating it until the step is "
-			+ "complete. After every file edit and after every build or test run, update the journal before you make any "
-			+ "other tool call. Do not start a new investigation until the previous one is recorded. Never stop updating "
-			+ "the journal because the work is long or complex. Before you report that the step is done, make sure that "
-			+ "the journal records every change you made and every build result. "
+	private static final String JOURNAL_INSTRUCTION_FORMAT = "Keep an upgrade log for code reviewers in the file %1$s in the "
+			+ "current directory. Create the file if it does not exist. Write the entries for this step in a section with the "
+			+ "heading \"## %2$s\". If that section already exists, add a subsection with the heading "
+			+ "\"### Run <current date and time>\" under it. "
+			+ "Use these subsection headings once each, in this order: Goal, Evidence, Assumptions, Decisions and file changes, "
+			+ "Open items for human review. Under a run subsection, use one heading level lower. "
+			+ "Under each heading, write one bullet per problem, numbered in the order you found it, for example "
+			+ "\"Problem 3: ep-cortex-repositories\". "
+			+ "For each problem, record the module, the exact error with file and line, the platform file you compared it with, "
+			+ "the fix, the assumptions that a reviewer must check, and the alternatives you rejected. "
+			+ "Insert each entry under the matching heading as soon as you make the change, so that the log is complete if the "
+			+ "step stops early. "
+			+ "Never rewrite, merge, shorten or delete an entry after you write it, including at the end of the step. "
+			+ "Record every problem in full. Do not summarize earlier problems to shorten the section. "
+			+ "Write facts and conclusions, not a record of your thought process. "
+			+ "If there are no open items, write \"None\" under that heading. "
 			+ "Never edit or delete entries from other steps or earlier runs. "
 			+ "Do not commit %1$s to Git.";
 
@@ -101,10 +107,21 @@ public class AiPlanExecutor {
 	 * @param gitClient      the git client (for testing)
 	 */
 	AiPlanExecutor(final File workingDir, final GitClient gitClient) {
+		this(workingDir, gitClient, new UpgradeController(workingDir));
+	}
+
+	/**
+	 * Package-private constructor for testing.
+	 *
+	 * @param workingDir        the working directory
+	 * @param gitClient         the git client (for testing)
+	 * @param upgradeController the upgrade controller (for testing)
+	 */
+	AiPlanExecutor(final File workingDir, final GitClient gitClient, final UpgradeController upgradeController) {
 		this.workingDir = workingDir;
 		this.cliSkipPermissions = false;
 		this.llmConfig = LlmConfig.load();
-		this.upgradeController = new UpgradeController(workingDir);
+		this.upgradeController = upgradeController;
 		this.gitClient = gitClient;
 	}
 
@@ -448,7 +465,7 @@ public class AiPlanExecutor {
 
 			try {
 				// Execute the upgrade with standard options
-				upgradeController.performUpgrade(
+				final UpgradeReport report = upgradeController.performUpgrade(
 						targetVersion,
 						false,  // doCleanWorkingDirectoryCheck
 						true,   // doFetch
@@ -459,6 +476,7 @@ public class AiPlanExecutor {
 				);
 
 				LOGGER.info("Upgrade completed successfully.");
+				writeMergeJournal(step, report, null);
 
 				// Run validation if specified
 				if (step.hasValidationCommand()) {
@@ -479,6 +497,7 @@ public class AiPlanExecutor {
 				}
 			} catch (RuntimeException e) {
 				LOGGER.error("Upgrade failed", e);
+				writeMergeJournal(step, null, e.getMessage() == null ? e.getClass().getName() : e.getMessage());
 				LOGGER.warn("Step not marked as complete.");
 				LOGGER.warn("Please resolve the issue and run 'smc-upgrader --ai:continue' again.");
 				return false;
@@ -506,6 +525,23 @@ public class AiPlanExecutor {
 				return false;
 			}
 		}
+	}
+
+	private void writeMergeJournal(final AiPlanStep step, final UpgradeReport report, final String failureMessage) {
+		try {
+			createMergeJournalWriter().write(step.getTitle(), report, failureMessage);
+		} catch (IOException e) {
+			LOGGER.warn("Could not write the merge step to {}: {}", Constants.JOURNAL_FILE_NAME, e.getMessage());
+		}
+	}
+
+	/**
+	 * Create the writer for the Git merge step section of the upgrade journal.
+	 *
+	 * @return the writer
+	 */
+	protected MergeJournalWriter createMergeJournalWriter() {
+		return new MergeJournalWriter(workingDir, Clock.systemDefaultZone());
 	}
 
 	/**

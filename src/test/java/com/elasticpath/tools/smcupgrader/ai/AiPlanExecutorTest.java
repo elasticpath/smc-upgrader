@@ -38,6 +38,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.elasticpath.tools.smcupgrader.Constants;
 import com.elasticpath.tools.smcupgrader.GitClient;
+import com.elasticpath.tools.smcupgrader.UpgradeController;
+import com.elasticpath.tools.smcupgrader.UpgradeReport;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
@@ -203,6 +205,16 @@ class AiPlanExecutorTest {
 				.startsWith("Test prompt")
 				.contains(Constants.JOURNAL_FILE_NAME)
 				.contains("## Resolve merge conflicts")
+				.contains("Write facts and conclusions, not a record of your thought process.")
+				.contains("Use these subsection headings once each, in this order: Goal, Evidence, Assumptions, Decisions and file "
+						+ "changes, Open items for human review.")
+				.contains("write one bullet per problem, numbered in the order you found it")
+				.contains("Insert each entry under the matching heading as soon as you make the change")
+				.contains("Never rewrite, merge, shorten or delete an entry after you write it, including at the end of the step.")
+				.contains("Do not summarize earlier problems to shorten the section.")
+				.contains("If there are no open items, write \"None\" under that heading.")
+				.doesNotContain("theories")
+				.doesNotContain("before you make any other tool call")
 				.doesNotContain("Validation command:");
 	}
 
@@ -405,6 +417,34 @@ class AiPlanExecutorTest {
 		boolean result = executor.executeNextStep();
 
 		assertThat(result).isTrue();
+		assertThat(readJournal())
+				.startsWith("## Git merge from 8.6.x to 8.7.x\n\n### Goal\n")
+				.contains("The merge step failed: ");
+	}
+
+	@Test
+	void testExecuteNextStep_smcUpgraderStepWritesReportToJournal() throws IOException {
+		UpgradeController upgradeController = mock(UpgradeController.class);
+		UpgradeReport report = new UpgradeReport();
+		report.setCurrentVersion("8.6.x");
+		report.setTargetBranch("smc-upgrades/release/8.7.x");
+		report.addFileChanges(Collections.singletonList(
+				UpgradeReport.fileChange("pom.xml", "replaced with theirs because it had no local changes.")));
+		when(upgradeController.performUpgrade("8.7.x", false, true, false, true, true, true)).thenReturn(report);
+		AiPlanExecutor mergeExecutor = new AiPlanExecutor(tempDir, gitClient, upgradeController);
+
+		AiPlanStep step = createStep("Git merge from 8.6.x to 8.7.x", "smc-upgrader", "not started");
+		step.setVersion("8.7.x");
+		writePlanFile(Arrays.asList(step));
+
+		mergeExecutor.executeNextStep();
+
+		assertThat(readJournal())
+				.startsWith("## Git merge from 8.6.x to 8.7.x\n\n### Goal\n\nMerge the smc-upgrades/release/8.7.x branch")
+				.contains("### Evidence\n\nCurrent version 8.6.x.")
+				.endsWith("### Decisions and file changes\n\n- `pom.xml`: replaced with theirs because it had no local changes.\n");
+		verify(gitClient).stageAll();
+		verify(gitClient, never()).unstage(Constants.JOURNAL_FILE_NAME);
 	}
 
 	@Test
@@ -697,6 +737,13 @@ class AiPlanExecutorTest {
 		ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
 		verify(llmInvoker).invoke(promptCaptor.capture());
 		return promptCaptor.getValue();
+	}
+
+	/**
+	 * Helper to read the journal file.
+	 */
+	private String readJournal() throws IOException {
+		return new String(Files.readAllBytes(new File(tempDir, Constants.JOURNAL_FILE_NAME).toPath()), StandardCharsets.UTF_8);
 	}
 
 	/**

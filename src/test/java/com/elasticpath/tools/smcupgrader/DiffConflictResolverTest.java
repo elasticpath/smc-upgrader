@@ -84,7 +84,8 @@ class DiffConflictResolverTest {
 
 		when(gitClient.getContentHashOfPathAtCommit(eq(PATH_1), same(remoteCommit1))).thenReturn(Optional.of(CONTENT_HASH_1)); // Match localCommit1
 
-		diffConflictResolver.resolveDiffConflicts(UPSTREAM_REMOTE_NAME, VERSION);
+		final UpgradeReport report = new UpgradeReport();
+		diffConflictResolver.resolveDiffConflicts(UPSTREAM_REMOTE_NAME, VERSION, report);
 
 		assertThat(resolvedWithOurs.get())
 				.as("Conflicts resolved with ours doesn't match expectation")
@@ -92,5 +93,17 @@ class DiffConflictResolverTest {
 		assertThat(resolvedWithTheirs.get())
 				.as("Conflicts resolved with theirs doesn't match expectation")
 				.isEqualTo(1);
+		assertThat(report.getFileChanges()).containsExactly("`" + PATH_1 + "`: replaced with theirs because it was out of date and "
+				+ "matched a known older platform version, even though it had no conflict.");
+		assertThat(report.getDiffPassChangeCount()).isEqualTo(1);
+	}
+
+	@Test
+	void explainTheirsDescribesDeletionsAndRestores() {
+		final Change missingUpstream = new Change(PATH_1, ChangeType.DELETED, null, null, SHA_2, null);
+		final Change missingLocally = new Change(PATH_1, ChangeType.CREATED, null, SHA_1, null, null);
+
+		assertThat(DiffConflictResolver.explainTheirs(missingUpstream)).startsWith("deleted because it was out of date");
+		assertThat(DiffConflictResolver.explainTheirs(missingLocally)).startsWith("restored from theirs because it was out of date");
 	}
 }

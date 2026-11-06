@@ -283,9 +283,11 @@ You can then run `smc-upgrader --ai:continue` again to continue the current step
 
 ## Upgrade journal
 
-Each LLM step records its reasoning in `smc-upgrader-journal.md`, in the root of the codebase, next to `smc-upgrader-plan.md`. The file has one section per LLM step, titled with the step title. A section records the goal, the evidence, and the assumptions. It also records each decision with its rationale and rejected alternatives, each changed file with the reason, and open items for human review.
+Each LLM step writes a log for code reviewers in `smc-upgrader-journal.md`, in the root of the codebase, next to `smc-upgrader-plan.md`. The file has one section per LLM step, titled with the step title. A section records the goal, the facts in the code that support each change, and the assumptions that a reviewer must check. It also records each decision with the rejected alternatives, each changed file with the reason, and open items for human review. Each section uses the same subsection headings: Goal, Evidence, Assumptions, Decisions and file changes, and Open items for human review. If a step leaves no open items, that subsection says "None".
 
-The LLM updates the journal while it works. If you run a step again with `E`, the LLM adds a new dated run under that step's section. The Git merge step and the ast-grep recipe step add no entries.
+Under each heading, the LLM writes one numbered bullet per problem, in the order it found the problems. For each problem, it records the module, the exact error, the platform file it compared, the fix, and the rejected alternatives. The LLM adds each entry under the matching heading after it makes the change. It never rewrites or shortens an entry, so a long step can produce a long section. If you run a step again with `E`, the LLM adds a new dated run under that step's section. The ast-grep recipe step adds no entries.
+
+The Git merge step writes its own section, with the same layout. The section lists each file that the merge, the conflict pass, or the diff pass changed, with the reason. For example, if a file had no local changes, the merge replaces it with the upstream version. If local and upstream changes overlap, Git adds conflict markers to the file. On a large upgrade, this section can list thousands of files.
 
 When you mark a step complete, the tool commits the journal with that step's code changes. Read the journal section of each step with the diff of its commit.
 

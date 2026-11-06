@@ -175,6 +175,26 @@ public class GitClientImpl implements GitClient {
 	}
 
 	@Override
+	public String getHeadCommitId() {
+		try {
+			final ObjectId head = repository.resolve("HEAD^{commit}");
+			return head == null ? null : head.getName();
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public List<DiffEntry> getChangesSince(final String commitId) {
+		try (Git git = new Git(repository); RevWalk walk = new RevWalk(repository)) {
+			final RevCommit commit = walk.parseCommit(ObjectId.fromString(commitId));
+			return git.diff().setOldTree(prepareTreeParser(commit)).setCached(true).call();
+		} catch (final GitAPIException | IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public void revert(final AnyObjectId toRevert) {
 		try (Git git = new Git(repository)) {
 			final RevertCommand revertCommand = git.revert()
