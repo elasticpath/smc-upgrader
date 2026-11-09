@@ -91,8 +91,9 @@ public class UpgradeController {
 	 * @param doMerge                      perform the code merge
 	 * @param doConflictResolution         perform conflict resolution
 	 * @param doDiffResolution             perform diff resolution
+	 * @return a report of what the merge and the conflict and diff passes did
 	 */
-	public void performUpgrade(final String version,
+	public UpgradeReport performUpgrade(final String version,
 							   final boolean doCleanWorkingDirectoryCheck,
 							   final boolean doFetch,
 							   final boolean doRevertPatches,
@@ -101,6 +102,8 @@ public class UpgradeController {
 							   final boolean doDiffResolution) {
 		String currentVersion = convertVersionToReleaseFormat(determineCurrentVersion());
 		LOGGER.info("Detected current version {}.", currentVersion);
+		final UpgradeReport report = new UpgradeReport();
+		report.setCurrentVersion(currentVersion);
 
 		final String upstreamRemoteName = upstreamRemoteManager.getUpstreamRemoteName();
 
@@ -120,29 +123,24 @@ public class UpgradeController {
 		}
 
 		if (doMerge) {
-			merger.merge(doCleanWorkingDirectoryCheck, upstreamRemoteName, version);
+			merger.merge(doCleanWorkingDirectoryCheck, upstreamRemoteName, version, report);
 			LOGGER.info("Merge succeeded.");
 		} else {
 			LOGGER.info("Skipping merge.");
 		}
 
 		if (doConflictResolution) {
-			mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName);
+			mergeConflictResolver.resolveMergeConflicts(upstreamRemoteName, report);
 		} else {
 			LOGGER.info("Skipping merge conflict resolution.");
 		}
 
 		if (doDiffResolution) {
-			diffConflictResolver.resolveDiffConflicts(upstreamRemoteName, version);
+			diffConflictResolver.resolveDiffConflicts(upstreamRemoteName, version, report);
 		} else {
 			LOGGER.info("Skipping diff conflict resolution.");
 		}
-
-		LOGGER.info("Use your IDE to resolve any remaining merge conflicts, or run the following command:\n\n"
-				+ "git mergetool\n\n"
-				+ "Once all conflicts have been resolved, stage the changes and commit to complete the merge:\n\n"
-				+ "git add -A .\n"
-				+ "git commit");
+		return report;
 	}
 
 	/**

@@ -2,6 +2,8 @@ package com.elasticpath.tools.smcupgrader;
 
 import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +39,9 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 	 * Resolves merge conflicts.
 	 *
 	 * @param upstreamRemoteName the name of the upstream remote
+	 * @param report             receives a bullet for each file resolved with the upstream version
 	 */
-	public void resolveMergeConflicts(final String upstreamRemoteName) {
+	public void resolveMergeConflicts(final String upstreamRemoteName, final UpgradeReport report) {
 		final Map<String, IndexDiff.StageState> conflicts = getGitClient().getConflicts();
 		final Set<IndexEntry> statusIndexEntries = getGitClient().getStatusIndexEntries();
 
@@ -49,6 +52,7 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 		}
 
 		final List<Change> mergeConflictChanges = changeFactory.createChanges(conflicts, statusIndexEntries);
+		final List<String> fileChanges = Collections.synchronizedList(new ArrayList<>());
 
 		long resolvedDiffCount = ProcessCollectionInParallelWithProgress.process(mergeConflictChanges, change -> {
 			ConflictResolutionStrategy strategy = conflictResolutionDeterminer.determineResolution(change,
@@ -57,12 +61,33 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 			synchronized (this) {
 				resolveConflict(change, strategy);
 			}
+			if (strategy == ConflictResolutionStrategy.ACCEPT_THEIRS) {
+				fileChanges.add(UpgradeReport.fileChange(change.getPath(), explainTheirs(change)));
+			}
 			return strategy == ConflictResolutionStrategy.ACCEPT_THEIRS;
 		});
+
+		Collections.sort(fileChanges);
+		report.addFileChanges(fileChanges);
+		report.setConflictPassChangeCount(resolvedDiffCount);
 
 		if (resolvedDiffCount > 0) {
 			LOGGER.info("Resolved " + resolvedDiffCount + " conflict(s) by accepting the upstream change.");
 		}
+	}
+
+	/**
+	 * Explains a conflict resolved with the upstream version.
+	 *
+	 * @param change the resolved conflict
+	 * @return the explanation
+	 */
+	static String explainTheirs(final Change change) {
+		if (change.getTheirChangeType() == ChangeType.DELETED) {
+			return "deleted because the target release deleted it.";
+		}
+		final String action = resolvingTheirsDeletesFile(change) ? "deleted" : "replaced with theirs";
+		return action + " because its contents matched a known older platform version.";
 	}
 
 	private void resolveConflict(final Change change, final ConflictResolutionStrategy conflictResolutionStrategy) {

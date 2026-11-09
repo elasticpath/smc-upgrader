@@ -67,6 +67,21 @@ public interface GitClient {
 	void merge(Ref toMerge);
 
 	/**
+	 * Returns the ID of the commit that HEAD points to.
+	 *
+	 * @return the commit ID, or null if HEAD does not point to a commit
+	 */
+	String getHeadCommitId();
+
+	/**
+	 * Returns the differences between the tree of the given commit and the index.
+	 *
+	 * @param commitId the ID of the commit to compare with the index
+	 * @return the differences
+	 */
+	List<DiffEntry> getChangesSince(String commitId);
+
+	/**
 	 * Performs a revert operation for the given ref.
 	 *
 	 * @param toRevert the {@link AnyObjectId} to revert from the current working branch.

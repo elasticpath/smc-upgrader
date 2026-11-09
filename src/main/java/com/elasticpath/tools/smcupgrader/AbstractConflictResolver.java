@@ -42,13 +42,23 @@ public class AbstractConflictResolver {
 	 * @param change the change representing the conflict to resolve
 	 */
 	protected void resolveConflictTheirs(final Change change) {
-		if (change.getTheirChangeType() == ChangeType.DELETED || change.getOurChangeType() == ChangeType.CREATED) {
+		if (resolvingTheirsDeletesFile(change)) {
 			delete(change.getPath());
 			return;
 		}
 
 		replaceContents(change.getPath(), change.getTheirVersionSHA(), change.getTheirFilePermissions());
 		stage(change.getPath());
+	}
+
+	/**
+	 * Determines whether {@link #resolveConflictTheirs(Change)} deletes the file, as opposed to replacing its contents.
+	 *
+	 * @param change the change representing the conflict to resolve
+	 * @return true if accepting the incoming change deletes the file
+	 */
+	protected static boolean resolvingTheirsDeletesFile(final Change change) {
+		return change.getTheirChangeType() == ChangeType.DELETED || change.getOurChangeType() == ChangeType.CREATED;
 	}
 
 	/**

@@ -101,7 +101,8 @@ class MergeConflictResolverTest {
 		when(gitClient.getContentHashOfPathAtCommit(eq(PATH_2), same(remoteCommit1))).thenReturn(Optional.of(CONTENT_HASH_1)); // Match localCommit1
 		when(gitClient.getContentHashOfPathAtCommit(eq(PATH_3), same(remoteCommit2))).thenReturn(Optional.of(CONTENT_HASH_3)); // Don't match localCommit2
 
-		mergeConflictResolver.resolveMergeConflicts(UPSTREAM_REMOTE_NAME);
+		final UpgradeReport report = new UpgradeReport();
+		mergeConflictResolver.resolveMergeConflicts(UPSTREAM_REMOTE_NAME, report);
 
 		assertThat(resolvedWithOurs.get())
 				.as("Conflicts resolved with ours doesn't match expectation")
@@ -109,5 +110,18 @@ class MergeConflictResolverTest {
 		assertThat(resolvedWithTheirs.get())
 				.as("Conflicts resolved with theirs doesn't match expectation")
 				.isEqualTo(1);
+		assertThat(report.getFileChanges()).containsExactly(
+				"`" + PATH_2 + "`: replaced with theirs because its contents matched a known older platform version.");
+		assertThat(report.getConflictPassChangeCount()).isEqualTo(1);
+	}
+
+	@Test
+	void explainTheirsDescribesDeletions() {
+		final Change deletedUpstream = new Change(PATH_1, ChangeType.DELETED, ChangeType.UPDATED, null, "ours", null);
+		final Change createdLocally = new Change(PATH_1, ChangeType.UPDATED, ChangeType.CREATED, "theirs", "ours", null);
+
+		assertThat(MergeConflictResolver.explainTheirs(deletedUpstream)).isEqualTo("deleted because the target release deleted it.");
+		assertThat(MergeConflictResolver.explainTheirs(createdLocally))
+				.isEqualTo("deleted because its contents matched a known older platform version.");
 	}
 }
