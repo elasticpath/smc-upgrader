@@ -46,6 +46,7 @@ class MergerTest {
 		writeFile("conflict.txt", "base");
 		writeFile("deleted.txt", "base");
 		writeFile("local-only.txt", "base");
+		writeFile(Constants.JOURNAL_FILE_NAME, "base");
 		commitAll("base");
 		final String mainBranch = git.getRepository().getBranch();
 
@@ -54,6 +55,7 @@ class MergerTest {
 		writeFile("combined.txt", BASE_LINES.replace("8\n", "8 upstream\n"));
 		writeFile("conflict.txt", "upstream");
 		writeFile("added.txt", "upstream");
+		writeFile(Constants.JOURNAL_FILE_NAME, "upstream");
 		Files.delete(new File(repoDir, "deleted.txt").toPath());
 		git.rm().addFilepattern("deleted.txt").call();
 		final RevCommit upstream = commitAll("upstream");
@@ -63,6 +65,7 @@ class MergerTest {
 		writeFile("combined.txt", BASE_LINES.replace("1\n", "1 local\n"));
 		writeFile("conflict.txt", "local");
 		writeFile("local-only.txt", "local");
+		writeFile(Constants.JOURNAL_FILE_NAME, "local");
 		commitAll("local");
 
 		final UpgradeReport report = new UpgradeReport();

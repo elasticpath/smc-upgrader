@@ -129,6 +129,11 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			} else {
 				upgradeController.performUpgrade(version, doCleanWorkingDirectoryCheck, doFetch, doRevertPatches, doMerge,
 						doConflictResolution, doDiffResolution);
+				LOGGER.info("Use your IDE to resolve any remaining merge conflicts, or run the following command:\n\n"
+						+ "git mergetool\n\n"
+						+ "Once all conflicts have been resolved, stage the changes and commit to complete the merge:\n\n"
+						+ "git add -A .\n"
+						+ "git commit");
 			}
 
 			return 0;

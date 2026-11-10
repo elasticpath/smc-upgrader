@@ -5,6 +5,7 @@ import static com.elasticpath.tools.smcupgrader.UpgradeController.LOGGER;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Ref;
@@ -42,7 +43,9 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 		final Ref releaseBranch = getGitClient().getReleaseBranch(upstreamRemoteName, version);
 		final List<DiffEntry> diff = getGitClient().getDiff(releaseBranch);
 
-		final List<Change> diffConflictChanges = changeFactory.createChanges(diff);
+		final List<Change> diffConflictChanges = changeFactory.createChanges(diff).stream()
+				.filter(change -> !Constants.isUpgraderFile(change.getPath()))
+				.collect(Collectors.toList());
 		final List<String> fileChanges = Collections.synchronizedList(new ArrayList<>());
 
 		LOGGER.info(diffConflictChanges.size() + " non-conflict file(s) found that differ from upstream " + version + " branch.");

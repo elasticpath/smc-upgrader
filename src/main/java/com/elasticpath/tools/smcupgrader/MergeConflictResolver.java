@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.lib.IndexDiff;
 
@@ -51,7 +52,9 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 			LOGGER.info("Processing merge conflicts to attempt automatic resolution...");
 		}
 
-		final List<Change> mergeConflictChanges = changeFactory.createChanges(conflicts, statusIndexEntries);
+		final List<Change> mergeConflictChanges = changeFactory.createChanges(conflicts, statusIndexEntries).stream()
+				.filter(change -> !Constants.isUpgraderFile(change.getPath()))
+				.collect(Collectors.toList());
 		final List<String> fileChanges = Collections.synchronizedList(new ArrayList<>());
 
 		long resolvedDiffCount = ProcessCollectionInParallelWithProgress.process(mergeConflictChanges, change -> {

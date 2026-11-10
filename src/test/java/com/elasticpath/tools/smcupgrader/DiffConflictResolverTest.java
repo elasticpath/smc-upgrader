@@ -4,9 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -96,6 +100,32 @@ class DiffConflictResolverTest {
 		assertThat(report.getFileChanges()).containsExactly("`" + PATH_1 + "`: replaced with theirs because it was out of date and "
 				+ "matched a known older platform version, even though it had no conflict.");
 		assertThat(report.getDiffPassChangeCount()).isEqualTo(1);
+	}
+
+	@Test
+	void resolveDiffConflictsSkipsUpgraderFiles() {
+		final Ref releaseBranch = mock(Ref.class);
+		when(gitClient.getReleaseBranch(UPSTREAM_REMOTE_NAME, VERSION)).thenReturn(releaseBranch);
+		final List<DiffEntry> diffs = Arrays.asList(modifiedDiff(Constants.PLAN_FILE_NAME), modifiedDiff(Constants.JOURNAL_FILE_NAME));
+		when(gitClient.getDiff(releaseBranch)).thenReturn(diffs);
+
+		final UpgradeReport report = new UpgradeReport();
+		diffConflictResolver.resolveDiffConflicts(UPSTREAM_REMOTE_NAME, VERSION, report);
+
+		assertThat(resolvedWithOurs.get()).isZero();
+		assertThat(resolvedWithTheirs.get()).isZero();
+		assertThat(report.getFileChanges()).isEmpty();
+		assertThat(report.getDiffPassChangeCount()).isZero();
+		verify(gitClient, never()).getLatestCommitForPath(anyString());
+	}
+
+	private static DiffEntry modifiedDiff(final String path) {
+		final DiffEntry diff = mock(DiffEntry.class);
+		when(diff.getNewId()).thenReturn(AbbreviatedObjectId.fromString(SHA_1));
+		when(diff.getOldId()).thenReturn(AbbreviatedObjectId.fromString(SHA_2));
+		when(diff.getChangeType()).thenReturn(DiffEntry.ChangeType.MODIFY);
+		when(diff.getOldPath()).thenReturn(path);
+		return diff;
 	}
 
 	@Test

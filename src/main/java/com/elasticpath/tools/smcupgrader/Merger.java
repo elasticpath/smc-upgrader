@@ -93,20 +93,23 @@ public class Merger {
 		final Map<String, String> cleanChanges = new TreeMap<>();
 		for (DiffEntry entry : gitClient.getChangesSince(headBeforeMerge)) {
 			final String path = entry.getChangeType() == DiffEntry.ChangeType.ADD ? entry.getNewPath() : entry.getOldPath();
-			if (!conflicts.containsKey(path) && !isToolFile(path)) {
+			if (!conflicts.containsKey(path) && !Constants.isUpgraderFile(path)) {
 				cleanChanges.put(path, explainCleanMerge(entry.getChangeType(), pathsDifferentFromRelease.contains(path)));
 			}
 		}
 
-		final Map<String, String> allChanges = new TreeMap<>(cleanChanges);
-		new TreeMap<>(conflicts).forEach((path, stageState) -> {
-			if (!isToolFile(path)) {
-				allChanges.put(path, explainConflict(stageState));
+		final Map<String, String> conflictChanges = new TreeMap<>();
+		conflicts.forEach((path, stageState) -> {
+			if (!Constants.isUpgraderFile(path)) {
+				conflictChanges.put(path, explainConflict(stageState));
 			}
 		});
 
+		final Map<String, String> allChanges = new TreeMap<>(cleanChanges);
+		allChanges.putAll(conflictChanges);
+
 		report.setCleanMergeCount(cleanChanges.size());
-		report.setConflictCount(conflicts.size());
+		report.setConflictCount(conflictChanges.size());
 		report.addFileChanges(allChanges.entrySet().stream()
 				.map(change -> UpgradeReport.fileChange(change.getKey(), change.getValue()))
 				.collect(Collectors.toList()));
@@ -149,10 +152,6 @@ public class Merger {
 			default:
 				return "left in conflict (" + stageState.name().toLowerCase(Locale.ROOT).replace('_', ' ') + ").";
 		}
-	}
-
-	private static boolean isToolFile(final String path) {
-		return Constants.PLAN_FILE_NAME.equals(path) || Constants.JOURNAL_FILE_NAME.equals(path);
 	}
 
 	private static String shortBranchName(final String refName) {

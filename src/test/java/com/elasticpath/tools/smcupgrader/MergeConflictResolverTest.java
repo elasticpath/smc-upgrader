@@ -3,6 +3,9 @@ package com.elasticpath.tools.smcupgrader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -113,6 +116,29 @@ class MergeConflictResolverTest {
 		assertThat(report.getFileChanges()).containsExactly(
 				"`" + PATH_2 + "`: replaced with theirs because its contents matched a known older platform version.");
 		assertThat(report.getConflictPassChangeCount()).isEqualTo(1);
+	}
+
+	@Test
+	void resolveMergeConflictsSkipsUpgraderFiles() {
+		final Map<String, IndexDiff.StageState> conflicts = new HashMap<>();
+		conflicts.put(Constants.PLAN_FILE_NAME, IndexDiff.StageState.BOTH_MODIFIED);
+		conflicts.put(Constants.JOURNAL_FILE_NAME, IndexDiff.StageState.BOTH_MODIFIED);
+		when(gitClient.getConflicts()).thenReturn(conflicts);
+
+		final Set<IndexEntry> indexStatusEntries = new HashSet<>();
+		indexStatusEntries.add(new IndexEntry(Constants.PLAN_FILE_NAME, IndexEntry.Stage.THEIRS.ordinal(), UUID.randomUUID().toString()));
+		indexStatusEntries.add(new IndexEntry(Constants.JOURNAL_FILE_NAME, IndexEntry.Stage.THEIRS.ordinal(),
+				UUID.randomUUID().toString()));
+		when(gitClient.getStatusIndexEntries()).thenReturn(indexStatusEntries);
+
+		final UpgradeReport report = new UpgradeReport();
+		mergeConflictResolver.resolveMergeConflicts(UPSTREAM_REMOTE_NAME, report);
+
+		assertThat(resolvedWithOurs.get()).isZero();
+		assertThat(resolvedWithTheirs.get()).isZero();
+		assertThat(report.getFileChanges()).isEmpty();
+		assertThat(report.getConflictPassChangeCount()).isZero();
+		verify(gitClient, never()).getLatestCommitForPath(anyString());
 	}
 
 	@Test
