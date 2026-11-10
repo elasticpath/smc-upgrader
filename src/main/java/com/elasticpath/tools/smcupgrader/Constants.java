@@ -27,6 +27,16 @@ public final class Constants {
 	 */
 	public static final String JOURNAL_FILE_NAME = "smc-upgrader-journal.md";
 
+	/**
+	 * Determines whether a path is a file that smc-upgrader writes in the codebase being upgraded.
+	 *
+	 * @param path the repository-relative path
+	 * @return true if the path is the plan file or the journal file
+	 */
+	public static boolean isUpgraderFile(final String path) {
+		return PLAN_FILE_NAME.equals(path) || JOURNAL_FILE_NAME.equals(path);
+	}
+
 	private Constants() {
 		// Prevent instantiation
 	}
