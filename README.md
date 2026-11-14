@@ -17,7 +17,7 @@ It has the following benefits:
 * Access to the Elastic Path Self-Managed Commerce repository at `code.elasticpath.com`. See [Connecting to code.elasticpath.com](#connecting-to-codeelasticpathcom).
 * For AI Assist Mode only: a CLI-based LLM. By default this is [Claude Code](https://code.claude.com/docs/en/quickstart), which requires a [paid Claude plan](https://claude.com/pricing). To use a different CLI LLM, see [Configuring the CLI LLM](#configuring-the-cli-llm). On Windows, the Claude Code native installer puts `claude.exe` in `%USERPROFILE%\.local\bin`, which you may need to add to the PATH.
 * For AI Assist Mode only: `mvn` on the PATH. Validation steps run Maven in the project being upgraded.
-* For AI Assist Mode only, optional: [ast-grep](https://ast-grep.github.io/). See [Automated upgrade recipes](#automated-upgrade-recipes-ast-grep).
+* For AI Assist Mode only, optional: [ast-grep](https://ast-grep.github.io/) 0.50.0 or later. See [Automated upgrade recipes](#automated-upgrade-recipes-ast-grep).
 
 # Installation and Setup
 
@@ -334,7 +334,7 @@ smc-upgrader --no-merge 8.5.x
 
 AI Assist Mode includes an automated recipe step that applies deterministic code transformations via [ast-grep](https://ast-grep.github.io/) before the LLM resolves compilation errors. This significantly reduces the number of issues the LLM needs to address.
 
-Install ast-grep with one of:
+The recipe step requires ast-grep 0.50.0 or later. Install ast-grep with one of:
 
 ```
 brew install ast-grep
@@ -344,7 +344,7 @@ pip install ast-grep-cli
 
 On Windows, both the npm and pip installations work.
 
-ast-grep is not required. If it is not installed on your PATH, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means the LLM resolves more compilation issues manually instead of having them fixed deterministically up front.
+ast-grep is not required. If it is not installed on your PATH, or the installed version is older than 0.50.0, the recipe step does not fail the upgrade: it logs a warning, skips the automated transformations, and leaves the step in progress. You can either install or upgrade ast-grep and re-run `smc-upgrader --ai:continue` to apply the recipes, or skip the step entirely by marking it complete (`[M]`) at the prompt. Skipping simply means the LLM resolves more compilation issues manually instead of having them fixed deterministically up front.
 
 ## Configuring the CLI LLM
 
