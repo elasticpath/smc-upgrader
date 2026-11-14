@@ -25,8 +25,9 @@ import com.elasticpath.tools.smcupgrader.ShellCommand;
 public class AstGrepExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AstGrepExecutor.class);
 	private static final String RECIPES_DIR = "upgrade/recipes";
-	private static final String MIN_VERSION = "0.50.0";
+	private static final int MIN_MAJOR_VERSION = 0;
 	private static final int MIN_MINOR_VERSION = 50;
+	private static final String MIN_VERSION = MIN_MAJOR_VERSION + "." + MIN_MINOR_VERSION + ".0";
 	private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
 
 	private final File workingDir;
@@ -163,7 +164,7 @@ public class AstGrepExecutor {
 		}
 		int major = Integer.parseInt(matcher.group(1));
 		int minor = Integer.parseInt(matcher.group(2));
-		return major > 0 || minor >= MIN_MINOR_VERSION;
+		return major > MIN_MAJOR_VERSION || (major == MIN_MAJOR_VERSION && minor >= MIN_MINOR_VERSION);
 	}
 
 	/**
