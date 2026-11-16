@@ -2,7 +2,6 @@ package com.elasticpath.tools.smcupgrader.astgrep;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -122,28 +122,15 @@ public class AstGrepExecutor {
 	 * @return true if ast-grep is available
 	 */
 	protected boolean isAstGrepAvailable() {
-		Path output = null;
 		try {
-			output = Files.createTempFile("smc-upgrader-ast-grep-version-", ".txt");
-			File outputFile = output.toFile();
-			int exitCode = shellCommand.run("ast-grep --version", processBuilder -> processBuilder
-					.redirectOutput(outputFile)
-					.redirectError(ProcessBuilder.Redirect.DISCARD));
-			astGrepVersion = new String(Files.readAllBytes(output), StandardCharsets.UTF_8).trim();
-			return exitCode == 0;
+			Optional<String> output = shellCommand.runForOutput("ast-grep --version");
+			astGrepVersion = output.orElse(null);
+			return output.isPresent();
 		} catch (IOException e) {
 			return false;
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			return false;
-		} finally {
-			if (output != null) {
-				try {
-					Files.deleteIfExists(output);
-				} catch (IOException e) {
-					LOGGER.debug("Could not delete temporary file {}", output, e);
-				}
-			}
 		}
 	}
 

@@ -64,6 +64,29 @@ public class ShellCommand {
 	 * @throws InterruptedException if interrupted while waiting
 	 */
 	public int run(final String command, final Consumer<ProcessBuilder> configurer) throws IOException, InterruptedException {
+		return execute(command, configurer, Process::waitFor);
+	}
+
+	/**
+	 * Run a command through the shell and return its standard output. Standard error is discarded.
+	 *
+	 * @param command the shell command, in POSIX sh syntax
+	 * @return the trimmed standard output if the command exits with code 0, otherwise empty
+	 * @throws IOException          if no shell is found or the process cannot be started
+	 * @throws InterruptedException if interrupted while waiting
+	 */
+	public Optional<String> runForOutput(final String command) throws IOException, InterruptedException {
+		return execute(command, processBuilder -> processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD), process -> {
+			String output;
+			try (InputStream stdout = process.getInputStream()) {
+				output = new String(stdout.readAllBytes(), StandardCharsets.UTF_8).trim();
+			}
+			return process.waitFor() == 0 ? Optional.of(output) : Optional.empty();
+		});
+	}
+
+	private <T> T execute(final String command, final Consumer<ProcessBuilder> configurer, final ProcessHandler<T> handler)
+			throws IOException, InterruptedException {
 		String sh = resolveShell();
 		// Pass the command in a script file, not as "sh -c <command>". Windows passes a process one command-line
 		// string, and ProcessBuilder does not escape embedded quotes when joining arguments into it, so prompts
@@ -74,7 +97,7 @@ public class ShellCommand {
 			Files.write(script, command.getBytes(StandardCharsets.UTF_8));
 			ProcessBuilder processBuilder = new ProcessBuilder(sh, toPosixPath(script.toAbsolutePath().toString()));
 			configurer.accept(processBuilder);
-			return processBuilder.start().waitFor();
+			return handler.handle(processBuilder.start());
 		} finally {
 			try {
 				Files.deleteIfExists(script);
@@ -82,6 +105,16 @@ public class ShellCommand {
 				LOGGER.debug("Could not delete temporary script {}", script, e);
 			}
 		}
+	}
+
+	/**
+	 * Handles a started process and produces a result.
+	 *
+	 * @param <T> the result type
+	 */
+	@FunctionalInterface
+	private interface ProcessHandler<T> {
+		T handle(Process process) throws IOException, InterruptedException;
 	}
 
 	/**
