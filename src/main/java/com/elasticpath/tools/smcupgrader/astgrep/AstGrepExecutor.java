@@ -135,7 +135,7 @@ public class AstGrepExecutor {
 	}
 
 	/**
-	 * Check whether the {@code ast-grep --version} output reports version 0.50.0 or later.
+	 * Check whether the {@code ast-grep --version} output reports MIN_VERSION or later.
 	 * Output that does not contain a version number is treated as supported.
 	 *
 	 * @param versionOutput the output of {@code ast-grep --version}, for example {@code ast-grep 0.50.0}
