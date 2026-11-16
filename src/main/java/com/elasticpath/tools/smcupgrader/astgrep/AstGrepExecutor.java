@@ -65,8 +65,9 @@ public class AstGrepExecutor {
 			return false;
 		}
 
-		if (!isSupportedVersion(astGrepVersion)) {
-			LOGGER.warn("Detected {}, but ast-grep {} or later is required.", astGrepVersion, MIN_VERSION);
+		String installedVersion = getAstGrepVersion();
+		if (!isSupportedVersion(installedVersion)) {
+			LOGGER.warn("Detected {}, but ast-grep {} or later is required.", installedVersion, MIN_VERSION);
 			LOGGER.warn("Automated upgrade recipes for XML/Java will be skipped.");
 			LOGGER.warn("");
 			LOGGER.warn("To upgrade ast-grep, see: https://ast-grep.github.io/guide/quick-start.html");
@@ -132,6 +133,15 @@ public class AstGrepExecutor {
 			Thread.currentThread().interrupt();
 			return false;
 		}
+	}
+
+	/**
+	 * Get the {@code ast-grep --version} output recorded by {@link #isAstGrepAvailable()}.
+	 *
+	 * @return the version output, or null if not available
+	 */
+	protected String getAstGrepVersion() {
+		return astGrepVersion;
 	}
 
 	/**

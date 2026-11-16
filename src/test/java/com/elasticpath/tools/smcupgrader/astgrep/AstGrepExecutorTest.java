@@ -52,6 +52,17 @@ class AstGrepExecutorTest {
 	}
 
 	@Test
+	void run_skipsRecipesWhenAstGrepTooOld() throws IOException {
+		assertThat(executorWithAstGrepVersion("ast-grep 0.45.3").run("8.6.x")).isFalse();
+	}
+
+	@Test
+	void run_continuesWhenAstGrepSupported() throws IOException {
+		// No upgrade/recipes directory exists, so run() returns true once past the version check.
+		assertThat(executorWithAstGrepVersion("ast-grep 0.51.0").run("8.6.x")).isTrue();
+	}
+
+	@Test
 	void buildRecipeCommand_allowsCustomLanguagesWithConfig() {
 		List<String> cmd = executor().buildRecipeCommand(Paths.get("recipe.yml"), "sgconfig.yml");
 
@@ -140,6 +151,20 @@ class AstGrepExecutorTest {
 
 	private AstGrepExecutor executor() {
 		return new AstGrepExecutor(tempDir, VERSIONS);
+	}
+
+	private AstGrepExecutor executorWithAstGrepVersion(final String version) {
+		return new AstGrepExecutor(tempDir, VERSIONS) {
+			@Override
+			protected boolean isAstGrepAvailable() {
+				return true;
+			}
+
+			@Override
+			protected String getAstGrepVersion() {
+				return version;
+			}
+		};
 	}
 
 	private void writeRecipe(final Path recipesDir, final String bucket, final String filename) throws IOException {
