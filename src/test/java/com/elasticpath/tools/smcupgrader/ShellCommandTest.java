@@ -94,6 +94,22 @@ class ShellCommandTest {
 		assertThat(countScripts(tempRoot)).isEqualTo(scriptsBefore);
 	}
 
+	@Test
+	void testRunForOutput_returnsTrimmedStdoutAndDeletesScript() throws IOException, InterruptedException {
+		Path tempRoot = Path.of(System.getProperty("java.io.tmpdir"));
+		long scriptsBefore = countScripts(tempRoot);
+
+		Optional<String> output = new ShellCommand().runForOutput("echo ' hello '\necho ignored >&2");
+
+		assertThat(output).contains("hello");
+		assertThat(countScripts(tempRoot)).isEqualTo(scriptsBefore);
+	}
+
+	@Test
+	void testRunForOutput_emptyOnNonZeroExit() throws IOException, InterruptedException {
+		assertThat(new ShellCommand().runForOutput("echo output\nexit 1")).isEmpty();
+	}
+
 	private static long countScripts(final Path dir) throws IOException {
 		try (Stream<Path> files = Files.list(dir)) {
 			return files.filter(file -> {

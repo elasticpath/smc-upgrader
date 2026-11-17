@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -22,10 +25,15 @@ import com.elasticpath.tools.smcupgrader.ShellCommand;
 public class AstGrepExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AstGrepExecutor.class);
 	private static final String RECIPES_DIR = "upgrade/recipes";
+	private static final int MIN_MAJOR_VERSION = 0;
+	private static final int MIN_MINOR_VERSION = 50;
+	private static final String MIN_VERSION = MIN_MAJOR_VERSION + "." + MIN_MINOR_VERSION + ".0";
+	private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
 
 	private final File workingDir;
 	private final List<String> versions;
 	private final ShellCommand shellCommand = new ShellCommand();
+	private String astGrepVersion;
 
 	/**
 	 * Constructor.
@@ -53,6 +61,18 @@ public class AstGrepExecutor {
 			LOGGER.warn("To install ast-grep, see: https://ast-grep.github.io/guide/quick-start.html");
 			LOGGER.warn("");
 			LOGGER.warn("After installation, re-run 'smc-upgrader --ai:continue' to apply recipes.");
+			LOGGER.warn("To skip this step anyway, choose [Y/M] below.");
+			return false;
+		}
+
+		String installedVersion = getAstGrepVersion();
+		if (!isSupportedVersion(installedVersion)) {
+			LOGGER.warn("Detected {}, but ast-grep {} or later is required.", installedVersion, MIN_VERSION);
+			LOGGER.warn("Automated upgrade recipes for XML/Java will be skipped.");
+			LOGGER.warn("");
+			LOGGER.warn("To upgrade ast-grep, see: https://ast-grep.github.io/guide/quick-start.html");
+			LOGGER.warn("");
+			LOGGER.warn("After upgrading, re-run 'smc-upgrader --ai:continue' to apply recipes.");
 			LOGGER.warn("To skip this step anyway, choose [Y/M] below.");
 			return false;
 		}
@@ -98,22 +118,50 @@ public class AstGrepExecutor {
 	}
 
 	/**
-	 * Check whether the {@code ast-grep} binary is available on PATH.
+	 * Check whether the {@code ast-grep} binary is available on PATH, and record its version output.
 	 *
 	 * @return true if ast-grep is available
 	 */
 	protected boolean isAstGrepAvailable() {
 		try {
-			int exitCode = shellCommand.run("ast-grep --version", processBuilder -> processBuilder
-					.redirectOutput(ProcessBuilder.Redirect.DISCARD)
-					.redirectError(ProcessBuilder.Redirect.DISCARD));
-			return exitCode == 0;
+			Optional<String> output = shellCommand.runForOutput("ast-grep --version");
+			astGrepVersion = output.orElse(null);
+			return output.isPresent();
 		} catch (IOException e) {
 			return false;
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			return false;
 		}
+	}
+
+	/**
+	 * Get the {@code ast-grep --version} output recorded by {@link #isAstGrepAvailable()}.
+	 *
+	 * @return the version output, or null if not available
+	 */
+	protected String getAstGrepVersion() {
+		return astGrepVersion;
+	}
+
+	/**
+	 * Check whether the {@code ast-grep --version} output reports MIN_VERSION or later.
+	 * Output that does not contain a version number is treated as supported.
+	 *
+	 * @param versionOutput the output of {@code ast-grep --version}, for example {@code ast-grep 0.50.0}
+	 * @return true if the version is supported or cannot be parsed
+	 */
+	static boolean isSupportedVersion(final String versionOutput) {
+		if (versionOutput == null) {
+			return true;
+		}
+		Matcher matcher = VERSION_PATTERN.matcher(versionOutput);
+		if (!matcher.find()) {
+			return true;
+		}
+		int major = Integer.parseInt(matcher.group(1));
+		int minor = Integer.parseInt(matcher.group(2));
+		return major > MIN_MAJOR_VERSION || (major == MIN_MAJOR_VERSION && minor >= MIN_MINOR_VERSION);
 	}
 
 	/**
@@ -271,18 +319,34 @@ public class AstGrepExecutor {
 	 * @throws InterruptedException if the process is interrupted
 	 */
 	int runRecipe(final Path recipeFile, final String astGrepConfig) throws IOException, InterruptedException {
+		String command = buildRecipeCommand(recipeFile, astGrepConfig).stream()
+				.map(ShellCommand::quote)
+				.collect(Collectors.joining(" "));
+		return shellCommand.run(command, ProcessBuilder::inheritIO);
+	}
+
+	/**
+	 * Build the {@code ast-grep scan} command arguments for a single recipe file.
+	 *
+	 * @param recipeFile the recipe file
+	 * @param astGrepConfig path to sgconfig.yml, or null if not available
+	 * @return the unquoted command arguments
+	 */
+	List<String> buildRecipeCommand(final Path recipeFile, final String astGrepConfig) {
 		List<String> cmd = new ArrayList<>(Arrays.asList("ast-grep", "scan"));
 
 		if (astGrepConfig != null) {
 			cmd.add("--config");
 			cmd.add(ShellCommand.toPosixPath(astGrepConfig));
+			// ast-grep 0.50.0+ ignores the custom XML language library in sgconfig.yml without this opt-in.
+			cmd.add("--custom-languages");
+			cmd.add("allow");
 		}
 
 		cmd.addAll(Arrays.asList(
 				"--rule", ShellCommand.toPosixPath(recipeFile.toString()),
 				"--update-all", ShellCommand.toPosixPath(workingDir.getAbsolutePath())));
 
-		String command = cmd.stream().map(ShellCommand::quote).collect(Collectors.joining(" "));
-		return shellCommand.run(command, ProcessBuilder::inheritIO);
+		return cmd;
 	}
 }
