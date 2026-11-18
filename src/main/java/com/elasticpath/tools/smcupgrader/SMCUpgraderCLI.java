@@ -66,10 +66,10 @@ public class SMCUpgraderCLI implements Callable<Integer> {
 			negatable = true, defaultValue = "true")
 	private boolean doFetch;
 
-	@CommandLine.Option(names = { "-p", "--revert-patches" },
-			description = "Indicates whether to revert patches before merging. Enabled by default.",
+	@CommandLine.Option(names = { "--revert-patches" },
+			description = "Indicates whether to revert patches before merging. Disabled by default.",
 			negatable = true,
-			defaultValue = "true")
+			defaultValue = "false")
 	private boolean doRevertPatches;
 
 	@CommandLine.Option(names = { "-m", "--merge" },
