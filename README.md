@@ -310,6 +310,8 @@ This can be started by running:
 smc-upgrader 8.5.x
 ```
 
+To revert Elastic Path post-release patches before the merge, pass `--revert-patches`. This step is disabled by default.
+
 Once you have finished resolving all conflicts, you can complete the merge by running:
 
 ```
@@ -397,9 +399,9 @@ With `--ai:skip-permissions`, this runs `copilot --allow-all --prompt '<prompt>'
 # Command Line Options
 
 ```text
-Usage: smc-upgrader [-dfhmprvV] [--ai:continue] [--ai:skip-permissions] [--ai:
-                    start] [--[no-]clean-working-directory-check]
-                    [-C=<workingDir>] [<version>]
+Usage: smc-upgrader [-dfhmrvV] [--ai:continue] [--ai:skip-permissions] [--ai:
+                    start] [--[no-]clean-working-directory-check] [--[no-]
+                    revert-patches] [-C=<workingDir>] [<version>]
 Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
       [<version>]            The version of Elastic Path Self-Managed Commerce
                                to upgrade to. Optional when using --ai:start or
@@ -426,11 +428,11 @@ Utility to apply Elastic Path Self-Managed Commerce updates to a codebase.
   -h, --help                 Show this help message and exit.
   -m, --[no-]merge           Indicates whether to perform a merge. Enabled by
                                default.
-  -p, --[no-]revert-patches  Indicates whether to revert patches before
-                               merging. Enabled by default.
   -r, --[no-]resolve-conflicts
                              Indicates whether to resolve merge conflicts.
                                Enabled by default.
+      --[no-]revert-patches  Indicates whether to revert patches before
+                               merging. Disabled by default.
   -v, --verbose              Enables debug logging.
   -V, --version              Print version information and exit.
 ```

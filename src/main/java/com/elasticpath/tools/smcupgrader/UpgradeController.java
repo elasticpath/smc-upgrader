@@ -120,6 +120,8 @@ public class UpgradeController {
 			} else {
 				LOGGER.info("We're not doing a version upgrade, so skipping the patch revert step.");
 			}
+		} else {
+			LOGGER.info("Skipping patch revert.");
 		}
 
 		if (doMerge) {
