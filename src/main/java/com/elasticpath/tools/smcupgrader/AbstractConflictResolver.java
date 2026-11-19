@@ -58,7 +58,8 @@ public class AbstractConflictResolver {
 	 * @return true if accepting the incoming change deletes the file
 	 */
 	protected static boolean resolvingTheirsDeletesFile(final Change change) {
-		return change.getTheirChangeType() == ChangeType.DELETED || change.getOurChangeType() == ChangeType.CREATED;
+		return change.getTheirChangeType() == ChangeType.DELETED
+				|| (change.getOurChangeType() == ChangeType.CREATED && change.getTheirChangeType() == null);
 	}
 
 	/**
