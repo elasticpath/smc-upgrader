@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -39,7 +37,6 @@ public class AstGrepExecutor {
 	private static final int MIN_MINOR_VERSION = 50;
 	private static final String MIN_VERSION = MIN_MAJOR_VERSION + "." + MIN_MINOR_VERSION + ".0";
 	private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
-	private static final String DELETED = "deleted";
 
 	private final File workingDir;
 	private final List<String> versions;
@@ -165,34 +162,17 @@ public class AstGrepExecutor {
 	/**
 	 * Snapshot the files that differ between the working tree and the index.
 	 *
-	 * @return map from repository-relative path to the SHA-256 hash of its content, or a deleted marker
-	 * @throws IOException if a file cannot be read
+	 * @return map from repository-relative path to the Git blob ID of its working tree content; a deleted file has the zero ID
 	 */
-	private Map<String, String> snapshotModifiedFiles() throws IOException {
+	private Map<String, String> snapshotModifiedFiles() {
 		final Map<String, String> snapshot = new HashMap<>();
 		for (DiffEntry entry : gitClient.getDiff()) {
 			final String path = entry.getChangeType() == DiffEntry.ChangeType.ADD ? entry.getNewPath() : entry.getOldPath();
 			if (!Constants.isUpgraderFile(path)) {
-				snapshot.put(path, hash(new File(workingDir, path).toPath()));
+				snapshot.put(path, entry.getNewId().name());
 			}
 		}
 		return snapshot;
-	}
-
-	private static String hash(final Path file) throws IOException {
-		if (!Files.isRegularFile(file)) {
-			return DELETED;
-		}
-		try {
-			final byte[] digest = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file));
-			final StringBuilder hex = new StringBuilder();
-			for (byte b : digest) {
-				hex.append(String.format("%02x", b));
-			}
-			return hex.toString();
-		} catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	/**

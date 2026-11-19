@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,6 +20,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.AbbreviatedObjectId;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectInserter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -47,7 +50,7 @@ class AstGrepExecutorTest {
 	void setUp() {
 		gitClient = mock(GitClient.class);
 		when(gitClient.getDiff()).thenAnswer(invocation -> modifiedPaths.stream()
-				.map(AstGrepExecutorTest::modifiedDiff)
+				.map(this::modifiedDiff)
 				.collect(Collectors.toList()));
 	}
 
@@ -129,7 +132,7 @@ class AstGrepExecutorTest {
 		assertThat(report.getResults()).extracting(RecipeResult::getRecipePath)
 				.containsExactly("8.6.x/a.yml", "8.7.x/b.yml", "8.7.x/c.yml");
 		assertThat(report.getResults()).extracting(RecipeResult::getChangedPaths)
-				.containsExactly(Arrays.asList("x.txt", "y.txt"), new ArrayList<>(), Arrays.asList("y.txt"));
+				.containsExactly(Arrays.asList("x.txt", "y.txt"), new ArrayList<>(), List.of("y.txt"));
 	}
 
 	@Test
@@ -317,8 +320,8 @@ class AstGrepExecutorTest {
 	 */
 	private void editFile(final String path, final String text) throws IOException {
 		final Path file = tempDir.toPath().resolve(path);
-		final String existing = Files.exists(file) ? new String(Files.readAllBytes(file), StandardCharsets.UTF_8) : "";
-		Files.write(file, (existing + text + "\n").getBytes(StandardCharsets.UTF_8));
+		final String existing = Files.exists(file) ? Files.readString(file) : "";
+		Files.writeString(file, existing + text + "\n");
 		modifiedPaths.add(path);
 	}
 
@@ -326,10 +329,22 @@ class AstGrepExecutorTest {
 		return tempDir.toPath().resolve("upgrade/recipes");
 	}
 
-	private static DiffEntry modifiedDiff(final String path) {
+	/**
+	 * Creates a diff entry whose new ID is the Git blob ID of the file, or the zero ID if the file does not exist, as JGit does.
+	 */
+	private DiffEntry modifiedDiff(final String path) {
+		final Path file = tempDir.toPath().resolve(path);
+		final ObjectId newId;
+		try (ObjectInserter.Formatter formatter = new ObjectInserter.Formatter()) {
+			newId = Files.exists(file) ? formatter.idFor(org.eclipse.jgit.lib.Constants.OBJ_BLOB, Files.readAllBytes(file))
+					: ObjectId.zeroId();
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 		final DiffEntry diff = mock(DiffEntry.class);
 		when(diff.getChangeType()).thenReturn(DiffEntry.ChangeType.MODIFY);
 		when(diff.getOldPath()).thenReturn(path);
+		when(diff.getNewId()).thenReturn(AbbreviatedObjectId.fromObjectId(newId));
 		return diff;
 	}
 
