@@ -1,6 +1,7 @@
 package com.elasticpath.tools.smcupgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -8,6 +9,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +26,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -144,10 +148,35 @@ class MergeConflictResolverTest {
 	@Test
 	void explainTheirsDescribesDeletions() {
 		final Change deletedUpstream = new Change(PATH_1, ChangeType.DELETED, ChangeType.UPDATED, null, "ours", null);
-		final Change createdLocally = new Change(PATH_1, ChangeType.UPDATED, ChangeType.CREATED, "theirs", "ours", null);
+		final Change addedByUs = new Change(PATH_1, null, ChangeType.CREATED, null, "ours", null);
+		final Change bothAdded = new Change(PATH_1, ChangeType.CREATED, ChangeType.CREATED, "theirs", "ours", null);
 
 		assertThat(MergeConflictResolver.explainTheirs(deletedUpstream)).isEqualTo("deleted because the target release deleted it.");
-		assertThat(MergeConflictResolver.explainTheirs(createdLocally))
+		assertThat(MergeConflictResolver.explainTheirs(addedByUs))
 				.isEqualTo("deleted because its contents matched a known older platform version.");
+		assertThat(MergeConflictResolver.explainTheirs(bothAdded))
+				.isEqualTo("replaced with theirs because its contents matched a known older platform version.");
+	}
+
+	@Test
+	void resolveConflictTheirsReplacesBothAddedFile(@TempDir final File workingDir) {
+		when(gitClient.getWorkingDir()).thenReturn(workingDir);
+		final Change bothAdded = new Change(PATH_1, ChangeType.CREATED, ChangeType.CREATED, "theirs", "ours", null);
+
+		new MergeConflictResolver(gitClient).resolveConflictTheirs(bothAdded);
+
+		verify(gitClient).writeBlobContents(eq("theirs"), any(OutputStream.class));
+		verify(gitClient).stage(PATH_1);
+		verify(gitClient, never()).delete(anyString());
+	}
+
+	@Test
+	void resolveConflictTheirsDeletesAddedByUsFile() {
+		final Change addedByUs = new Change(PATH_1, null, ChangeType.CREATED, null, "ours", null);
+
+		new MergeConflictResolver(gitClient).resolveConflictTheirs(addedByUs);
+
+		verify(gitClient).delete(PATH_1);
+		verify(gitClient, never()).stage(anyString());
 	}
 }
