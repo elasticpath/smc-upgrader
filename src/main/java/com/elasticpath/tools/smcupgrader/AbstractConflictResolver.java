@@ -58,6 +58,8 @@ public class AbstractConflictResolver {
 	 * @return true if accepting the incoming change deletes the file
 	 */
 	protected static boolean resolvingTheirsDeletesFile(final Change change) {
+		// A null theirs change type means only we added the file (ADDED_BY_US), so theirs has no version to write.
+		// For BOTH_ADDED, theirs is CREATED and its version replaces ours.
 		return change.getTheirChangeType() == ChangeType.DELETED
 				|| (change.getOurChangeType() == ChangeType.CREATED && change.getTheirChangeType() == null);
 	}
