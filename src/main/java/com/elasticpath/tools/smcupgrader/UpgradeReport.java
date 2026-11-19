@@ -16,7 +16,9 @@ public class UpgradeReport {
 	private int conflictCount;
 	private long conflictPassChangeCount;
 	private long diffPassChangeCount;
-	private final List<String> fileChanges = Collections.synchronizedList(new ArrayList<>());
+	private final List<String> mergeFileChanges = Collections.synchronizedList(new ArrayList<>());
+	private final List<String> conflictResolutionFileChanges = Collections.synchronizedList(new ArrayList<>());
+	private final List<String> outdatedPlatformFileChanges = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * Formats a file change bullet.
@@ -30,16 +32,48 @@ public class UpgradeReport {
 	}
 
 	/**
-	 * Adds file change bullets, in the given order.
+	 * Adds the file change bullets of the Git merge phase, in the given order.
 	 *
 	 * @param changes the bullets, created with {@link #fileChange(String, String)}
 	 */
-	public void addFileChanges(final Collection<String> changes) {
-		fileChanges.addAll(changes);
+	public void addMergeFileChanges(final Collection<String> changes) {
+		mergeFileChanges.addAll(changes);
 	}
 
-	public List<String> getFileChanges() {
-		return Collections.unmodifiableList(new ArrayList<>(fileChanges));
+	public List<String> getMergeFileChanges() {
+		return copyOf(mergeFileChanges);
+	}
+
+	/**
+	 * Adds the file change bullets of the deterministic conflict resolution phase, in the given order.
+	 *
+	 * @param changes the bullets, created with {@link #fileChange(String, String)}
+	 */
+	public void addConflictResolutionFileChanges(final Collection<String> changes) {
+		conflictResolutionFileChanges.addAll(changes);
+	}
+
+	public List<String> getConflictResolutionFileChanges() {
+		return copyOf(conflictResolutionFileChanges);
+	}
+
+	/**
+	 * Adds the file change bullets of the outdated platform files phase, in the given order.
+	 *
+	 * @param changes the bullets, created with {@link #fileChange(String, String)}
+	 */
+	public void addOutdatedPlatformFileChanges(final Collection<String> changes) {
+		outdatedPlatformFileChanges.addAll(changes);
+	}
+
+	public List<String> getOutdatedPlatformFileChanges() {
+		return copyOf(outdatedPlatformFileChanges);
+	}
+
+	private static List<String> copyOf(final List<String> changes) {
+		synchronized (changes) {
+			return Collections.unmodifiableList(new ArrayList<>(changes));
+		}
 	}
 
 	public String getCurrentVersion() {

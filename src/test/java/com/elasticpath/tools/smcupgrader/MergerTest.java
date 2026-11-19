@@ -75,7 +75,7 @@ class MergerTest {
 		assertThat(report.getTargetCommitId()).isEqualTo(upstream.getName());
 		assertThat(report.getCleanMergeCount()).isEqualTo(4);
 		assertThat(report.getConflictCount()).isEqualTo(1);
-		assertThat(report.getFileChanges()).containsExactly(
+		assertThat(report.getMergeFileChanges()).containsExactly(
 				"`added.txt`: added from theirs because the target release added it.",
 				"`combined.txt`: Git combined local and upstream changes without a conflict.",
 				"`conflict.txt`: conflict markers added because local and upstream changes overlap.",

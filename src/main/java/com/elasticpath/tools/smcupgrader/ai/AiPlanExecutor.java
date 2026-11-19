@@ -36,6 +36,7 @@ import com.elasticpath.tools.smcupgrader.ShellCommand;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.UpgradeReport;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
+import com.elasticpath.tools.smcupgrader.astgrep.RecipeReport;
 import com.elasticpath.tools.smcupgrader.impl.GitClientImpl;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiAssistConfigModel;
@@ -586,7 +587,32 @@ public class AiPlanExecutor {
 			return false;
 		}
 
-		return createAstGrepExecutor().run(version);
+		final RecipeReport report;
+		try {
+			report = createAstGrepExecutor().run(version);
+		} catch (IOException e) {
+			writeRecipeJournal(step, new RecipeReport(version), e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+			throw e;
+		}
+		writeRecipeJournal(step, report, null);
+		return report.isSuccess();
+	}
+
+	private void writeRecipeJournal(final AiPlanStep step, final RecipeReport report, final String failureMessage) {
+		try {
+			createRecipeJournalWriter().write(step.getTitle(), report, failureMessage);
+		} catch (IOException e) {
+			LOGGER.warn("Could not write the recipe step to {}: {}", Constants.JOURNAL_FILE_NAME, e.getMessage());
+		}
+	}
+
+	/**
+	 * Create the writer for the ast-grep recipe step section of the upgrade journal.
+	 *
+	 * @return the writer
+	 */
+	protected RecipeJournalWriter createRecipeJournalWriter() {
+		return new RecipeJournalWriter(workingDir, Clock.systemDefaultZone());
 	}
 
 	/**
@@ -597,10 +623,10 @@ public class AiPlanExecutor {
 	protected AstGrepExecutor createAstGrepExecutor() {
 		try {
 			AiAssistConfigModel config = AiAssistConfigModel.loadFromResource();
-			return new AstGrepExecutor(workingDir, config.getVersions());
+			return new AstGrepExecutor(workingDir, config.getVersions(), gitClient);
 		} catch (IOException e) {
 			LOGGER.warn("Could not load config for version ordering. Using empty version list.");
-			return new AstGrepExecutor(workingDir, new ArrayList<>());
+			return new AstGrepExecutor(workingDir, new ArrayList<>(), gitClient);
 		}
 	}
 

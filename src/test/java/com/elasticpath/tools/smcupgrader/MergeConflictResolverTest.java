@@ -113,7 +113,7 @@ class MergeConflictResolverTest {
 		assertThat(resolvedWithTheirs.get())
 				.as("Conflicts resolved with theirs doesn't match expectation")
 				.isEqualTo(1);
-		assertThat(report.getFileChanges()).containsExactly(
+		assertThat(report.getConflictResolutionFileChanges()).containsExactly(
 				"`" + PATH_2 + "`: replaced with theirs because its contents matched a known older platform version.");
 		assertThat(report.getConflictPassChangeCount()).isEqualTo(1);
 	}
@@ -136,7 +136,7 @@ class MergeConflictResolverTest {
 
 		assertThat(resolvedWithOurs.get()).isZero();
 		assertThat(resolvedWithTheirs.get()).isZero();
-		assertThat(report.getFileChanges()).isEmpty();
+		assertThat(report.getConflictResolutionFileChanges()).isEmpty();
 		assertThat(report.getConflictPassChangeCount()).isZero();
 		verify(gitClient, never()).getLatestCommitForPath(anyString());
 	}

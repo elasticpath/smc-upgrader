@@ -110,7 +110,7 @@ public class Merger {
 
 		report.setCleanMergeCount(cleanChanges.size());
 		report.setConflictCount(conflictChanges.size());
-		report.addFileChanges(allChanges.entrySet().stream()
+		report.addMergeFileChanges(allChanges.entrySet().stream()
 				.map(change -> UpgradeReport.fileChange(change.getKey(), change.getValue()))
 				.collect(Collectors.toList()));
 	}
