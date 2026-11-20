@@ -68,7 +68,7 @@ public class DiffConflictResolver extends AbstractConflictResolver {
 		});
 
 		Collections.sort(fileChanges);
-		report.addFileChanges(fileChanges);
+		report.addOutdatedPlatformFileChanges(fileChanges);
 		report.setDiffPassChangeCount(resolvedDiffCount);
 
 		if (resolvedDiffCount > 0) {

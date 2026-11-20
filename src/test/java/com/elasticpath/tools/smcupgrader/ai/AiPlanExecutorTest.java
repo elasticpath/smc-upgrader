@@ -16,6 +16,7 @@
 package com.elasticpath.tools.smcupgrader.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -41,6 +42,7 @@ import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.UpgradeController;
 import com.elasticpath.tools.smcupgrader.UpgradeReport;
 import com.elasticpath.tools.smcupgrader.astgrep.AstGrepExecutor;
+import com.elasticpath.tools.smcupgrader.astgrep.RecipeReport;
 
 import com.elasticpath.tools.smcupgrader.ai.config.AiPlanStep;
 import com.elasticpath.tools.smcupgrader.ai.config.StatusEnum;
@@ -82,7 +84,7 @@ class AiPlanExecutorTest {
 
 			@Override
 			protected AstGrepExecutor createAstGrepExecutor() {
-				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
+				return new AstGrepExecutor(tempDir, Collections.emptyList(), gitClient) {
 					@Override
 					protected boolean isAstGrepAvailable() {
 						return false;
@@ -428,7 +430,7 @@ class AiPlanExecutorTest {
 		UpgradeReport report = new UpgradeReport();
 		report.setCurrentVersion("8.6.x");
 		report.setTargetBranch("smc-upgrades/release/8.7.x");
-		report.addFileChanges(Collections.singletonList(
+		report.addMergeFileChanges(Collections.singletonList(
 				UpgradeReport.fileChange("pom.xml", "replaced with theirs because it had no local changes.")));
 		when(upgradeController.performUpgrade("8.7.x", false, true, false, true, true, true)).thenReturn(report);
 		AiPlanExecutor mergeExecutor = new AiPlanExecutor(tempDir, gitClient, upgradeController);
@@ -442,7 +444,7 @@ class AiPlanExecutorTest {
 		assertThat(readJournal())
 				.startsWith("## Git merge from 8.6.x to 8.7.x\n\n### Goal\n\nMerge the smc-upgrades/release/8.7.x branch")
 				.contains("### Evidence\n\nCurrent version 8.6.x.")
-				.endsWith("### Decisions and file changes\n\n- `pom.xml`: replaced with theirs because it had no local changes.\n");
+				.endsWith("### Decisions and file changes\n\n#### Git merge\n\n- `pom.xml`: replaced with theirs because it had no local changes.\n");
 		verify(gitClient).stageAll();
 		verify(gitClient, never()).unstage(Constants.JOURNAL_FILE_NAME);
 	}
@@ -577,6 +579,10 @@ class AiPlanExecutorTest {
 		// Step should remain in progress (ast-grep not available → user must decide)
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
+		assertThat(readJournal())
+				.startsWith("## Run recipes\n\n### Goal\n\nApply the ast-grep upgrade recipes for 8.7.x and later versions.\n")
+				.contains("### Evidence\n\nTarget version 8.7.x. ast-grep is not available on the PATH, so no recipes ran.\n")
+				.endsWith("### Decisions and file changes\n\nNo files changed.\n");
 	}
 
 	@Test
@@ -596,7 +602,7 @@ class AiPlanExecutorTest {
 
 			@Override
 			protected AstGrepExecutor createAstGrepExecutor() {
-				return new AstGrepExecutor(tempDir, Collections.emptyList()) {
+				return new AstGrepExecutor(tempDir, Collections.emptyList(), gitClient) {
 					@Override
 					protected boolean isAstGrepAvailable() {
 						return true;
@@ -612,6 +618,85 @@ class AiPlanExecutorTest {
 		// Step should be marked complete (no recipes dir → graceful skip)
 		PlanDocument plan = readPlanFile();
 		assertThat(plan.getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+		assertThat(readJournal())
+				.contains("Target version 8.7.x. The upgrade/recipes directory does not exist, so no recipes ran.\n")
+				.endsWith("### Decisions and file changes\n\nNo files changed.\n");
+	}
+
+	@Test
+	void testExecuteNextStep_astGrepStep_writesRecipeChangesToJournalAndCommitsIt() throws IOException {
+		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
+		step.setVersion("8.7.x");
+		writePlanFile(Collections.singletonList(step));
+		RecipeReport report = new RecipeReport("8.7.x");
+		report.setSuccess(true);
+		report.addResult(new RecipeReport.RecipeResult("8.7.x/a.yml", 0, Arrays.asList("a.txt", "b.txt")));
+		report.addResult(new RecipeReport.RecipeResult("8.7.x/b.yml", 0, Collections.emptyList()));
+
+		boolean result = executorWithRecipeReport(report).executeNextStep();
+
+		assertThat(result).isTrue();
+		assertThat(readPlanFile().getSteps().get(0).getStatus()).isEqualTo(StatusEnum.COMPLETE);
+		assertThat(readJournal())
+				.contains("### Evidence\n\nTarget version 8.7.x. 2 applicable recipe(s) ran. The recipes changed 2 file(s).\n")
+				.endsWith("### Decisions and file changes\n\n#### 8.7.x/a.yml\n\n"
+						+ "- `a.txt`: rewritten by this recipe.\n- `b.txt`: rewritten by this recipe.\n");
+		verify(gitClient).stageAll();
+		verify(gitClient, never()).unstage(Constants.JOURNAL_FILE_NAME);
+	}
+
+	@Test
+	void testExecuteNextStep_astGrepStep_failedRecipeIsJournalledAndStepNotCompleted() throws IOException {
+		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
+		step.setVersion("8.7.x");
+		step.setCommitAllChangesOnCompletion(false); // avoid the completion prompt
+		writePlanFile(Collections.singletonList(step));
+		RecipeReport report = new RecipeReport("8.7.x");
+		report.addResult(new RecipeReport.RecipeResult("8.7.x/a.yml", 1, Collections.singletonList("a.txt")));
+
+		executorWithRecipeReport(report).executeNextStep();
+
+		assertThat(readPlanFile().getSteps().get(0).getStatus()).isEqualTo(StatusEnum.IN_PROGRESS);
+		assertThat(readJournal())
+				.contains("Recipe `8.7.x/a.yml` failed with exit code 1.")
+				.endsWith("#### 8.7.x/a.yml\n\n- `a.txt`: rewritten by this recipe.\n");
+	}
+
+	@Test
+	void testExecuteNextStep_astGrepStep_ioErrorIsJournalled() throws IOException {
+		AiPlanStep step = createStep("Run recipes", "ast-grep", "not started");
+		step.setVersion("8.7.x");
+		step.setCommitAllChangesOnCompletion(false);
+		writePlanFile(Collections.singletonList(step));
+		AiPlanExecutor failingExecutor = new AiPlanExecutor(tempDir, gitClient) {
+			@Override
+			protected AstGrepExecutor createAstGrepExecutor() {
+				return new AstGrepExecutor(tempDir, Collections.emptyList(), gitClient) {
+					@Override
+					public RecipeReport run(final String version) throws IOException {
+						throw new IOException("ast-grep execution interrupted");
+					}
+				};
+			}
+		};
+
+		assertThatThrownBy(failingExecutor::executeNextStep).isInstanceOf(IOException.class);
+		assertThat(readJournal())
+				.contains("### Evidence\n\nTarget version 8.7.x. The recipe step failed: ast-grep execution interrupted\n");
+	}
+
+	private AiPlanExecutor executorWithRecipeReport(final RecipeReport report) {
+		return new AiPlanExecutor(tempDir, gitClient) {
+			@Override
+			protected AstGrepExecutor createAstGrepExecutor() {
+				return new AstGrepExecutor(tempDir, Collections.emptyList(), gitClient) {
+					@Override
+					public RecipeReport run(final String version) {
+						return report;
+					}
+				};
+			}
+		};
 	}
 
 	@Test

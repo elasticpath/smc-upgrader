@@ -97,7 +97,7 @@ class DiffConflictResolverTest {
 		assertThat(resolvedWithTheirs.get())
 				.as("Conflicts resolved with theirs doesn't match expectation")
 				.isEqualTo(1);
-		assertThat(report.getFileChanges()).containsExactly("`" + PATH_1 + "`: replaced with theirs because it was out of date and "
+		assertThat(report.getOutdatedPlatformFileChanges()).containsExactly("`" + PATH_1 + "`: replaced with theirs because it was out of date and "
 				+ "matched a known older platform version, even though it had no conflict.");
 		assertThat(report.getDiffPassChangeCount()).isEqualTo(1);
 	}
@@ -114,7 +114,7 @@ class DiffConflictResolverTest {
 
 		assertThat(resolvedWithOurs.get()).isZero();
 		assertThat(resolvedWithTheirs.get()).isZero();
-		assertThat(report.getFileChanges()).isEmpty();
+		assertThat(report.getOutdatedPlatformFileChanges()).isEmpty();
 		assertThat(report.getDiffPassChangeCount()).isZero();
 		verify(gitClient, never()).getLatestCommitForPath(anyString());
 	}

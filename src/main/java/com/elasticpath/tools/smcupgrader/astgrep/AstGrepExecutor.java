@@ -8,15 +8,23 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.eclipse.jgit.diff.DiffEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.elasticpath.tools.smcupgrader.Constants;
+import com.elasticpath.tools.smcupgrader.GitClient;
 import com.elasticpath.tools.smcupgrader.ShellCommand;
 
 /**
@@ -32,6 +40,7 @@ public class AstGrepExecutor {
 
 	private final File workingDir;
 	private final List<String> versions;
+	private final GitClient gitClient;
 	private final ShellCommand shellCommand = new ShellCommand();
 	private String astGrepVersion;
 
@@ -40,20 +49,23 @@ public class AstGrepExecutor {
 	 *
 	 * @param workingDir        the repository working directory to run recipes against
 	 * @param versions ordered list of supported versions from configuration
+	 * @param gitClient         the Git client, used to find the files that each recipe changes
 	 */
-	public AstGrepExecutor(final File workingDir, final List<String> versions) {
+	public AstGrepExecutor(final File workingDir, final List<String> versions, final GitClient gitClient) {
 		this.workingDir = workingDir;
 		this.versions = versions;
+		this.gitClient = gitClient;
 	}
 
 	/**
 	 * Run all applicable recipes for the given version.
 	 *
 	 * @param version the target version
-	 * @return true if all recipes passed (or none found), false if any failed
+	 * @return the report; it is successful if all recipes passed (or none found), and not successful if any failed
 	 * @throws IOException if an I/O error occurs
 	 */
-	public boolean run(final String version) throws IOException {
+	public RecipeReport run(final String version) throws IOException {
+		final RecipeReport report = new RecipeReport(version);
 		if (!isAstGrepAvailable()) {
 			LOGGER.warn("ast-grep is not available on PATH.");
 			LOGGER.warn("Automated upgrade recipes for XML/Java will be skipped.");
@@ -62,7 +74,8 @@ public class AstGrepExecutor {
 			LOGGER.warn("");
 			LOGGER.warn("After installation, re-run 'smc-upgrader --ai:continue' to apply recipes.");
 			LOGGER.warn("To skip this step anyway, choose [Y/M] below.");
-			return false;
+			report.setSkipReason("ast-grep is not available on the PATH, so no recipes ran.");
+			return report;
 		}
 
 		String installedVersion = getAstGrepVersion();
@@ -74,19 +87,25 @@ public class AstGrepExecutor {
 			LOGGER.warn("");
 			LOGGER.warn("After upgrading, re-run 'smc-upgrader --ai:continue' to apply recipes.");
 			LOGGER.warn("To skip this step anyway, choose [Y/M] below.");
-			return false;
+			report.setSkipReason("Detected " + installedVersion + ", but ast-grep " + MIN_VERSION
+					+ " or later is required, so no recipes ran.");
+			return report;
 		}
 
 		File recipesDir = new File(workingDir, RECIPES_DIR);
 		if (!recipesDir.isDirectory()) {
 			LOGGER.info("No upgrade recipes directory found. Skipping.");
-			return true;
+			report.setSkipReason("The " + RECIPES_DIR + " directory does not exist, so no recipes ran.");
+			report.setSuccess(true);
+			return report;
 		}
 
 		List<Path> recipeFiles = discoverRecipeFiles(recipesDir.toPath(), version);
 		if (recipeFiles.isEmpty()) {
 			LOGGER.info("No applicable recipes for {}. Skipping.", version);
-			return true;
+			report.setSkipReason("No recipes apply to " + version + ", so no recipes ran.");
+			report.setSuccess(true);
+			return report;
 		}
 
 		LOGGER.info("Found {} applicable recipe(s) for {}.", recipeFiles.size(), version);
@@ -95,9 +114,15 @@ public class AstGrepExecutor {
 
 		try {
 			int failCount = 0;
+			// Recipes run one at a time, so the snapshot after one recipe is the snapshot before the next.
+			Map<String, String> before = snapshotModifiedFiles();
 			for (Path recipeFile : recipeFiles) {
 				LOGGER.info("Applying recipe: {}", recipeFile.getFileName());
 				int exitCode = runRecipe(recipeFile, astGrepConfig);
+				final Map<String, String> after = snapshotModifiedFiles();
+				report.addResult(new RecipeReport.RecipeResult(relativeRecipePath(recipesDir.toPath(), recipeFile), exitCode,
+						changedPaths(before, after)));
+				before = after;
 				if (exitCode != 0) {
 					LOGGER.warn("Recipe {} failed (exit code {}).", recipeFile.getFileName(), exitCode);
 					failCount++;
@@ -106,15 +131,50 @@ public class AstGrepExecutor {
 
 			if (failCount == 0) {
 				LOGGER.info("All {} recipe(s) applied successfully.", recipeFiles.size());
-				return true;
+				report.setSuccess(true);
 			} else {
 				LOGGER.warn("{} of {} recipe(s) failed.", failCount, recipeFiles.size());
-				return false;
 			}
+			return report;
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new IOException("ast-grep execution interrupted", e);
 		}
+	}
+
+	private static String relativeRecipePath(final Path recipesDir, final Path recipeFile) {
+		return recipesDir.toAbsolutePath().normalize().relativize(recipeFile).toString().replace(File.separatorChar, '/');
+	}
+
+	/**
+	 * Find the paths whose working tree state differs between two snapshots.
+	 *
+	 * @param before the snapshot taken before a recipe ran
+	 * @param after  the snapshot taken after the recipe ran
+	 * @return the changed paths
+	 */
+	private static List<String> changedPaths(final Map<String, String> before, final Map<String, String> after) {
+		final Set<String> paths = new HashSet<>(before.keySet());
+		paths.addAll(after.keySet());
+		return paths.stream()
+				.filter(path -> !Objects.equals(before.get(path), after.get(path)))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Snapshot the files that differ between the working tree and the index.
+	 *
+	 * @return map from repository-relative path to the Git blob ID of its working tree content; a deleted file has the zero ID
+	 */
+	private Map<String, String> snapshotModifiedFiles() {
+		final Map<String, String> snapshot = new HashMap<>();
+		for (DiffEntry entry : gitClient.getDiff()) {
+			final String path = entry.getChangeType() == DiffEntry.ChangeType.ADD ? entry.getNewPath() : entry.getOldPath();
+			if (!Constants.isUpgraderFile(path)) {
+				snapshot.put(path, entry.getNewId().name());
+			}
+		}
+		return snapshot;
 	}
 
 	/**

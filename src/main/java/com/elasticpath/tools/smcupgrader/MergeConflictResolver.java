@@ -71,7 +71,7 @@ public class MergeConflictResolver extends AbstractConflictResolver {
 		});
 
 		Collections.sort(fileChanges);
-		report.addFileChanges(fileChanges);
+		report.addConflictResolutionFileChanges(fileChanges);
 		report.setConflictPassChangeCount(resolvedDiffCount);
 
 		if (resolvedDiffCount > 0) {
