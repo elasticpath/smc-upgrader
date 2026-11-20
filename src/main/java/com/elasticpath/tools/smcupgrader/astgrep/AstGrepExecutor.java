@@ -114,13 +114,15 @@ public class AstGrepExecutor {
 
 		try {
 			int failCount = 0;
+			// Recipes run one at a time, so the snapshot after one recipe is the snapshot before the next.
+			Map<String, String> before = snapshotModifiedFiles();
 			for (Path recipeFile : recipeFiles) {
 				LOGGER.info("Applying recipe: {}", recipeFile.getFileName());
-				final Map<String, String> before = snapshotModifiedFiles();
 				int exitCode = runRecipe(recipeFile, astGrepConfig);
 				final Map<String, String> after = snapshotModifiedFiles();
 				report.addResult(new RecipeReport.RecipeResult(relativeRecipePath(recipesDir.toPath(), recipeFile), exitCode,
 						changedPaths(before, after)));
+				before = after;
 				if (exitCode != 0) {
 					LOGGER.warn("Recipe {} failed (exit code {}).", recipeFile.getFileName(), exitCode);
 					failCount++;

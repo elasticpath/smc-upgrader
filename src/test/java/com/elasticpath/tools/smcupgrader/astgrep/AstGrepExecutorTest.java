@@ -2,6 +2,8 @@ package com.elasticpath.tools.smcupgrader.astgrep;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -133,6 +135,8 @@ class AstGrepExecutorTest {
 				.containsExactly("8.6.x/a.yml", "8.7.x/b.yml", "8.7.x/c.yml");
 		assertThat(report.getResults()).extracting(RecipeResult::getChangedPaths)
 				.containsExactly(Arrays.asList("x.txt", "y.txt"), new ArrayList<>(), List.of("y.txt"));
+		// One snapshot before the first recipe, then one after each recipe.
+		verify(gitClient, times(4)).getDiff();
 	}
 
 	@Test
